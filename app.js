@@ -9,10 +9,13 @@ import passport from 'passport'
 import passportConfig from './config/passport-config'
 import indexRouter from './routes/index'
 import usersRouter from './routes/users'
+import AuthRouter from '.routers/auth'
 
 export default () => {
   env.config()
   const app = express()
+  app.express = express
+  app.env = env
 
   // view engine setup
   app.set('views', path.join(__dirname, 'views'))
@@ -25,12 +28,13 @@ export default () => {
   app.use(express.static(path.join(__dirname, 'public')))
 
   // configure passport
-  passportConfig(passport)
-  app.use(passport.initialize({}))
-  app.use(passport.session({}))
+  app.passport = passportConfig(passport)
+  app.use(app.passport.initialize({}))
+  app.use(app.passport.session({}))
 
   app.use('/', indexRouter)
   app.use('/users', usersRouter)
+  app.use('/auth', AuthRouter(app))
 
   // catch 404 and forward to error handler
   app.use(function (req, res, next) {
