@@ -4,9 +4,8 @@ import express from 'express'
 import path from 'path'
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
-import passport from 'passport'
 
-import passportConfig from './config/passport-config'
+import Auth from './config/auth'
 import indexRouter from './routes/index'
 import usersRouter from './routes/users'
 import AuthRouter from './routes/auth-router'
@@ -27,11 +26,10 @@ export default () => {
   app.use(cookieParser())
   app.use(express.static(path.join(__dirname, 'public')))
 
-  // configure passport
-  app.passport = passportConfig(passport)
-  app.use(app.passport.initialize({}))
-  app.use(app.passport.session({}))
+  // configure auth via passport
+  app.passport = Auth(app)
 
+  // configure routes
   app.use('/', indexRouter)
   app.use('/users', usersRouter)
   app.use('/auth', AuthRouter(app))
