@@ -64,4 +64,6 @@ export default (passport) => {
 
   // Deserialize user from the sessions
   passport.deserializeUser((user, done) => done(null, user))
+
+  return passport
 }

@@ -9,7 +9,7 @@ import passport from 'passport'
 import passportConfig from './config/passport-config'
 import indexRouter from './routes/index'
 import usersRouter from './routes/users'
-import AuthRouter from '.routers/auth'
+import AuthRouter from './routes/auth-router'
 
 export default () => {
   env.config()
