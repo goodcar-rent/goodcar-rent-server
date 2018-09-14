@@ -10,17 +10,14 @@ GoodCar.rent server app
 * email invites for registration
 * initial seed
 
-## endpoints
+## Endpoints
 
-POST /auth - login via email/password
+POST /login - login via email/password
+POST /signup - create new user profile
+GET /signup/invite - create new user rofilep via invite
 
-GET /auth/facebook - return info page with redirect to Facebook 
-POST /auth/facebook - login via linked facebook account
-
-GET /auth/:provider - return redirect page with login via provider
-POST /auth/google - login via linked google account
-
-POST /auth/instagram - login via linked instagram account
+GET /login/:provider - return redirect page with login via provider (Instagram, Google, Facebook)
+POST /login/:provider - accept access token from social provider to login
 
 GET /me - return user profile
 

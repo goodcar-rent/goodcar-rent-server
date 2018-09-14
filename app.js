@@ -9,12 +9,14 @@ import Auth from './config/auth'
 import indexRouter from './routes/index'
 import usersRouter from './routes/users'
 import AuthRouter from './routes/auth-router'
+import ErrorHandlers from './config/error-handlers'
+import wrap from './services/wrap'
 
 export default () => {
   env.config()
   const app = express()
   app.express = express
-  app.env = env
+  app.env = process.env
 
   // view engine setup
   app.set('views', path.join(__dirname, 'views'))
@@ -28,6 +30,8 @@ export default () => {
 
   // configure auth via passport
   app.passport = Auth(app)
+  app.use(app.auth.initialize())
+  app.wrap = wrap
 
   // configure routes
   app.use('/', indexRouter)
@@ -39,6 +43,7 @@ export default () => {
     next(createError(404))
   })
 
+  /*
   // error handler
   app.use((err, req, res, _next) => { //eslint-disable-line
     // set locals, only providing error in development
@@ -49,5 +54,8 @@ export default () => {
     res.status(err.status || 500)
     res.render('error')
   })
+  */
+  ErrorHandlers(app)
+
   return app
 }
