@@ -9,7 +9,6 @@ export default module.exports = (app) => {
     secretOrKey: app.env.JWT_SECRET,
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken()
   }
-  console.log(`JWTS: ${app.env.JWT_SECRET}`)
   const strategy = new Strategy(params, (payload, done) => {
     User.findById(payload.id)
       .then((user) => {
