@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "cross-env DEBUG='goodcar-rent-server:*' npx babel-node ./server/server.js"
+    "start": "cross-env DEBUG='goodcar-rent-server:*' npx babel-node $NODE_DEBUG_OPTION ./server/server.js",
+    "test": "cross-env DEBUG='' NODE_ENV=test mocha $NODE_DEBUG_OPTION test/**/*.js"
   },
   "dependencies": {
     "bcrypt": "^3.0.0",
@@ -30,8 +31,13 @@
     "@babel/core": "^7.0.0",
     "@babel/node": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
+    "@babel/register": "^7.0.0",
+    "chai": "^4.1.2",
     "cross-env": "^5.2.0",
+    "dirty-chai": "^2.0.1",
     "eslint": "^5.5.0",
-    "standard": "^12.0.1"
+    "mocha": "^5.2.0",
+    "standard": "^12.0.1",
+    "supertest": "^3.3.0"
   }
 }

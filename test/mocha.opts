@@ -1,0 +1,3 @@
+--reporter spec
+--require @babel/register
+--timeout 7000

@@ -1,7 +1,6 @@
 import { validationResult } from 'express-validator/check'
 import { matchedData } from 'express-validator/filter'
 import jwt from 'jwt-simple'
-import UserService from '../services/user-service'
 import {
   ServerError,
   ServerGenericError,
@@ -11,7 +10,7 @@ import {
 } from '../config/errors'
 
 export default module.exports = (app) => {
-  const User = UserService(app)
+  const { User } = app.models
   return {
     loginPost: (req, res) => {
       // validate all req params (defined in router):

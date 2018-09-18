@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser'
 import logger from 'morgan'
 
 import Auth from './config/auth'
+import Models from './config/models'
 import indexRouter from './routes/index'
 import usersRouter from './routes/users'
 import AuthRouter from './routes/auth-router'
@@ -22,11 +23,16 @@ export default () => {
   app.set('views', path.join(__dirname, 'views'))
   app.set('view engine', 'pug')
 
-  app.use(logger('dev'))
+  if (app.env.NODE_ENV === 'develompent') {
+    app.use(logger('dev'))
+  }
   app.use(express.json())
   app.use(express.urlencoded({ extended: false }))
   app.use(cookieParser())
   app.use(express.static(path.join(__dirname, 'public')))
+
+  // configure models
+  app.models = Models(app)
 
   // configure auth via passport
   app.passport = Auth(app)
