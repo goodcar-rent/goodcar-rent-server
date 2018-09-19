@@ -1,4 +1,4 @@
-import { body, query, param } from 'express-validator/check'
+import { body, param } from 'express-validator/check'
 import InviteController from '../controllers/invite-controller'
 
 export default (app) => {
@@ -6,18 +6,18 @@ export default (app) => {
   const controller = InviteController(app)
 
   // noinspection JSCheckFunctionSignatures
-  router.route('/auth/invite')
+  router.route('/invite')
     .all(app.auth.authenticate())
     .get(app.wrap(controller.list))
     .post(
       [
-        body('email').isEmail().withMessage('Email should be provided'),
-        body('expireAt').optional().isAfter().withMessage('ExpireAt should be greater than now')
+        body('email').isEmail().isLength({ min: 5 }).withMessage('Email should be provided'),
+        body('expireAt').optional().isAfter(Date.now()).withMessage('ExpireAt should be greater than now')
       ],
       app.wrap(controller.create))
 
   // noinspection JSCheckFunctionSignatures
-  router.route('/auth/invite/:id')
+  router.route('/invite/:id')
     .all(app.auth.authenticate(),
       [
         param('id').isString().withMessage('Invite id should be specified')

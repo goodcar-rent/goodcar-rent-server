@@ -1,5 +1,4 @@
 import env from 'dotenv-safe'
-import createError from 'http-errors'
 import express from 'express'
 import path from 'path'
 import cookieParser from 'cookie-parser'
@@ -10,6 +9,7 @@ import Models from './config/models'
 import indexRouter from './routes/index'
 import usersRouter from './routes/users'
 import AuthRouter from './routes/auth-router'
+import InviteRouter from './routes/invite-router'
 import ErrorHandlers from './config/error-handlers'
 import wrap from './services/wrap'
 
@@ -42,6 +42,7 @@ export default () => {
   // configure routes
   app.use('/', indexRouter)
   app.use('/users', usersRouter)
+  app.use('/auth', InviteRouter(app))
   app.use('/auth', AuthRouter(app))
 
   // catch 404 and forward to error handler

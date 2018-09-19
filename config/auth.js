@@ -1,10 +1,10 @@
 /* eslint-disable no-param-reassign */
 import passport from 'passport'
 import { Strategy, ExtractJwt } from 'passport-jwt'
-import UserService from '../services/user-service'
+import { ServerNotAllowed } from './errors'
 
 export default module.exports = (app) => {
-  const User = UserService(app)
+  const { User } = app.models
   const params = {
     secretOrKey: app.env.JWT_SECRET,
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken()
@@ -13,21 +13,20 @@ export default module.exports = (app) => {
     User.findById(payload.id)
       .then((user) => {
         if (user) {
-          return {
+          return done(null, {
             id: user.id,
-            email: user.email,
-          }
+            email: user.email
+          })
         }
-        return false
+        return done(new ServerNotAllowed('User not found!'), null)
       })
-      .asCallback(done)
       .catch(error => done(error, null))
   })
   passport.use(strategy)
   app.auth = {
     passport,
     initialize: () => passport.initialize(),
-    authenticate: () => passport.authenticate('jwt', env.jwtSession),
+    authenticate: () => passport.authenticate('jwt', { session: false })
   }
   return passport
 }

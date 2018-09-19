@@ -1,3 +1,5 @@
+import { ServerError } from '../../config/errors'
+
 const adminPassword = 'admin12345'
 const userPassword = 'user12345'
 
@@ -51,6 +53,27 @@ export const loginAs = (context, user, expectedCode) => context.request.post(`${
     email: user.email,
     password: user.password,
   })
+  .type('json')
+  .accept('json')
+  .accept('text')
+  .expect(expectedCode || expected.Ok)
+  .then((res) => {
+    if (res.body.token) {
+      context.token = res.body.token
+    }
+    return res
+  })
+
+export const inviteCreate = (context, data, expectedCode) => context.request.post(`${context.apiRoot}/auth/invite`)
+  .set('Authorization', `${context.authSchema} ${context.token}`)
+  .send(data)
+  .type('json')
+  .accept('json')
+  .accept('text')
+  .expect(expectedCode || expected.Ok)
+
+export const inviteList = (context, data, expectedCode) => context.request.get(`${context.apiRoot}/auth/invite`)
+  .set('Authorization', `${context.authSchema} ${context.token}`)
   .type('json')
   .accept('json')
   .accept('text')

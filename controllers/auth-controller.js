@@ -32,7 +32,7 @@ export default module.exports = (app) => {
           if (!User.isPassword(user.password, data.password)) {
             throw new ServerInvalidUsernamePassword('Invalid username or password') // password error
           }
-          return res.json({ token: jwt.encode(user.id, app.env.JWT_SECRET) })
+          return res.json({ token: jwt.encode({ id: user.id }, app.env.JWT_SECRET) })
         })
         .catch((error) => {
           if (error instanceof ServerError) {
