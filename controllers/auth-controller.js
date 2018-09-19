@@ -57,7 +57,7 @@ export default module.exports = (app) => {
 
       return User.count()
         .then((userCount) => {
-          if (userCount !== 0 ) {
+          if (app.env.APP_INVITE_ONLY === 'true' && userCount !== 0) {
             throw new ServerNotAllowed('Invite-only sign up')
           }
           if (!isAdmin) {

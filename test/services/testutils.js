@@ -39,12 +39,12 @@ export const createAdminUser = context => context.request.post(`${context.apiRoo
   .accept('text')
   .expect(expected.Ok)
 
-export const createUser = (context, user) => context.request.post(`${context.apiRoot}/auth/signup`)
+export const createUser = (context, user, expectedCode) => context.request.post(`${context.apiRoot}/auth/signup`)
   .send(user || UserFirst)
   .type('json')
   .accept('json')
   .accept('text')
-  .expect(expected.Ok)
+  .expect(expectedCode || expected.Ok)
 
 export const loginAs = (context, user, expectedCode) => context.request.post(`${context.apiRoot}/auth/login`)
   .send({

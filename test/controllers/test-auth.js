@@ -4,7 +4,7 @@ import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
 import App from '../../app'
 import { ServerNotFound } from '../../config/errors'
-import { expected, UserAdmin, createAdminUser, loginAs } from '../services/testutils'
+import { expected, createAdminUser, loginAs, createUser, UserAdmin, UserFirst } from '../services/testutils'
 
 chai.use(dirtyChai)
 
@@ -104,6 +104,22 @@ describe('auth-controller:', () => {
             done(err)
           })
       })
+    })
+
+    it('Should fail second sign up if INVITE_ONLY', function (done) {
+      createAdminUser(context)
+        .then(() => createUser(context, UserFirst, expected.ErrCodeForbidden))
+        .then((res) => {
+          if (app.env.APP_INVITE_ONLY) {
+            expect(res.body).to.exist('body')
+            expect(res.body.message).to.exist('body.message')
+            expect(res.body.error).to.exist('body.error')
+          }
+          done()
+        })
+        .catch((err) => {
+          done(err)
+        })
     })
 
     it('should fail if internal API would fail', function (done) {
