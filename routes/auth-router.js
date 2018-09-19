@@ -1,4 +1,4 @@
-import { body } from 'express-validator/check'
+import { body, query } from 'express-validator/check'
 import AuthController from '../controllers/auth-controller'
 
 export default (app) => {
@@ -24,6 +24,14 @@ export default (app) => {
       body('isAdmin').optional().isBoolean()
     ],
     app.wrap(controller.signupPost))
+
+  // return login page
+  router.get('/login',
+    [
+      query('invite').optional().isString()
+    ],
+    app.wrap(controller.loginGet))
+
 
   /*
   router.get('/facebook', app.passport.authenticate('facebook'))

@@ -25,9 +25,9 @@ export default module.exports = (app) => {
           if (!user) {
             return Promise.reject(new ServerInvalidUsernamePassword('Invalid username or password'))
           }
-          //if (!user.emailVerified) {
+          // if (!user.emailVerified) {
           //  throw new ServerNotAllowed('Email should be verified')
-          //}
+          // }
 
           if (!User.isPassword(user.password, data.password)) {
             throw new ServerInvalidUsernamePassword('Invalid username or password') // password error
@@ -76,6 +76,14 @@ export default module.exports = (app) => {
             throw new ServerGenericError(error)
           }
         })
+    },
+
+    loginGet: (req, res) => {
+      const params = {}
+      if (req.query.invite) {
+        params.invite = req.query.invite
+      }
+      res.render('auth/login', params)
     }
   }
 }
