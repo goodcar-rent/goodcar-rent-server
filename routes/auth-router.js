@@ -10,7 +10,7 @@ export default (app) => {
     '/login',
     [
       body('email').isEmail().withMessage('Email should be provided'),
-      body('password').isLength({ min: 1 }).withMessage('Password should be specified')
+      body('password').isLength({ min: 1 }).withMessage('Password should be specified'),
     ],
     app.wrap(controller.loginPost))
 
@@ -21,7 +21,8 @@ export default (app) => {
       body('name').isLength({ min: 1 }).withMessage('Name should be specified'),
       body('email').isEmail().withMessage('Email should be specified'),
       body('password').isLength({ min: 1 }).withMessage('Password should be specified'),
-      body('isAdmin').optional().isBoolean()
+      body('isAdmin').optional().isBoolean(),
+      body('invite').optional().isString()
     ],
     app.wrap(controller.signupPost))
 

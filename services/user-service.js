@@ -4,6 +4,15 @@ import bcrypt from 'bcrypt'
 
 const _users = []
 
+/*
+  id
+  email
+  password
+  invitedBy
+  inviteDate
+  inviteId -> Invite.id
+*/
+
 export default module.exports = (app) => {
   return {
     findById: (id) => Promise.resolve(_.find(_users, { id })),

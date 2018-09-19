@@ -15,7 +15,7 @@ GoodCar.rent server app
 POST /auth/login - login via email/password
 POST /auth/signup - create new user profile
 
-## TODO: 
+## TODO (invite feature): 
 
 ### GET /auth/login (html)
  ?invite=code
@@ -23,16 +23,20 @@ POST /auth/signup - create new user profile
  Return login page with hidden field "invite"
  
 ### POST /auth/invite
-  ?email=user@email.com 
 
 Email invite for user
-
-### DELETE /auth/invite
-  ?email=user@email.com
   
 ### GET /auth/invite
 
 Return list of pending invites in system
+
+### DELETE /auth/invite:id
+  
+Delete specified invite
+
+### GET /auth/invite/:id
+
+Get specified invite
 
 GET /login/:provider - return redirect page with login via provider (Instagram, Google, Facebook)
 POST /login/:provider - accept access token from social provider to login
