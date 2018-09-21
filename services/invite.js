@@ -4,10 +4,10 @@ import uuid from 'uuid/v4'
 const _invite = []
 
 /*
-  id
-  expireAt
-  registeredUser
-  disabled
+  id : uuid
+  expireAt : date
+  registeredUser : -> User.id
+  disabled : boolean
 */
 
 export default module.exports = (app) => {

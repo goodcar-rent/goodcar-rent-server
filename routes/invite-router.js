@@ -12,7 +12,8 @@ export default (app) => {
     .post(
       [
         body('email').isEmail().isLength({ min: 5 }).withMessage('Email should be provided'),
-        body('expireAt').optional().isAfter(Date.now()).withMessage('ExpireAt should be greater than now')
+        body('expireAt').optional().isAfter().withMessage('ExpireAt should be greater than now'),
+        body('disabled').optional().isBoolean().withMessage('Invite disabled state should be boolean value')
       ],
       app.wrap(controller.create))
 
