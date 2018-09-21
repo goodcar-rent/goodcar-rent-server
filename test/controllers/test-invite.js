@@ -30,7 +30,7 @@ describe('invite-controller:', function () {
   describe('create method:', function () {
     describe('should fail with invalid params:', function () {
       it('Empty email', function (done) {
-        inviteCreate(context, {email: ''}, expected.ErrCodeInvalidParams)
+        inviteCreate(context, { email: '' }, expected.ErrCodeInvalidParams)
           .then((res) => {
             expect(res.body).to.exist('Body should exist')
             expect(res.body.message).to.exist('')
@@ -43,8 +43,8 @@ describe('invite-controller:', function () {
             done(err)
           })
       })
-      it('Empty email', function (done) {
-        inviteCreate(context, {email: ''}, expected.ErrCodeInvalidParams)
+      it('Email is null', function (done) {
+        inviteCreate(context, { email: null }, expected.ErrCodeInvalidParams)
           .then((res) => {
             expect(res.body).to.exist('Body should exist')
             expect(res.body.message).to.exist('')
@@ -60,7 +60,7 @@ describe('invite-controller:', function () {
     })
 
     describe('should be ok with proper params:', function () {
-      const aMoment = (Moment(Date.now() + 1 * 1000 * 60 * 60 * 24)).format('YYYY-MM-DD')
+      const aMoment = (Moment(Date.now() + 1000 * 60 * 60 * 24)).format('YYYY-MM-DD')
       console.log(aMoment)
 
       it('should be ok with email only', function (done) {
@@ -73,6 +73,14 @@ describe('invite-controller:', function () {
       })
       it('should be ok with email and expireAt only', function (done) {
         inviteCreate(context, { email: 'user@email.com', expireAt: aMoment })
+          .then(() => inviteList(context))
+          .then(() => done())
+          .catch((err) => {
+            done(err)
+          })
+      })
+      it('should be ok with email and disabled', function (done) {
+        inviteCreate(context, { email: 'user@email.com', disabled: true })
           .then(() => inviteList(context))
           .then(() => done())
           .catch((err) => {
