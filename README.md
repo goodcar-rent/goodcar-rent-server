@@ -15,8 +15,6 @@ GoodCar.rent server app
 POST /auth/login - login via email/password
 POST /auth/signup - create new user profile
 
-## TODO (invite feature): 
-
 ### GET /auth/login (html)
  ?invite=code
  
@@ -38,6 +36,12 @@ Delete specified invite
 
 Get specified invite
 
+### POST /auth/invite/:id/send
+
+Send invite for specified user
+
+## TODO: 
+
 GET /login/:provider - return redirect page with login via provider (Instagram, Google, Facebook)
 POST /login/:provider - accept access token from social provider to login
 
@@ -51,3 +55,16 @@ DELETE /me/social/:provider - unlink social profile
 
 GET /social - list of supported social providers (google, instagram, facebook)
 
+## Feature proposals
+
+### ACL: Access control
+
+Access control allow to set separate permissions for group of users
+
+API:
+
+* we should have some Express middleware to check if this route allowed or not
+* special role for Guest: not authenticated group of users
+* special role for Admin: all permissions automatically
+* user routes: /me profile, /users for manage users, POST user with admin permissions;
+* user group route: /group

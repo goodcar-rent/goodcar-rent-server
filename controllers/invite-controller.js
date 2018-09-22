@@ -19,17 +19,11 @@ export default module.exports = (app) => {
     },
 
     create: (req, res) => {
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        throw new ServerInvalidParams(errors.mapped())
-      }
-      const data = matchedData(req)
-
-      if (!data.expireAt) {
-        data.expireAt = Date.now() + 60000000
+      if (!req.matchedData.expireAt) {
+        req.matchedData.expireAt = Date.now() + 60000000
       }
 
-      return Model.create(data)
+      return Model.create(req.matchedData)
         .then((item) => res.json(item))
         .catch((error) => {
           if (error instanceof ServerError) {
@@ -41,11 +35,6 @@ export default module.exports = (app) => {
     },
 
     item: (req, res) => {
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        throw new ServerInvalidParams(errors.mapped())
-      }
-
       return Model.findOne(req.params.id)
         .then((foundData) => {
           if (!foundData) {
@@ -63,13 +52,7 @@ export default module.exports = (app) => {
     },
 
     save: (req, res) => {
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        throw new ServerInvalidParams(errors.mapped())
-      }
-      const data = matchedData(req)
-
-      return Model.update(data)
+      return Model.update(req.matchedData)
         .then((foundData) => {
           return res.json(foundData)
         })
@@ -83,11 +66,6 @@ export default module.exports = (app) => {
     },
 
     delete: (req, res) => {
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        throw new ServerInvalidParams(errors.mapped())
-      }
-
       return Model.delete(req.params.id)
         .then((foundData) => {
           if (foundData) {
@@ -95,6 +73,10 @@ export default module.exports = (app) => {
           }
           throw new ServerNotFound('Invite', req.params.id, 'Invite not found by id for delete')
         })
+    },
+
+    send: (req, res) => {
+
     }
   }
 }
