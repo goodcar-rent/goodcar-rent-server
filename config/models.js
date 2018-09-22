@@ -1,4 +1,4 @@
-import User from '../services/user-service'
+import User from '../services/user'
 import Invite from '../services/invite'
 
 export default module.exports = (app) => {
