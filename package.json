@@ -7,6 +7,7 @@
     "test": "cross-env DEBUG='' NODE_ENV=test mocha $NODE_DEBUG_OPTION test/**/*.js"
   },
   "dependencies": {
+    "@sendgrid/mail": "^6.3.1",
     "bcrypt": "^3.0.1",
     "cookie-parser": "~1.4.3",
     "cookie-session": "^2.0.0-beta.3",
@@ -17,6 +18,7 @@
     "http-errors": "~1.6.2",
     "jwt-simple": "^0.5.3",
     "lodash": "^4.17.11",
+    "marked": "^0.5.0",
     "morgan": "^1.9.1",
     "passport": "^0.4.0",
     "passport-facebook": "^2.1.1",

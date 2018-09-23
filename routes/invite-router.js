@@ -28,5 +28,12 @@ export default (app) => {
     .put(app.wrap(controller.save))
     .delete(app.wrap(controller.delete))
 
+  router.route('/invite/:id/send')
+    .all(app.auth.authenticate(),
+      [
+        param('id').isString().withMessage('Invite id should be specified')
+      ], paramCheck)
+    .get(app.wrap(controller.send))
+
   return router
 }

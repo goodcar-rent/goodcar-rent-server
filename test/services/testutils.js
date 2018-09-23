@@ -1,5 +1,3 @@
-import { ServerError } from '../../config/errors'
-
 const adminPassword = 'admin12345'
 const userPassword = 'user12345'
 
@@ -73,6 +71,13 @@ export const inviteCreate = (context, data, expectedCode) => context.request.pos
   .expect(expectedCode || expected.Ok)
 
 export const inviteList = (context, data, expectedCode) => context.request.get(`${context.apiRoot}/auth/invite`)
+  .set('Authorization', `${context.authSchema} ${context.token}`)
+  .type('json')
+  .accept('json')
+  .accept('text')
+  .expect(expectedCode || expected.Ok)
+
+export const inviteSend = (context, data, expectedCode) => context.request.get(`${context.apiRoot}/auth/invite/${data.id}/send`)
   .set('Authorization', `${context.authSchema} ${context.token}`)
   .type('json')
   .accept('json')

@@ -3,8 +3,17 @@ import supertest from 'supertest'
 import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
 import App from '../../app'
-import { expected, createAdminUser, inviteCreate, inviteList, loginAs, UserAdmin } from '../services/testutils'
+import {
+  expected,
+  createAdminUser,
+  inviteCreate,
+  inviteList,
+  loginAs,
+  UserAdmin,
+  UserFirst, inviteSend
+} from '../services/testutils'
 import Moment from 'moment'
+import { describe, it, before } from 'mocha'
 
 chai.use(dirtyChai)
 
@@ -91,6 +100,41 @@ describe('invite-controller:', function () {
         inviteCreate(context, { email: 'user@email.com', expireAt: aMoment, disabled: true })
           .then(() => inviteList(context))
           .then(() => done())
+          .catch((err) => {
+            done(err)
+          })
+      })
+    })
+  })
+
+  describe('send method:', function () {
+    // mock mail service for app:
+    const mailerData = {}
+    before(function (done) {
+      app.mail = (to, subject, message) => {
+        mailerData.to = to
+        mailerData.subject = subject
+        mailerData.message = message
+        console.log('Sended: ')
+        console.log(`to: ${to} subject: ${subject}\
+          message: ${message}`)
+      }
+      done()
+    })
+
+    describe('should be ok with proper params:', function () {
+      it('send with fake email', function (done) {
+        inviteCreate(context, { email: UserFirst.email })
+          .then((res) => {
+            expect(res.body).to.exist('Body should exist')
+            expect(res.body.id).to.exist('')
+            return inviteSend(context, res.body)
+          })
+          .then((res) => {
+            expect(res.statusCode).is.equal(200)
+            expect(mailerData.to).is.equal(UserFirst.email)
+            done()
+          })
           .catch((err) => {
             done(err)
           })

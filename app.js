@@ -12,6 +12,7 @@ import AuthRouter from './routes/auth-router'
 import InviteRouter from './routes/invite-router'
 import ErrorHandlers from './config/error-handlers'
 import wrap from './services/wrap'
+import mail from './services/mail'
 
 export default () => {
   env.config()
@@ -45,24 +46,10 @@ export default () => {
   app.use('/auth', InviteRouter(app))
   app.use('/auth', AuthRouter(app))
 
-  // catch 404 and forward to error handler
-//  app.use(function (req, res, next) {
-//    next(createError(404))
-//  })
-
-  /*
-  // error handler
-  app.use((err, req, res, _next) => { //eslint-disable-line
-    // set locals, only providing error in development
-    res.locals.message = err.message
-    res.locals.error = req.app.get('env') === 'development' ? err : {}
-
-    // render the error page
-    res.status(err.status || 500)
-    res.render('error')
-  })
-  */
   ErrorHandlers(app)
+
+  app.serverAddress = `http://localhost:${app.serverPort}`
+  app.mail = mail
 
   return app
 }

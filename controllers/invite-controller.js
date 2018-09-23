@@ -1,6 +1,4 @@
-import { validationResult } from 'express-validator/check'
-import { matchedData } from 'express-validator/filter'
-import { ServerError, ServerGenericError, ServerInvalidParams, ServerNotFound } from '../config/errors'
+import { ServerError, ServerGenericError, ServerNotFound } from '../config/errors'
 
 export default module.exports = (app) => {
   const Model = app.models.Invite
@@ -76,7 +74,24 @@ export default module.exports = (app) => {
     },
 
     send: (req, res) => {
-
+      return Model.findById(req.params.id)
+        .then((foundData) => {
+          if (!foundData) {
+            throw ServerNotFound('Invite', req.params.id, 'Invite not found')
+          }
+          const msg = `# Invite for GoodCar.rent site registration\
+            \
+            Please use this link to [register](${app.serverAddress}/auth/login?invite=${foundData.id})`
+          return app.mail(foundData.email, 'Invite for GoodCar.rent', msg)
+        })
+        .then(() => res.sendStatus(200))
+        .catch((error) => {
+          if (error instanceof ServerError) {
+            throw error
+          } else {
+            throw new ServerGenericError(error)
+          }
+        })
     }
   }
 }
