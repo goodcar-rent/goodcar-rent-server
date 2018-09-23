@@ -1,8 +1,12 @@
-import User from '../services/user-service'
+import User from '../services/user'
+import Invite from '../services/invite'
 
 export default module.exports = (app) => {
   return {
     User: User(app),
-    ClearData: () => app.models.User.ClearData()
+    Invite: Invite(app),
+    ClearData: () =>
+      app.models.User.ClearData()
+        .then(() => app.models.Invite.ClearData())
   }
 }

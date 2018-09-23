@@ -91,5 +91,7 @@ function onListening () {
     ? 'pipe ' + addr
     : 'port ' + addr.port
   debug('Listening on ' + bind)
-  debug(`http://${require('os').hostname()}:${addr.port.toString()}/`)
+  const hostname = require('os').hostname()
+  debug(`http://${hostname}:${addr.port.toString()}/`)
+  app.serverAddress = `http://${hostname}:${addr.port.toString()}/`
 }

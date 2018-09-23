@@ -59,11 +59,6 @@ export default (passport) => {
     )
   )
 
-  // Serialize user into the sessions
-  passport.serializeUser((user, done) => done(null, user))
-
-  // Deserialize user from the sessions
-  passport.deserializeUser((user, done) => done(null, user))
 
   return passport
 }
