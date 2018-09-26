@@ -79,9 +79,9 @@ export default module.exports = (app) => {
           if (!foundData) {
             throw ServerNotFound('Invite', req.params.id, 'Invite not found')
           }
-          const msg = `# Invite for GoodCar.rent site registration\
-            \
-            Please use this link to [register](${app.serverAddress}/auth/login?invite=${foundData.id})`
+          const msg = `# Invite for GoodCar.rent site registration\n\r
+            \n\r
+            Please use this link to [register](${app.serverAddress}/auth/signup?invite=${foundData.id})`
           return app.mail(foundData.email, 'Invite for GoodCar.rent', msg)
         })
         .then(() => res.sendStatus(200))

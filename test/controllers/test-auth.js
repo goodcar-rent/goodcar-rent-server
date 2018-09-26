@@ -5,7 +5,16 @@ import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
 import App from '../../app'
 import { ServerNotFound } from '../../config/errors'
-import { expected, createAdminUser, loginAs, createUser, UserAdmin, UserFirst } from '../client/client-api'
+import {
+  expected,
+  createAdminUser,
+  loginAs,
+  createUser,
+  inviteCreate,
+  UserAdmin,
+  UserFirst,
+  createUserWithInvite
+} from '../client/client-api'
 
 chai.use(dirtyChai)
 
@@ -22,14 +31,14 @@ describe('auth-controller:', () => {
     authSchema: 'Bearer'
   }
 
-  describe('auth/login method', () => {
+  describe('login:', () => {
     beforeEach(function (done) {
       app.models.ClearData()
         .then(() => done())
     })
 
     describe('should fail with invalid params:', function () {
-      it('Empty email', function (done) {
+      it('should fail with empty email', function (done) {
         loginAs(context, { email: '', password: '1234' }, expected.ErrCodeInvalidParams)
           .then((res) => {
             expect(res.body).to.exist('Body should exist')
@@ -44,7 +53,7 @@ describe('auth-controller:', () => {
           })
       })
 
-      it('No email field', function (done) {
+      it('should fail without email field', function (done) {
         loginAs(context, { email2: '', password: '1234' }, expected.ErrCodeInvalidParams)
           .then((res) => {
             expect(res.body).to.exist('Body')
@@ -59,7 +68,7 @@ describe('auth-controller:', () => {
           })
       })
 
-      it('No password field', function (done) {
+      it('should fail without password field', function (done) {
         loginAs(context, { email: '1@me.com', password2: '' }, expected.ErrCodeInvalidParams)
           .then((res) => {
             expect(res.body).to.exist('Body')
@@ -74,7 +83,7 @@ describe('auth-controller:', () => {
           })
       })
 
-      it('Invalid email', function (done) {
+      it('should fail with invalid email', function (done) {
         createAdminUser(context)
           .then(() => loginAs(context, { email: '1@me.com', password: UserAdmin.password }, expected.ErrCodeNotLogged))
           .then((res) => {
@@ -90,7 +99,7 @@ describe('auth-controller:', () => {
           })
       })
 
-      it('Invalid password', function (done) {
+      it('should fail with invalid password', function (done) {
         createAdminUser(context)
           .then(() => loginAs(context, { email: UserAdmin.email, password: '123' }, expected.ErrCodeNotLogged))
           .then((res) => {
@@ -105,22 +114,6 @@ describe('auth-controller:', () => {
             done(err)
           })
       })
-    })
-
-    it('Should fail second sign up if INVITE_ONLY', function (done) {
-      createAdminUser(context)
-        .then(() => createUser(context, UserFirst, expected.ErrCodeForbidden))
-        .then((res) => {
-          if (app.env.APP_INVITE_ONLY) {
-            expect(res.body).to.exist('body')
-            expect(res.body.message).to.exist('body.message')
-            expect(res.body.error).to.exist('body.error')
-          }
-          done()
-        })
-        .catch((err) => {
-          done(err)
-        })
     })
 
     it('should fail if internal API would fail', function (done) {
@@ -152,6 +145,78 @@ describe('auth-controller:', () => {
         .then(() => loginAs(context, UserAdmin, expected.Ok))
         .then(() => done())
         .catch(err => done(err))
+    })
+  })
+  describe('signup:', () => {
+    beforeEach(function (done) {
+      app.models.ClearData()
+        .then(() => done())
+    })
+    it('should fail second sign up if INVITE_ONLY', function (done) {
+      createAdminUser(context)
+        .then(() => createUser(context, UserFirst, expected.ErrCodeForbidden))
+        .then((res) => {
+          if (app.env.APP_INVITE_ONLY) {
+            expect(res.body).to.exist('body')
+            expect(res.body.message).to.exist('body.message')
+            expect(res.body.error).to.exist('body.error')
+          }
+          done()
+        })
+        .catch((err) => done(err))
+    })
+    it('should fail if invite email is not matched with signup email', function (done) {
+      let invite
+      createAdminUser(context)
+        .then(() => loginAs(context, UserAdmin))
+        .then(() => inviteCreate(context, { email: UserFirst.email }))
+        .then((res) => {
+          expect(res.body).to.exist()
+          expect(res.body.id).to.exist()
+          invite = res.body
+          return createUser(context,
+            {
+              email: 'invalid@email.com',
+              password: UserFirst.password,
+              name: UserFirst.name,
+              isAdmin: UserFirst.isAdmin,
+              invite: invite.id
+            }, expected.ErrCodeForbidden)
+        })
+        .then((res) => {
+          expect(res.body).to.exist('body')
+          expect(res.body.message).to.exist('body.message')
+          expect(res.body.error).to.exist('body.error')
+          done()
+        })
+        .catch((err) => done(err))
+    })
+    it('should be ok with proper params', function (done) {
+      let invite
+      createAdminUser(context)
+        .then(() => loginAs(context, UserAdmin))
+        .then(() => inviteCreate(context, { email: UserFirst.email }))
+        .then((res) => {
+          expect(res.body).to.exist()
+          expect(res.body.id).to.exist()
+          invite = res.body
+          return createUser(context,
+            {
+              email: UserFirst.email,
+              password: UserFirst.password,
+              name: UserFirst.name,
+              isAdmin: UserFirst.isAdmin,
+              invite: invite.id
+            })
+        })
+        .then((res) => {
+          expect(res.body).to.exist('body')
+          expect(res.body.id).to.exist('id')
+          expect(res.body.email).is.equal(UserFirst.email)
+          expect(res.body.name).is.equal(UserFirst.name)
+          done()
+        })
+        .catch((err) => done(err))
     })
   })
 })

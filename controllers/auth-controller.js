@@ -12,7 +12,7 @@ import {
 export default module.exports = (app) => {
   const { User, Invite } = app.models
   return {
-    loginPost: (req, res) => {
+    login: (req, res) => {
       // validate all req params (defined in router):
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
@@ -43,7 +43,7 @@ export default module.exports = (app) => {
         })
     },
 
-    signupPost: (req, res) => {
+    signup: (req, res) => {
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
         throw new ServerInvalidParams(errors.mapped())
@@ -56,38 +56,35 @@ export default module.exports = (app) => {
       }
 
       // flow for registration of first user:
-      const firstUserReg = User.count()
-        .then((userCount) => {
-          if (app.env.APP_INVITE_ONLY === 'true' && userCount !== 0 && !data.invite) {
-            throw new ServerNotAllowed('Invite-only sign up')
-          }
-          if (!isAdmin) {
-            throw new ServerNotAllowed('First user should be admin')
-          }
-          data.invitedBy = null
-          data.inviteDate = null
-          data.inviteId = null
-
-          return User.create(data)
-        })
-        .then((newUser) => {
-          res.json(newUser)
-        })
-        .catch((error) => {
-          console.log(error)
-          if (error instanceof ServerError) {
-            throw error
-          } else {
-            throw new ServerGenericError(error)
-          }
-        })
-
-      // flow for invite registration
       if (!data.invite) {
-        return firstUserReg
+        return User.count()
+          .then((userCount) => {
+            if (app.env.APP_INVITE_ONLY === 'true' && userCount !== 0 && !data.invite) {
+              throw new ServerNotAllowed('Invite-only sign up')
+            }
+            if (!isAdmin) {
+              throw new ServerNotAllowed('First user should be admin')
+            }
+            data.invitedBy = null
+            data.inviteDate = null
+            data.inviteId = null
+            return User.create(data)
+          })
+          .then((newUser) => {
+            res.json(newUser)
+          })
+          .catch((error) => {
+            if (error instanceof ServerError) {
+              throw error
+            } else {
+              throw new ServerGenericError(error)
+            }
+          })
       }
+
       const aData = {} // data bag for promise chain to simplify data transfer
 
+      // flow for generic registration via invite
       return Invite.findById(data.invite)
         .then((foundInvite) => {
           if (!foundInvite) {
@@ -106,6 +103,10 @@ export default module.exports = (app) => {
             throw new ServerNotAllowed(`Invite already used by user ${foundInvite.registeredUser}`)
           }
 
+          if (foundInvite.email !== data.email) {
+            throw new ServerNotAllowed(`Email not matched with invite's email`)
+          }
+
           data.invitedBy = foundInvite.invitedBy
           data.inviteDate = foundInvite.date
           data.inviteId = foundInvite.id
@@ -113,15 +114,18 @@ export default module.exports = (app) => {
           aData.invite = foundInvite
           return User.create(data)
         })
-        .then((createdUser) => Invite.updateOne(aData.invite, { registeredUser: createdUser.id }))
+        .then((createdUser) => {
+          res.json(createdUser)
+          return Invite.updateOne(aData.invite, { registeredUser: createdUser.id })
+        })
     },
 
-    loginGet: (req, res) => {
+    signupPage: (req, res) => {
       const params = {}
       if (req.query.invite) {
         params.invite = req.query.invite
       }
-      res.render('auth/login', params)
+      res.render('auth/signup', params)
     }
   }
 }

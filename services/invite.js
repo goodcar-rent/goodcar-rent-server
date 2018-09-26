@@ -8,6 +8,7 @@ const _invite = []
   expireAt : date
   registeredUser : -> User.id
   disabled : boolean
+  email: invited to this email
 */
 
 export default module.exports = (app) => {

@@ -1,4 +1,6 @@
 /* eslint-env mocha */
+import { describe, it, before, beforeEach } from 'mocha'
+import Moment from 'moment'
 import supertest from 'supertest'
 import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
@@ -12,8 +14,6 @@ import {
   UserAdmin,
   UserFirst, inviteSend
 } from '../client/client-api'
-import Moment from 'moment'
-import { describe, it, before } from 'mocha'
 
 chai.use(dirtyChai)
 
@@ -116,7 +116,7 @@ describe('invite-controller:', function () {
         mailerData.subject = subject
         mailerData.message = message
         console.log('Sended: ')
-        console.log(`to: ${to} subject: ${subject}\
+        console.log(`to: ${to} subject: ${subject}\n\r
           message: ${message}`)
       }
       done()
