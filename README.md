@@ -95,6 +95,8 @@ API:
         - car list
         - car features
     - car booking
+* permissions: any string identifier
+
      
 ### Allow algorithm
 

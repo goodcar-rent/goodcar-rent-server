@@ -11,7 +11,7 @@ import {
   loginAs,
   UserAdmin,
   UserFirst, inviteSend
-} from '../services/testutils'
+} from '../client/client-api'
 import Moment from 'moment'
 import { describe, it, before } from 'mocha'
 

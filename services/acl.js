@@ -24,9 +24,15 @@ export const kindAllow = 'ALLOW'
 
 export const kindDeny = 'DENY'
 
+const aclObject = []
+const aclObjectGroup = []
+
 export default module.exports = (app) => {
+  const { UserGroup } = app.model
   return {
-    Allow: (userId, objectId, permissionId) => {
+    Allow: (user, object, permission) => {
+      // get all user info:
+      const userGroups = UserGroup.findAll
       return false
     },
     AddUserPermission: (userId, objectId, permissionId, kind) => {

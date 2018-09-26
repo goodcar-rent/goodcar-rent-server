@@ -1,10 +1,11 @@
 /* eslint-env mocha */
+import { describe, it, beforeEach } from 'mocha'
 import supertest from 'supertest'
 import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
 import App from '../../app'
 import { ServerNotFound } from '../../config/errors'
-import { expected, createAdminUser, loginAs, createUser, UserAdmin, UserFirst } from '../services/testutils'
+import { expected, createAdminUser, loginAs, createUser, UserAdmin, UserFirst } from '../client/client-api'
 
 chai.use(dirtyChai)
 
