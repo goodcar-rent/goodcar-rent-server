@@ -1,77 +1,23 @@
 import { ServerError, ServerGenericError, ServerNotFound } from '../config/errors'
+import { genericCreate, genericDelete, genericItem, genericList, genericSave } from '../services/generic-controller'
 
 export default module.exports = (app) => {
   const Model = app.models.Invite
+  const _create = genericCreate(Model)
 
   return {
-    list: (req, res) => {
-      return Model.findAll()
-        .then((foundData) => res.json(foundData))
-        .catch((error) => {
-          if (error instanceof ServerError) {
-            throw error
-          } else {
-            throw new ServerGenericError(error)
-          }
-        })
-    },
+    list: genericList(Model),
 
     create: (req, res) => {
       if (!req.matchedData.expireAt) {
         req.matchedData.expireAt = Date.now() + 60000000
       }
-
-      return Model.create(req.matchedData)
-        .then((item) => res.json(item))
-        .catch((error) => {
-          if (error instanceof ServerError) {
-            throw error
-          } else {
-            throw new ServerGenericError(error)
-          }
-        })
+      return _create(req, res)
     },
 
-    item: (req, res) => {
-      return Model.findOne(req.params.id)
-        .then((foundData) => {
-          if (!foundData) {
-            throw ServerNotFound('Invite', req.params.id, 'Invite not found')
-          }
-          res.json(foundData)
-        })
-        .catch((error) => {
-          if (error instanceof ServerError) {
-            throw error
-          } else {
-            throw new ServerGenericError(error)
-          }
-        })
-    },
-
-    save: (req, res) => {
-      return Model.update(req.matchedData)
-        .then((foundData) => {
-          return res.json(foundData)
-        })
-        .catch((error) => {
-          if (error instanceof ServerError) {
-            throw error
-          } else {
-            throw new ServerGenericError(error)
-          }
-        })
-    },
-
-    delete: (req, res) => {
-      return Model.delete(req.params.id)
-        .then((foundData) => {
-          if (foundData) {
-            return res.sendStatus(204)
-          }
-          throw new ServerNotFound('Invite', req.params.id, 'Invite not found by id for delete')
-        })
-    },
+    item: genericItem(Model),
+    save: genericSave(Model),
+    delete: genericDelete(Model),
 
     send: (req, res) => {
       return Model.findById(req.params.id)

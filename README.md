@@ -2,23 +2,32 @@
 
 GoodCar.rent server app
 
-## Features
+## Already implemented features
 
 * jwt tokens auth
 * email/password login
-* social login via linked social profiles: Facebook, Instagram, Google
 * email invites for registration
-* initial seed
+
+## Planned features
+
+* ACL for user groups, objects with flexible permission schemas
+* social login via Facebook, Google, Instagram, Vk
+
 
 ## Endpoints
 
-POST /auth/login - login via email/password
-POST /auth/signup - create new user profile
+### POST /auth/login
+ 
+login via email/password
 
-### GET /auth/login (html)
+### POST /auth/signup
+
+create new user profile
+
+### GET /auth/signup (html)
  ?invite=code
  
- Return login page with hidden field "invite"
+Return signup page with hidden field "invite"
  
 ### POST /auth/invite
 
@@ -26,7 +35,7 @@ Create invite for new user
   
 ### GET /auth/invite
 
-Return list of pending invites in system
+Return list of invites in system
 
 ### DELETE /auth/invite:id
   
@@ -42,7 +51,7 @@ Send invite for specified user
 
 ## TODO: 
 
-GET /login/:provider - return redirect page with login via provider (Instagram, Google, Facebook)
+GET /login/:provider - return redirect page with login via provider (Instagram, Google, Facebook, Vk)
 POST /login/:provider - accept access token from social provider to login
 
 GET /me - return user profile
@@ -56,6 +65,14 @@ DELETE /me/social/:provider - unlink social profile
 GET /social - list of supported social providers (google, instagram, facebook)
 
 ## Feature proposals
+
+### GET /user
+
+Return list of users in system
+
+### GET /user-group
+
+Return list of user groups in system
 
 ### ACL: Access control
 
