@@ -83,3 +83,10 @@ export const inviteSend = (context, data, expectedCode) => context.request.get(`
   .accept('json')
   .accept('text')
   .expect(expectedCode || expected.Ok)
+
+export const userGroupList = (context, data, expectedCode) => context.request.get(`${context.apiRoot}/user-group`)
+  .set('Authorization', `${context.authSchema} ${context.token}`)
+  .type('json')
+  .accept('json')
+  .accept('text')
+  .expect(expectedCode || expected.Ok)

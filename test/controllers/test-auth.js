@@ -12,8 +12,7 @@ import {
   createUser,
   inviteCreate,
   UserAdmin,
-  UserFirst,
-  createUserWithInvite
+  UserFirst
 } from '../client/client-api'
 
 chai.use(dirtyChai)

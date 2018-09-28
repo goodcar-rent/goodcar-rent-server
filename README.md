@@ -16,38 +16,46 @@ GoodCar.rent server app
 
 ## Endpoints
 
-### POST /auth/login
+### Auth routes:
+
+#### POST /auth/login
  
-login via email/password
+> login via email/password
 
-### POST /auth/signup
+#### POST /auth/signup
 
-create new user profile
+> create new user profile
 
-### GET /auth/signup (html)
- ?invite=code
+#### GET /auth/signup (html)
+> ?invite=code
+
+> Return signup page with hidden field "invite"
  
-Return signup page with hidden field "invite"
- 
-### POST /auth/invite
+#### POST /auth/invite
 
-Create invite for new user
+> Create invite for new user
   
-### GET /auth/invite
+#### GET /auth/invite
 
-Return list of invites in system
+> Return list of invites in system
 
-### DELETE /auth/invite:id
+#### DELETE /auth/invite:id
   
-Delete specified invite
+> Delete specified invite
 
-### GET /auth/invite/:id
+#### GET /auth/invite/:id
 
-Get specified invite
+> Get specified invite
 
-### POST /auth/invite/:id/send
+#### POST /auth/invite/:id/send
 
-Send invite for specified user
+> Send invite for specified user
+
+### Car management routes
+
+#### GET /car
+
+> Return 
 
 ## TODO: 
 
