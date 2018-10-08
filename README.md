@@ -62,11 +62,11 @@ GoodCar.rent server app
 GET /login/:provider - return redirect page with login via provider (Instagram, Google, Facebook, Vk)
 POST /login/:provider - accept access token from social provider to login
 
-GET /me - return user profile
+GET /me - return profile of currently logged user
 
-GET /me/social - list of linked social profiles
+GET /me/social - list of linked social profiles for current user
 
-POST /me/social/:provider - link social profile
+POST /me/social/:provider - link social profile with current user
 
 DELETE /me/social/:provider - unlink social profile
 
@@ -74,13 +74,27 @@ GET /social - list of supported social providers (google, instagram, facebook)
 
 ## Feature proposals
 
+> all /user routes requires "Admin" permissions
+
 ### GET /user
 
-Return list of users in system
+> Return list of users in system
+
+### POST /user
+
+> Create new user profile (same as /signup, but require admin perms)
+
+### DELETE /user/:id
+
+> Delete user profile from system
+
+### UPDATE /user/:id
+
+> Modify user profile
 
 ### GET /user-group
 
-Return list of user groups in system
+> Return list of user groups in system
 
 ### ACL: Access control
 

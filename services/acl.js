@@ -1,5 +1,5 @@
 /*
-ACL algo:
+Allow(user, object, permission):
 
 Get all permissions for object's groups
 Get all permissions for object itself

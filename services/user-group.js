@@ -3,6 +3,14 @@ import uuid from 'uuid/v4'
 
 import dataUserGroupSystem from '../data/user-group-system'
 import dataUserGroup from '../data/user-group'
+import {
+  genericClearData,
+  genericCount,
+  genericDelete,
+  genericFindAll,
+  genericFindById,
+  genericFindOne
+} from './generic-model'
 
 const _userGroup = []
 
@@ -39,17 +47,13 @@ export default (app) => {
     systemGroupAdmin: () => _systemGroupAdmin,
     systemGroupGuest: () => _systemGroupGuest,
     systemGroupLoggedIn: () => _systemGroupLoggedIn,
-    findById: (id) => Promise.resolve(_.find(_userGroup, { id })),
-    findOne: (opt) => Promise.resolve(_.find(_userGroup, [Object.keys(opt.where)[0], Object.values(opt.where)[0]])),
-    findAll: (opt) => {
-      if (opt) {
-        return Promise.resolve(_.filter(_userGroup, [Object.keys(opt.where)[0], Object.values(opt.where)[0]]))
-      } else {
-        return Promise.resolve(_userGroup)
-      }
-    },
+    findById: genericFindById(_userGroup),
+    findOne: genericFindOne(_userGroup),
+    findAll: genericFindAll(_userGroup),
+    delete: genericDelete(_userGroup),
+    count: genericCount(_userGroup),
+    ClearData: genericClearData(_userGroup),
     findGroupsForUser: (user) => Promise.resolve(_.filter(_userGroup, (item) => (_.index(item.users, user) !== -1))),
-    count: () => Promise.resolve(_userGroup.length),
     create: (item) => {
       item.id = uuid()
       if (!item.systemType) {
@@ -98,8 +102,7 @@ export default (app) => {
       })
       return Promise.all(arr)
     },
-    createData: () => Promise.all(dataUserGroup.map((item) => Model.create(item))),
-    ClearData: () => Promise.resolve(_userGroup.length = 0)
+    createData: () => Promise.all(dataUserGroup.map((item) => Model.create(item)))
   }
   return Model
 }
