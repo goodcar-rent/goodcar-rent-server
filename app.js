@@ -7,7 +7,7 @@ import logger from 'morgan'
 import Auth from './config/auth'
 import Models from './config/models'
 import indexRouter from './routes/index'
-import usersRouter from './routes/user-router'
+import UserRouter from './routes/user-router'
 import AuthRouter from './routes/auth-router'
 import InviteRouter from './routes/invite-router'
 import UserGroupRouter from './routes/user-group-router'
@@ -43,10 +43,10 @@ export default () => {
 
   // configure routes
   app.use('/', indexRouter)
-  app.use('/users', usersRouter)
+  app.use(UserRouter(app))
   app.use('/auth', InviteRouter(app))
   app.use('/auth', AuthRouter(app))
-  app.use('/', UserGroupRouter(app))
+  app.use(UserGroupRouter(app))
 
   ErrorHandlers(app)
 

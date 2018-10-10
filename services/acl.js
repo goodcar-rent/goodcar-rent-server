@@ -1,5 +1,5 @@
 /*
-Allow(user, object, permission):
+ACL(object, permission):
 
 Get all permissions for object's groups
 Get all permissions for object itself
@@ -27,20 +27,58 @@ export const kindDeny = 'DENY'
 const aclObject = []
 const aclObjectGroup = []
 
+export const CheckPermission = (userId, object, permission) => {
+}
+
+const FindOrAddObject = (objectId) => {
+  let aObject = _.find(aclObject, { id: objectId })
+  if (!aObject) {
+    aObject = { id: objectId, permissions: [] }
+    aclObject.push(aObject)
+  }
+  return aObject
+}
+
+const FindOrAddPermission = (aObject, permission) => {
+  let aPermission = _.find(aObject.permissions, { permission })
+  if (!aPermission) {
+    aPermission = { permission, users: [], userGroups: [] }
+    aObject.permissions.push(aPermission)
+  }
+  return aPermission
+}
+
 export default module.exports = (app) => {
   const { UserGroup } = app.model
+
   return {
-    Allow: (user, object, permission) => {
+    ACL: (object, permission) => {
       // get all user info:
-      const userGroups = UserGroup.findAll
+      const userGroups = UserGroup.findAll()
       return false
     },
-    AddUserPermission: (userId, objectId, permissionId, kind) => {
+    AddUserPermission: (userId, objectId, permission, kind) => {
       const aKind = kind || kindAllow
-    },
-    AddGroupPermission: (groupId, objectId, permissionId, kind) => {
-      const aKind = kind || kindAllow
-    },
 
+      const aObject = FindOrAddObject(objectId)
+      const aPermission = FindOrAddPermission(aObject, permission)
+      let aUser = _.find(aPermission.users, { userId })
+      if (!aUser) {
+        aPermission.users.push({ userId, kind: aKind })
+      } else {
+        aUser.kind = aKind
+      }
+    },
+    AddGroupPermission: (groupId, objectId, permission, kind) => {
+      const aKind = kind || kindAllow
+      const aObject = FindOrAddObject(objectId)
+      const aPermission = FindOrAddPermission(aObject, permission)
+      let aGroup = _.find(aPermission.userGroups, { groupId })
+      if (!aGroup) {
+        aPermission.userGroups.push({ groupId, kind: aKind })
+      } else {
+        aGroup.kind = aKind
+      }
+    }
   }
 }

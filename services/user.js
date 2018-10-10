@@ -36,6 +36,17 @@ export default module.exports = (app) => {
       _users.push(item)
       return Promise.resolve(item)
     },
+    update: (item) => {
+      let aItem = this.findById(item.id)
+      if (!aItem) {
+        return Promise.reject(new Error('user.update: item not found'))
+      }
+      if (item.password) {
+        const salt = bcrypt.genSaltSync()
+        item.password = bcrypt.hashSync(item.password, salt)
+      }
+      return Promise.resolve(_.assign(aItem, item))
+    },
     isPassword: (encodedPassword, password) => bcrypt.compareSync(password, encodedPassword)
   }
 }
