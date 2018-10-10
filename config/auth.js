@@ -1,7 +1,9 @@
 /* eslint-disable no-param-reassign */
 import passport from 'passport'
+import _ from 'lodash'
 import { Strategy, ExtractJwt } from 'passport-jwt'
 import { ServerNotAllowed } from './errors'
+import Acl from '../services/acl'
 
 export default module.exports = (app) => {
   const { User } = app.models
@@ -28,5 +30,6 @@ export default module.exports = (app) => {
     initialize: () => passport.initialize(),
     authenticate: () => passport.authenticate('jwt', { session: false })
   }
+  _.merge(app.auth, Acl(app))
   return passport
 }

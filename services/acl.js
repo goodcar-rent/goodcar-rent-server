@@ -19,15 +19,35 @@ Check if any object permission is DENY: groups/user
 */
 
 import _ from 'lodash'
+import { ServerNotAllowed } from '../config/errors'
 
 export const kindAllow = 'ALLOW'
 
 export const kindDeny = 'DENY'
 
+export const GuestUserId = -1
+
 const aclObject = []
-const aclObjectGroup = []
 
 export const CheckPermission = (userId, object, permission) => {
+  // check if we have permission for user:
+  const aObject = _.find(aclObject, { id: object })
+  if (!aObject) {
+    return kindDeny // no object defined, DENY
+  }
+
+  // find specified permission for object:
+  const aPermission = _.find(aObject.permissions, { permission })
+  if (!aPermission) {
+    return kindDeny // no permission decalration, DENY
+  }
+
+  // check if specified object have exact user permission:
+  const aUser = _.find(aPermission.users, { userId })
+  if (!aUser) {
+    return kindDeny
+  }
+  return aUser.kind
 }
 
 const FindOrAddObject = (objectId) => {
@@ -49,13 +69,36 @@ const FindOrAddPermission = (aObject, permission) => {
 }
 
 export default module.exports = (app) => {
-  const { UserGroup } = app.model
-
   return {
     ACL: (object, permission) => {
-      // get all user info:
-      const userGroups = UserGroup.findAll()
-      return false
+      console.log('ACL')
+      return (req, res, next) => {
+        const auth = app.auth.passport.authenticate('jwt', { session: false })
+        auth(req, res, () => {
+          console.log('authed')
+          if (req.user) {
+            console.log('user authenticated')
+            // user already authenticated:
+            if (CheckPermission(req.user.id, object, permission) === kindAllow) {
+              console.log('allowed')
+              next()
+            } else {
+              console.log('not allowed')
+              next(new ServerNotAllowed(`Permission check failed: ${object}.${permission}`))
+            }
+          } else {
+            console.log('guest')
+            // user not authenticated, check permission for guest user:
+            if (CheckPermission(GuestUserId, object, permission) === kindAllow) {
+              console.log('ok')
+              next()
+            } else {
+              console.log('xx')
+              next(new ServerNotAllowed(`Permission check failed for guest user: ${object}.${permission}`))
+            }
+          }
+        })
+      }
     },
     AddUserPermission: (userId, objectId, permission, kind) => {
       const aKind = kind || kindAllow
