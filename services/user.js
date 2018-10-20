@@ -1,4 +1,5 @@
 import uuid from 'uuid/v4'
+import _ from 'lodash'
 import bcrypt from 'bcrypt'
 import {
   genericClearData,

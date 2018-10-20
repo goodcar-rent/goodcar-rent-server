@@ -27,6 +27,16 @@ export const kindDeny = 'DENY'
 
 export const GuestUserId = -1
 
+/*
+ACLObject:
+
+ * id: identifier for object, like "Invoce"
+ * permissions: [] array of permissions:
+   * permission: permission name, like "read", "write"
+   * kind of permission, one of ALLOW/DENY
+   * users: list of users that have this permission
+*/
+
 const aclObject = []
 
 export const CheckPermission = (userId, object, permission) => {
@@ -122,6 +132,7 @@ export default module.exports = (app) => {
       } else {
         aGroup.kind = aKind
       }
-    }
+    },
+    ListACL: () => aclObject
   }
 }

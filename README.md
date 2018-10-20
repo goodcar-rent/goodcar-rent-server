@@ -96,6 +96,61 @@ GET /social - list of supported social providers (google, instagram, facebook)
 
 > Return list of user groups in system
 
+## ACL routes (WIP)
+
+> GET /acl/object
+
+List all objects in system
+
+> POST /acl/object
+
+Add new object to system
+
+> GET /acl/object/:id
+
+Get detail info about object
+
+> POST /acl/object/:id
+
+Update info about object
+
+> DELETE /acl/object/:id
+
+Delete object from system
+
+> GET /acl/object/:id/permission
+
+List of all permission associated with object
+
+> GET /acl/object/:id/permission/:permissionId/users
+
+List of users with this permission
+
+> GET /acl/object/:id/permission/:permissionId/user-groups
+
+List of all user groups with this permission
+
+## User routes (WIP)
+
+> GET /user
+
+Return list of users in system 
+
+> POST /user 
+
+Add user tp system
+
+> GET /user/:userId
+
+Get user profile
+
+> POST /user/:userId/permission
+
+Set permission for this user for specific object
+
+
+
+
 ### ACL: Access control
 
 Access control allow to set separate permissions for group of users
