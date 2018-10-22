@@ -28,10 +28,13 @@ const server = http.createServer(app)
 /**
  * Listen on provided port, on all network interfaces.
  */
-
-server.listen(port)
-server.on('error', onError)
-server.on('listening', onListening)
+Promise.all(app.asyncInit)
+  .then(() => {
+    server.listen(port)
+    server.on('error', onError)
+    server.on('listening', onListening)
+  })
+  .catch((err) => { throw err })
 
 /**
  * Normalize a port into a number, string, or false.

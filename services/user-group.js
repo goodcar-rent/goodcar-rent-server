@@ -53,11 +53,30 @@ export default (app) => {
     delete: genericDelete(_userGroup),
     count: genericCount(_userGroup),
     ClearData: genericClearData(_userGroup),
-    findGroupsForUser: (user) => Promise.resolve(_.filter(_userGroup, (item) => (_.index(item.users, user) !== -1))),
+    findGroupsForUser: (user) => Promise.resolve(_.filter(_userGroup, (item) => (_.includes(item.users, user) !== -1))),
+    isUserInGroup: (groupId, userId) => {
+      const aGroup = _.find(_userGroup, { id: groupId })
+      if (!aGroup) {
+        return Promise.reject(new Error(`Group ${groupId} can not be found`))
+      }
+      return Promise.resolve(_.includes(aGroup.users, userId))
+    },
+    isUserInGroupSync: (groupId, userId) => {
+      const aGroup = _.find(_userGroup, { id: groupId })
+      if (!aGroup) {
+        return false
+      }
+      return _.includes(aGroup.users, userId)
+    },
     create: (item) => {
-      item.id = uuid()
+      if (!item.id) {
+        item.id = uuid()
+      }
       if (!item.systemType) {
         item.systemType = systemTypeNone
+      }
+      if (!item.users) {
+        item.users = []
       }
       _userGroup.push(item)
       return Promise.resolve(item)
@@ -67,7 +86,7 @@ export default (app) => {
       if (!group) {
         return Promise.reject(group)
       }
-      _.union(group.users, [userId])
+      group.users = _.union(group.users, [userId])
       return Promise.resolve(group)
     },
     removeUser: (groupId, userId) => {
@@ -79,28 +98,31 @@ export default (app) => {
       return Promise.resolve(group)
     },
     createSystemData: () => {
-      Model.ClearData()
-      _systemGroupAdmin = null
-      _systemGroupGuest = null
-      _systemGroupLoggedIn = null
-      const arr = dataUserGroupSystem.map((item) => {
-        Model.create(item)
-          .then((newItem) => {
-            if (!newItem) throw Error('Fail to create new UserGroup')
+      console.log('creating system data for UserGroup')
+      return Model.ClearData()
+        .then(() => {
+          _systemGroupAdmin = null
+          _systemGroupGuest = null
+          _systemGroupLoggedIn = null
+          const arr = dataUserGroupSystem.map((item) => {
+            Model.create(item)
+              .then((newItem) => {
+                if (!newItem) throw Error('Fail to create new UserGroup')
 
-            if (newItem.systemType && newItem.systemType === systemTypeAdmin) {
-              if (_systemGroupAdmin) throw new Error('SystemData have duplicate Admin group')
-              _systemGroupAdmin = newItem.id
-            } else if (newItem.systemType && newItem.systemType === systemTypeGuest) {
-              if (_systemGroupGuest) throw new Error('SystemData have duplicate Guest group')
-              _systemGroupGuest = newItem.id
-            } else if (newItem.systemType && newItem.systemType === systemTypeLoggedIn) {
-              if (_systemGroupLoggedIn) throw new Error('SystemData have duplicate LoggedIn group')
-              _systemGroupLoggedIn = newItem.id
-            }
+                if (newItem.systemType && newItem.systemType === systemTypeAdmin) {
+                  if (_systemGroupAdmin) throw new Error('SystemData have duplicate Admin group')
+                  _systemGroupAdmin = newItem.id
+                } else if (newItem.systemType && newItem.systemType === systemTypeGuest) {
+                  if (_systemGroupGuest) throw new Error('SystemData have duplicate Guest group')
+                  _systemGroupGuest = newItem.id
+                } else if (newItem.systemType && newItem.systemType === systemTypeLoggedIn) {
+                  if (_systemGroupLoggedIn) throw new Error('SystemData have duplicate LoggedIn group')
+                  _systemGroupLoggedIn = newItem.id
+                }
+              })
           })
-      })
-      return Promise.all(arr)
+          return Promise.all(arr)
+        })
     },
     createData: () => Promise.all(dataUserGroup.map((item) => Model.create(item)))
   }

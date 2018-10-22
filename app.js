@@ -22,6 +22,7 @@ export default () => {
   app.Promise = Promise
   app.express = express
   app.env = process.env
+  app.asyncInit = []
 
   // view engine setup
   app.set('views', path.join(__dirname, 'views'))

@@ -80,24 +80,28 @@ const FindOrAddPermission = (aObject, permission) => {
 }
 
 export default module.exports = (app) => {
+  const { UserGroup } = app.models
   return {
     ACL: (object, permission) => {
       return (req, res, next) => {
         const auth = app.auth.passport.authenticate('jwt', { session: false })
         auth(req, res, () => {
           if (req.user) {
+            console.log(`ACL: user ${req.user.id}`)
             // user already authenticated:
-            if (CheckPermission(req.user.id, object, permission) === kindAllow) {
-              next()
+            if (UserGroup.isUserInGroupSync(UserGroup.systemGroupAdmin(), req.user.id)) {
+              next() // user is in system admin group
+            } else if (CheckPermission(req.user.id, object, permission) === kindAllow) {
+              next() // user have allow kind of permission for this object/permission
             } else {
-              next(new ServerNotAllowed(`Permission check failed: ${object}.${permission}`))
+              next(new ServerNotAllowed(`Permission deny for user on ${object}.${permission}`))
             }
           } else {
             // user not authenticated, check permission for guest user:
             if (CheckPermission(GuestUserId, object, permission) === kindAllow) {
               next()
             } else {
-              next(new ServerNotAllowed(`Permission check failed for guest user: ${object}.${permission}`))
+              next(new ServerNotAllowed(`Permission deny for guest user on ${object}.${permission}`))
             }
           }
         })
@@ -126,6 +130,9 @@ export default module.exports = (app) => {
         aGroup.kind = aKind
       }
     },
-    ListACL: () => aclObject.map(item => item.id)
+    ListACL: () => {
+      console.log(aclObject)
+      return aclObject.map(item => item.id)
+    }
   }
 }

@@ -16,5 +16,6 @@ export default module.exports = (app) => {
   models.Invite.name = 'Invite'
   models.UserGroup.name = 'UserGroup'
 
+  app.asyncInit.push(models.UserGroup.createSystemData())
   return models
 }

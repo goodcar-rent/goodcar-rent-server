@@ -32,7 +32,8 @@ export default module.exports = (app) => {
           if (!User.isPassword(user.password, data.password)) {
             throw new ServerInvalidUsernamePassword('Invalid username or password') // password error
           }
-          return res.json({ token: jwt.encode({ id: user.id }, app.env.JWT_SECRET) })
+          res.json({ token: jwt.encode({ id: user.id }, app.env.JWT_SECRET) })
+          return UserGroup.addUser(UserGroup.systemGroupLoggedIn(), user.id)
         })
         .catch((error) => {
           if (error instanceof ServerError) {
@@ -68,12 +69,18 @@ export default module.exports = (app) => {
             data.invitedBy = null
             data.inviteDate = null
             data.inviteId = null
+            console.log('created user')
             return User.create(data)
           })
           .then((newUser) => {
             res.json(newUser)
-            return UserGroup.addUser(UserGroup.systemGroupAdmin(), newUser.id)
+            console.log(newUser)
+            const _adminGroup = UserGroup.systemGroupAdmin()
+            console.log(_adminGroup)
+            return UserGroup.addUser(_adminGroup, newUser.id)
           })
+          .then(() => UserGroup.findAll())
+          .then((groups) => console.log(groups))
           .catch((error) => {
             if (error instanceof ServerError) {
               throw error
