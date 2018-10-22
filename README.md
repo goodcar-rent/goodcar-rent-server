@@ -210,3 +210,8 @@ Auth domain:
     "POST /auth/invite": LOGGEDIN
     "GET /auth/invite": LOGGEDIN
     "" 
+    
+## MVP:
+
+- initial signup as admin
+- signup other users via invite

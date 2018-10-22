@@ -10,7 +10,7 @@ import {
 } from '../config/errors'
 
 export default module.exports = (app) => {
-  const { User, Invite } = app.models
+  const { User, Invite, UserGroup } = app.models
   return {
     login: (req, res) => {
       // validate all req params (defined in router):
@@ -72,6 +72,7 @@ export default module.exports = (app) => {
           })
           .then((newUser) => {
             res.json(newUser)
+            return UserGroup.addUser(UserGroup.systemGroupAdmin(), newUser.id)
           })
           .catch((error) => {
             if (error instanceof ServerError) {

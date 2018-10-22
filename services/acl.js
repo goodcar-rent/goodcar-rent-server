@@ -28,13 +28,14 @@ export const kindDeny = 'DENY'
 export const GuestUserId = -1
 
 /*
-ACLObject:
+ACL.Object:
 
  * id: identifier for object, like "Invoce"
  * permissions: [] array of permissions:
    * permission: permission name, like "read", "write"
    * kind of permission, one of ALLOW/DENY
-   * users: list of users that have this permission
+   * users: list of users that have this permission of this kind
+   * userGroups: list of groups that have this permission of this kind
 */
 
 const aclObject = []
@@ -81,29 +82,21 @@ const FindOrAddPermission = (aObject, permission) => {
 export default module.exports = (app) => {
   return {
     ACL: (object, permission) => {
-      console.log('ACL')
       return (req, res, next) => {
         const auth = app.auth.passport.authenticate('jwt', { session: false })
         auth(req, res, () => {
-          console.log('authed')
           if (req.user) {
-            console.log('user authenticated')
             // user already authenticated:
             if (CheckPermission(req.user.id, object, permission) === kindAllow) {
-              console.log('allowed')
               next()
             } else {
-              console.log('not allowed')
               next(new ServerNotAllowed(`Permission check failed: ${object}.${permission}`))
             }
           } else {
-            console.log('guest')
             // user not authenticated, check permission for guest user:
             if (CheckPermission(GuestUserId, object, permission) === kindAllow) {
-              console.log('ok')
               next()
             } else {
-              console.log('xx')
               next(new ServerNotAllowed(`Permission check failed for guest user: ${object}.${permission}`))
             }
           }
@@ -133,6 +126,6 @@ export default module.exports = (app) => {
         aGroup.kind = aKind
       }
     },
-    ListACL: () => aclObject
+    ListACL: () => aclObject.map(item => item.id)
   }
 }

@@ -11,6 +11,7 @@ import UserRouter from './routes/user-router'
 import AuthRouter from './routes/auth-router'
 import InviteRouter from './routes/invite-router'
 import UserGroupRouter from './routes/user-group-router'
+import AclRouter from './routes/acl-router'
 import ErrorHandlers from './config/error-handlers'
 import wrap from './services/wrap'
 import mail from './services/mail'
@@ -18,6 +19,7 @@ import mail from './services/mail'
 export default () => {
   env.config()
   const app = express()
+  app.Promise = Promise
   app.express = express
   app.env = process.env
 
@@ -42,6 +44,7 @@ export default () => {
   app.wrap = wrap
 
   // configure routes
+  app.use(AclRouter(app))
   app.use('/', indexRouter)
   app.use(UserRouter(app))
   app.use('/auth', InviteRouter(app))
