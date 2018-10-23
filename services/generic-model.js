@@ -18,3 +18,11 @@ export const genericFindOne = (Collection) => (opt) =>
 export const genericCount = (Collection) => () => Promise.resolve(Collection.length)
 
 export const genericClearData = (Collection) => () => Promise.resolve(Collection.length = 0)
+
+export const genericUpdate = (Collection) => (item) => {
+  let aItem = _.find(Collection, { id: item.id })
+  if (!aItem) {
+    return Promise.reject(new Error('genericUpdate: item not found'))
+  }
+  return Promise.resolve(_.assign(aItem, item))
+}
