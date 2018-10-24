@@ -14,7 +14,7 @@ export default module.exports = (app) => {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken()
   }
   const strategy = new Strategy(params, (payload, done) => {
-    var loginId = null
+    let loginId = null
     Login.findById(payload.id)
       .then((login) => {
         if (!login) {

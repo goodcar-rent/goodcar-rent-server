@@ -13,7 +13,6 @@ import {
   genericUpdate
 } from './generic-model'
 
-const _userGroup = []
 
 /*
 
@@ -40,6 +39,7 @@ export const systemTypeGuest = 'Guest'
 export const systemTypeLoggedIn = 'LoggedIn'
 
 export default (app) => {
+  let _userGroup = []
   let _systemGroupAdmin = null
   let _systemGroupGuest = null
   let _systemGroupLoggedIn = null
@@ -86,7 +86,7 @@ export default (app) => {
     addUser: (groupId, userId) => {
       const group = _.find(_userGroup, { id: groupId })
       if (!group) {
-        return Promise.reject(group)
+        return Promise.reject(new Error(`addUser: group ${groupId} not found`))
       }
       group.users = _.union(group.users, [userId])
       return Promise.resolve(group)

@@ -28,7 +28,6 @@ export default module.exports = (app) => {
           // if (!user.emailVerified) {
           //  throw new ServerNotAllowed('Email should be verified')
           // }
-
           if (!User.isPassword(user.password, data.password)) {
             throw new ServerInvalidUsernamePassword('Invalid username or password') // password error
           }
@@ -124,7 +123,7 @@ export default module.exports = (app) => {
         })
         .then((createdUser) => {
           res.json(createdUser)
-          return Invite.updateOne(aData.invite, { registeredUser: createdUser.id })
+          return Invite.update(aData.invite, { registeredUser: createdUser.id })
         })
     },
 

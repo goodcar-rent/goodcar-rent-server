@@ -30,12 +30,13 @@ describe('auth-controller:', () => {
     authSchema: 'Bearer'
   }
 
-  describe('login:', () => {
-    beforeEach(function (done) {
-      app.models.ClearData()
-        .then(() => done())
-    })
+  beforeEach(function (done) {
+    app.models.ClearData()
+      .then(() => app.models.UserGroup.createSystemData())
+      .then(() => done())
+  })
 
+  describe('login:', () => {
     describe('should fail with invalid params:', function () {
       it('should fail with empty email', function (done) {
         loginAs(context, { email: '', password: '1234' }, expected.ErrCodeInvalidParams)
@@ -147,10 +148,6 @@ describe('auth-controller:', () => {
     })
   })
   describe('signup:', () => {
-    beforeEach(function (done) {
-      app.models.ClearData()
-        .then(() => done())
-    })
     it('should fail second sign up if INVITE_ONLY', function (done) {
       createAdminUser(context)
         .then(() => createUser(context, UserFirst, expected.ErrCodeForbidden))

@@ -35,15 +35,15 @@ describe('user-group:', () => {
         })
         .then((cnt) => {
           expect(cnt).is.equal(1)
-          return UserGroup.addUser(userGroup, users[0])
+          return UserGroup.addUser(userGroup.id, users[0])
         })
         .then((user1) => {
           expect(user1).to.exist()
-          return UserGroup.addUser(userGroup, users[1])
+          return UserGroup.addUser(userGroup.id, users[1])
         })
         .then((user2) => {
           expect(user2).to.exist()
-          expect(UserGroup.users.length).is.equal(2)
+          expect(userGroup.users.length).is.equal(2)
           done()
         })
         .catch((err) => done(err))
@@ -57,23 +57,23 @@ describe('user-group:', () => {
         })
         .then((cnt) => {
           expect(cnt).is.equal(1)
-          return UserGroup.addUser(userGroup, users[0])
+          return UserGroup.addUser(userGroup.id, users[0])
         })
         .then((user1) => {
           expect(user1).to.exist()
-          return UserGroup.addUser(userGroup, users[1])
+          return UserGroup.addUser(userGroup.id, users[1])
         })
         .then((user2) => {
           expect(user2).to.exist()
-          expect(UserGroup.users.length).is.equal(2)
+          expect(userGroup.users.length).is.equal(2)
           return UserGroup.removeUser(users[0].id)
         })
         .then(() => {
-          expect(UserGroup.users.length).is.equal(1)
+          expect(userGroup.users.length).is.equal(1)
           return UserGroup.removeUser(users[1].id)
         })
         .then(() => {
-          expect(UserGroup.users.length).is.equal(0)
+          expect(userGroup.users.length).is.equal(0)
           done()
         })
         .catch((err) => done(err))

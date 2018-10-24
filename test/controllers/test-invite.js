@@ -31,6 +31,7 @@ describe('invite-controller:', function () {
 
   beforeEach(function (done) {
     app.models.ClearData()
+      .then(() => app.models.UserGroup.createSystemData())
       .then(() => createAdminUser(context))
       .then(() => loginAs(context, UserAdmin))
       .then(() => done())
