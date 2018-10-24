@@ -9,6 +9,7 @@ import Models from './config/models'
 import indexRouter from './routes/index'
 import UserRouter from './routes/user-router'
 import AuthRouter from './routes/auth-router'
+import LoginRouter from './routes/login-router'
 import InviteRouter from './routes/invite-router'
 import UserGroupRouter from './routes/user-group-router'
 import AclRouter from './routes/acl-router'
@@ -31,11 +32,14 @@ export default () => {
   if (app.env.NODE_ENV === 'develompent') {
     app.use(logger('dev'))
   }
+
+  if (app.env.NODE_ENV === 'develompent' || app.env.NODE_ENV === 'test') {
+    app.enable('trust proxy')
+  }
   app.use(express.json())
   app.use(express.urlencoded({ extended: false }))
   app.use(cookieParser())
   app.use(express.static(path.join(__dirname, 'public')))
-  // app.enable('trust proxy')
 
   // configure models
   app.models = Models(app)
@@ -51,6 +55,7 @@ export default () => {
   app.use(UserRouter(app))
   app.use('/auth', InviteRouter(app))
   app.use('/auth', AuthRouter(app))
+  app.use(LoginRouter(app))
   app.use(UserGroupRouter(app))
 
   ErrorHandlers(app)
