@@ -192,16 +192,9 @@ describe('auth-controller:', () => {
     })
     it('should be ok with proper params', function (done) {
       let invite = null
-      console.log('1')
       createAdminUser(context)
-        .then(() => {
-          console.log('2')
-          return loginAs(context, UserAdmin)
-        })
-        .then(() => {
-          console.log('3')
-          return inviteCreate(context, { email: UserFirst.email })
-        })
+        .then(() => loginAs(context, UserAdmin))
+        .then(() => inviteCreate(context, { email: UserFirst.email }))
         .then((res) => {
           expect(res.body).to.exist()
           expect(res.body.id).to.exist()

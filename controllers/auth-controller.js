@@ -73,18 +73,14 @@ export default module.exports = (app) => {
             data.invitedBy = null
             data.inviteDate = null
             data.inviteId = null
-            console.log('created user')
             return User.create(data)
           })
           .then((newUser) => {
             res.json(newUser)
-            console.log(newUser)
             const _adminGroup = UserGroup.systemGroupAdmin()
-            console.log(_adminGroup)
             return UserGroup.addUser(_adminGroup, newUser.id)
           })
           .then(() => UserGroup.findAll())
-          .then((groups) => console.log(groups))
           .catch((error) => {
             if (error instanceof ServerError) {
               throw error

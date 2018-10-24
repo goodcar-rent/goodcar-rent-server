@@ -130,7 +130,6 @@ export default module.exports = (app) => {
       }
     },
     ListACL: () => {
-      console.log(aclObject)
       return aclObject.map(item => item.id)
     }
   }

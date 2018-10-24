@@ -70,7 +70,6 @@ describe('invite-controller:', function () {
 
     describe('should be ok with proper params:', function () {
       const aMoment = (Moment(Date.now() + 1000 * 60 * 60 * 24)).format('YYYY-MM-DD')
-      console.log(aMoment)
 
       it('should be ok with email only', function (done) {
         inviteCreate(context, { email: 'user@email.com' })
