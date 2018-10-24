@@ -10,7 +10,7 @@ import {
 } from '../config/errors'
 
 export default module.exports = (app) => {
-  const { User, Invite, UserGroup } = app.models
+  const { User, Invite, UserGroup, Login } = app.models
   return {
     login: (req, res) => {
       // validate all req params (defined in router):
@@ -32,8 +32,12 @@ export default module.exports = (app) => {
           if (!User.isPassword(user.password, data.password)) {
             throw new ServerInvalidUsernamePassword('Invalid username or password') // password error
           }
-          res.json({ token: jwt.encode({ id: user.id }, app.env.JWT_SECRET) })
-          return UserGroup.addUser(UserGroup.systemGroupLoggedIn(), user.id)
+
+          return Login.createOrUpdate({ userId: user.id, ip: req.ip })
+        })
+        .then((login) => {
+          res.json({ token: jwt.encode({ id: login.id }, app.env.JWT_SECRET) })
+          return UserGroup.addUser(UserGroup.systemGroupLoggedIn(), login.userId)
         })
         .catch((error) => {
           if (error instanceof ServerError) {

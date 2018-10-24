@@ -8,9 +8,10 @@ export default (app) => {
 
   // noinspection JSCheckFunctionSignatures
   router.route('/invite')
-    .all(app.auth.ACL('invite', 'read'))
+    .all(app.auth.authenticate())
+    // .all(app.auth.ACL('invite', 'read'))
     .get(app.wrap(controller.list))
-    .post(app.auth.ACL('invite', 'write'),
+    .post(// app.auth.ACL('invite', 'write'),
       [
         body('email').isEmail().isLength({ min: 5 }).withMessage('Email should be provided'),
         body('expireAt').optional().isAfter().withMessage('ExpireAt should be greater than now'),

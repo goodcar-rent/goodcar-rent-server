@@ -87,7 +87,6 @@ export default module.exports = (app) => {
         const auth = app.auth.passport.authenticate('jwt', { session: false })
         auth(req, res, () => {
           if (req.user) {
-            console.log(`ACL: user ${req.user.id}`)
             // user already authenticated:
             if (UserGroup.isUserInGroupSync(UserGroup.systemGroupAdmin(), req.user.id)) {
               next() // user is in system admin group

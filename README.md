@@ -148,8 +148,25 @@ Get user profile
 
 Set permission for this user for specific object
 
+## Login routes
 
+> GET /login
 
+Return list of active login (sessions) for current system
+
+> GET /login/:id 
+
+Return data about active login
+
+> DELETE /login/:id
+
+Remove active login session (force specified user session to logout)
+
+## System features
+
+* Manage login sessions for users in system (list sessions, disconnect user
+* Disable user login
+* Manage actions in system (action list - protocol)
 
 ### ACL: Access control
 

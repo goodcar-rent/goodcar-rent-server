@@ -9,7 +9,8 @@ import {
   genericDelete,
   genericFindAll,
   genericFindById,
-  genericFindOne
+  genericFindOne,
+  genericUpdate
 } from './generic-model'
 
 const _userGroup = []
@@ -53,6 +54,7 @@ export default (app) => {
     delete: genericDelete(_userGroup),
     count: genericCount(_userGroup),
     ClearData: genericClearData(_userGroup),
+    update: genericUpdate(_userGroup),
     findGroupsForUser: (user) => Promise.resolve(_.filter(_userGroup, (item) => (_.includes(item.users, user) !== -1))),
     isUserInGroup: (groupId, userId) => {
       const aGroup = _.find(_userGroup, { id: groupId })
@@ -98,7 +100,6 @@ export default (app) => {
       return Promise.resolve(group)
     },
     createSystemData: () => {
-      console.log('creating system data for UserGroup')
       return Model.ClearData()
         .then(() => {
           _systemGroupAdmin = null
