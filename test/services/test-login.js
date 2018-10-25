@@ -18,7 +18,7 @@ chai.use(dirtyChai)
     create:
     createOrUpdate:
 */
-describe('login [service]:', () => {
+describe('[service] login:', () => {
   process.env.NODE_ENV = 'test' // just to be sure
   const app = App()
   const { Login } = app.models

@@ -19,7 +19,7 @@ import {
 chai.use(dirtyChai)
 
 // test case:
-describe('user-group-controller (system):', function () {
+describe('(controller) user-group, system:', function () {
   process.env.NODE_ENV = 'test' // just to be sure
   const app = App()
   const request = supertest(app)

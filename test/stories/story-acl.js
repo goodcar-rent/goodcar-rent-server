@@ -18,11 +18,11 @@ import {
 chai.use(dirtyChai)
 
 // test case:
-describe('(STORY) ACL:', () => {
+describe('<STORY> ACL:', () => {
   process.env.NODE_ENV = 'test' // just to be sure
   const app = App()
   const request = supertest(app)
-  const User = app.models.User
+  const { User } = app.models
 
   const context = {
     request,

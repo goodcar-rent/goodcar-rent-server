@@ -18,7 +18,7 @@ import {
 chai.use(dirtyChai)
 
 // test case:
-describe('invite-controller:', function () {
+describe('(controller) invite', function () {
   process.env.NODE_ENV = 'test' // just to be sure
   const app = App()
   const request = supertest(app)

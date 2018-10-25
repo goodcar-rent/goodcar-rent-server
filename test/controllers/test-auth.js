@@ -18,7 +18,7 @@ import {
 chai.use(dirtyChai)
 
 // test case:
-describe('auth-controller:', () => {
+describe('(controller) auth:', () => {
   process.env.NODE_ENV = 'test' // just to be sure
   const app = App()
   const request = supertest(app)

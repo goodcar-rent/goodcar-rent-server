@@ -24,6 +24,7 @@ export const UserSecond = {
 
 export const expected = {
   Ok: 200,
+  Deleted: 204,
   ErrCodeNotLogged: 401,
   ErrCodeForbidden: 403,
   ErrCodeNotFound: 404,
@@ -93,3 +94,15 @@ export const loginList = (context, expectedCode) => context.request.get(`${conte
   .type('json')
   .accept('json')
   .expect(expectedCode || expected.Ok)
+
+export const loginItem = (context, data, expectedCode) => context.request.get(`${context.apiRoot}/login/${data.id}`)
+  .set('Authorization', `${context.authSchema} ${context.token}`)
+  .type('json')
+  .accept('json')
+  .expect(expectedCode || expected.Ok)
+
+export const loginDelete = (context, data, expectedCode) => context.request.delete(`${context.apiRoot}/login/${data.id}`)
+  .set('Authorization', `${context.authSchema} ${context.token}`)
+  .type('json')
+  .accept('json')
+  .expect(expectedCode || expected.Deleted)

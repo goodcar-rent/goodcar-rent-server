@@ -11,13 +11,13 @@ import {
   UserAdmin,
   UserFirst,
   loginList,
-  createUser
+  createUser, loginItem, loginDelete, userGroupList, expected
 } from '../client/client-api'
 
 chai.use(dirtyChai)
 
 // test case:
-describe('login-controller:', function () {
+describe('(controller) login:', function () {
   process.env.NODE_ENV = 'test' // just to be sure
   const app = App()
   const request = supertest(app)
@@ -70,6 +70,52 @@ describe('login-controller:', function () {
           expect(res.body).to.exist('Body should exist')
           expect(res.body).to.be.an('array')
           expect(res.body).to.have.lengthOf(2)
+        })
+        .then(() => done())
+        .catch((err) => done(err))
+    })
+  })
+
+  describe('item method:', function () {
+    it('should get details about specified login:', function (done) {
+      context.token = context.adminToken
+      loginList(context)
+        .then((res) => {
+          expect(res.body).to.exist('Body should exist')
+          expect(res.body).to.be.an('array')
+          expect(res.body).to.have.lengthOf(2)
+          return loginItem(context, { id: res.body[0].id })
+        })
+        .then((res) => {
+          expect(res.body).to.exist('Body should exist')
+          expect(res.body).to.be.an('object')
+          expect(res.body.id).to.exist()
+          expect(res.body.userId).to.exist()
+          expect(res.body.ip).to.exist()
+        })
+        .then(() => done())
+        .catch((err) => done(err))
+    })
+  })
+
+  describe('delete method:', function () {
+    it('should delete active session and make token invalid:', function (done) {
+      context.token = context.adminToken
+      loginList(context)
+        .then((res) => {
+          expect(res.body).to.exist('Body should exist')
+          expect(res.body).to.be.an('array')
+          expect(res.body).to.have.lengthOf(2)
+          return loginDelete(context, { id: res.body[1].id })
+        })
+        .then(() => {
+          context.token = context.userToken
+          return userGroupList(context, expected.ErrCodeForbidden)
+        })
+        .then((res) => {
+          expect(res.body).to.exist('Body should exist')
+          expect(res.body).to.be.an('object')
+          expect(res.body.error).to.exist('Error should exist')
         })
         .then(() => done())
         .catch((err) => done(err))

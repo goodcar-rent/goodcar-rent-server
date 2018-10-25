@@ -12,7 +12,7 @@ export default (app) => {
     .get(app.wrap(controller.list))
 
   // noinspection JSCheckFunctionSignatures
-  router.route('/user-group/:id')
+  router.route('/login/:id')
     .all(app.auth.ACL('login', 'read'),
       [
         param('id').isString().withMessage('id should be specified')

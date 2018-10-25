@@ -7,7 +7,7 @@ import { systemTypeAdmin } from '../../services/user-group'
 chai.use(dirtyChai)
 
 // test case:
-describe('user-group [service]:', () => {
+describe('[service] user-group:', () => {
   process.env.NODE_ENV = 'test' // just to be sure
   const app = App()
   const { UserGroup } = app.models
