@@ -39,6 +39,8 @@ export default module.exports = (app) => {
           return UserGroup.addUser(UserGroup.systemGroupLoggedIn(), login.userId)
         })
         .catch((error) => {
+          console.log('login: error')
+          console.log(error)
           if (error instanceof ServerError) {
             throw error
           } else {
@@ -81,6 +83,8 @@ export default module.exports = (app) => {
           })
           .then(() => UserGroup.findAll())
           .catch((error) => {
+            console.log('signup: error')
+            console.log(error)
             if (error instanceof ServerError) {
               throw error
             } else {
@@ -124,6 +128,15 @@ export default module.exports = (app) => {
         .then((createdUser) => {
           res.json(createdUser)
           return Invite.update(aData.invite, { registeredUser: createdUser.id })
+        })
+        .catch((error) => {
+          console.log('signup: error')
+          console.log(error)
+          if (error instanceof ServerError) {
+            throw error
+          } else {
+            throw new ServerGenericError(error)
+          }
         })
     },
 

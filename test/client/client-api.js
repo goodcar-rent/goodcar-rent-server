@@ -29,7 +29,7 @@ export const expected = {
   ErrCodeNotFound: 404,
   ErrCodeInvalidParams: 412,
   ErrCodeError: 500,
-  ErrCodeGeneric: 503,
+  ErrCodeGeneric: 503
 }
 
 export const createAdminUser = context => context.request.post(`${context.apiRoot}/auth/signup`)
@@ -43,13 +43,12 @@ export const createUser = (context, user, expectedCode) => context.request.post(
   .send(user || UserFirst)
   .type('json')
   .accept('json')
-  .accept('text')
   .expect(expectedCode || expected.Ok)
 
 export const loginAs = (context, user, expectedCode) => context.request.post(`${context.apiRoot}/auth/login`)
   .send({
     email: user.email,
-    password: user.password,
+    password: user.password
   })
   .type('json')
   .accept('json')
@@ -70,7 +69,7 @@ export const inviteCreate = (context, data, expectedCode) => context.request.pos
   .accept('text')
   .expect(expectedCode || expected.Ok)
 
-export const inviteList = (context, data, expectedCode) => context.request.get(`${context.apiRoot}/auth/invite`)
+export const inviteList = (context, expectedCode) => context.request.get(`${context.apiRoot}/auth/invite`)
   .set('Authorization', `${context.authSchema} ${context.token}`)
   .type('json')
   .accept('json')
@@ -81,12 +80,16 @@ export const inviteSend = (context, data, expectedCode) => context.request.get(`
   .set('Authorization', `${context.authSchema} ${context.token}`)
   .type('json')
   .accept('json')
-  .accept('text')
   .expect(expectedCode || expected.Ok)
 
-export const userGroupList = (context, data, expectedCode) => context.request.get(`${context.apiRoot}/user-group`)
+export const userGroupList = (context, expectedCode) => context.request.get(`${context.apiRoot}/user-group`)
   .set('Authorization', `${context.authSchema} ${context.token}`)
   .type('json')
   .accept('json')
-  .accept('text')
+  .expect(expectedCode || expected.Ok)
+
+export const loginList = (context, expectedCode) => context.request.get(`${context.apiRoot}/login`)
+  .set('Authorization', `${context.authSchema} ${context.token}`)
+  .type('json')
+  .accept('json')
   .expect(expectedCode || expected.Ok)

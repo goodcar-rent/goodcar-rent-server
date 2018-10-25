@@ -32,9 +32,9 @@ describe('user-group-controller (system):', function () {
 
   beforeEach(function (done) {
     app.models.ClearData()
-      .then(() => createAdminUser(context))
       .then(() => app.models.UserGroup.createSystemData())
       .then(() => app.models.UserGroup.createData())
+      .then(() => createAdminUser(context))
       .then(() => loginAs(context, UserAdmin))
       .then(() => done())
   })

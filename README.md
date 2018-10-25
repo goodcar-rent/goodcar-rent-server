@@ -148,6 +148,14 @@ Get user profile
 
 Set permission for this user for specific object
 
+> GET /user/:userId/logins
+
+List logins of this user
+
+> DELETE /user/:userId/logins/:loginId
+
+Manually log-off specified user
+
 ## Login routes
 
 > GET /login

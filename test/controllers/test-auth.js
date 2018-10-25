@@ -36,7 +36,7 @@ describe('auth-controller:', () => {
       .then(() => done())
   })
 
-  describe('login:', () => {
+  describe('login method:', () => {
     describe('should fail with invalid params:', function () {
       it('should fail with empty email', function (done) {
         loginAs(context, { email: '', password: '1234' }, expected.ErrCodeInvalidParams)
@@ -147,7 +147,7 @@ describe('auth-controller:', () => {
         .catch(err => done(err))
     })
   })
-  describe('signup:', () => {
+  describe('signup method:', () => {
     it('should fail second sign up if INVITE_ONLY', function (done) {
       createAdminUser(context)
         .then(() => createUser(context, UserFirst, expected.ErrCodeForbidden))

@@ -18,7 +18,7 @@ chai.use(dirtyChai)
     create:
     createOrUpdate:
 */
-describe('login service:', () => {
+describe('login [service]:', () => {
   process.env.NODE_ENV = 'test' // just to be sure
   const app = App()
   const { Login } = app.models
@@ -164,7 +164,7 @@ describe('login service:', () => {
     it('should delete all specified items', (done) => {
       const aTimestamp = Date.now()
 
-      new Promise(resolve => setTimeout(resolve, 100))
+      new Promise(resolve => setTimeout(resolve, 500))
         .then(() => Login.createOrUpdate({ id: 2, userId: '2', ip: '127.0.0.1' }))
         .then(() => Login.findById(2))
         .then((res) => {
