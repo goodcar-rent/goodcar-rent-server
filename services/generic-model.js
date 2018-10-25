@@ -1,21 +1,22 @@
 import _ from 'lodash'
 
+// remove item from collection using item's id. Returns removed item
 export const genericDelete = (Collection) => (id) => {
   const aItem = _.find(Collection, { id })
   if (!aItem) {
     return Promise.reject(new Error(`genericDelete: item ${id} not found in collection`))
   }
   _.remove(Collection, { id })
-  return Promise.resolve(1)
+  return Promise.resolve(aItem)
 }
 
-// Remove all elements from collection using where option. Returns count of removed elements
+// Remove all elements from collection using where option. Returns removed elements as array
 export const genericDeleteAll = (Collection) => (opt) => {
   if (!opt || !opt.where) {
     return Promise.reject(new Error(`genericDeleteAll: invalid opt param - ${opt}`))
   }
   const arr = _.remove(Collection, opt.where)
-  return Promise.resolve(arr.count)
+  return Promise.resolve(arr)
 }
 
 export const genericFindById = (Collection) => (id) => Promise.resolve(_.find(Collection, { id }))
