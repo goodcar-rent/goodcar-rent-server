@@ -30,7 +30,7 @@ export const GuestUserId = -1
 /*
 ACL.Object:
 
- * id: identifier for object, like "Invoce"
+ * id: identifier for object, like "Invoice"
  * permissions: [] array of permissions:
    * permission: permission name, like "read", "write"
    * kind of permission, one of ALLOW/DENY
@@ -131,6 +131,17 @@ export default module.exports = (app) => {
     },
     ListACL: () => {
       return aclObject.map(item => item.id)
+    },
+    ListACLForUser: (userId) => {
+      const arr = []
+      _.forEach(aclObject, (item) => {
+        _.forEach(item.permissions, (perm) => {
+          if (_.includes(perm.users, userId)) {
+            arr.push({ object: item.id, permission: perm.id, kind: perm.kind })
+          }
+        })
+      })
+      return arr
     }
   }
 }

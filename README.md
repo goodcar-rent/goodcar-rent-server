@@ -16,40 +16,138 @@ GoodCar.rent server app
 
 ## Endpoints
 
+### ACL routes:
+
+> GET /acl/object
+
+Returns list of ACL objects defined in system
+
+> POST /acl/object
+
+Define ACL object with permissions for specified users
+
 ### Auth routes:
 
-#### POST /auth/login
+> POST /auth/signup
+
+Create new user profile in system
+
+> POST /auth/login
  
-> login via email/password
+Login via email/password
 
-#### POST /auth/signup
+> GET /auth/signup (html) ?invite=code
 
-> create new user profile
-
-#### GET /auth/signup (html)
-> ?invite=code
-
-> Return signup page with hidden field "invite"
+Return signup page with hidden field "invite"
  
-#### POST /auth/invite
+### Invite routes:
+ 
+> POST /auth/invite
 
-> Create invite for new user
+Create invite for new user
   
-#### GET /auth/invite
+> GET /auth/invite
 
-> Return list of invites in system
+Return list of invites in system
 
-#### DELETE /auth/invite:id
+> GET /auth/invite/:id
+
+Get specified invite
+
+> DELETE /auth/invite:id
   
-> Delete specified invite
+Delete specified invite
 
-#### GET /auth/invite/:id
+> POST /auth/invite/:id/send
 
-> Get specified invite
+Send invite for specified user
 
-#### POST /auth/invite/:id/send
+### Login routes
 
-> Send invite for specified user
+> GET /login
+
+Return list of active login (sessions) for current system
+
+> GET /login/:id 
+
+Return data about active login
+
+> DELETE /login/:id
+
+Remove active login session (force specified user session to logout)
+
+### UserGroup router
+
+> GET /user-group
+
+Return list of user groups 
+
+> POST /user-group
+
+Create new user group
+
+> GET /user-group/:id
+
+Return info about specified user group
+
+> PUT /user-group/:id
+
+Update info about user group
+
+> DELETE /user-group/:id
+
+Delete user group from system
+
+### User router:
+
+> GET /user
+
+Return list of users in system 
+
+> POST /user 
+
+Add user tp system
+
+> GET /user/:userId
+
+Get user profile
+
+> PUT /user/:userId
+
+Update user profile
+
+### User permissions routes (WIP):
+
+> GET /user/:userId/permissions
+
+List all defined permission for this user
+
+> POST /user/:userId/permissions
+
+Create new permission for specified user
+
+> GET /user/:userId/permissions/:permissionId
+
+Get info about specific permission for this user
+
+> PUT /user/:userId/permissions/:permissionId
+
+Update info about specific permission for this user
+
+> DELETE /user/:userId/permissions/:permissionId
+
+Delete specific permission for this user
+
+### User login routes:
+
+> GET /user/:userId/logins
+
+List logins of this user
+
+> DELETE /user/:userId/logins/:loginId
+
+Manually log-off specified user
+
 
 ### Car management routes
 
@@ -129,46 +227,6 @@ List of users with this permission
 > GET /acl/object/:id/permission/:permissionId/user-groups
 
 List of all user groups with this permission
-
-## User routes (WIP)
-
-> GET /user
-
-Return list of users in system 
-
-> POST /user 
-
-Add user tp system
-
-> GET /user/:userId
-
-Get user profile
-
-> POST /user/:userId/permission
-
-Set permission for this user for specific object
-
-> GET /user/:userId/logins
-
-List logins of this user
-
-> DELETE /user/:userId/logins/:loginId
-
-Manually log-off specified user
-
-## Login routes
-
-> GET /login
-
-Return list of active login (sessions) for current system
-
-> GET /login/:id 
-
-Return data about active login
-
-> DELETE /login/:id
-
-Remove active login session (force specified user session to logout)
 
 ## System features
 

@@ -1,10 +1,13 @@
 import { body, param } from 'express-validator/check'
 import Controller from '../controllers/user-controller'
+import PermissionsController from '../controllers/user-permissions-controller'
 import paramCheck from '../services/param-check'
+import { kindAllow, kindDeny } from '../services/acl'
 
 export default (app) => {
   const router = app.express.Router()
   const controller = Controller(app)
+  const permissionsController = PermissionsController(app)
 
   // noinspection JSCheckFunctionSignatures
   router.route('/user')
@@ -29,6 +32,31 @@ export default (app) => {
     .get(app.wrap(controller.item))
     .put(app.wrap(controller.save))
     .delete(app.wrap(controller.delete))
+
+  // User permissions management routes:
+  router.route('/user/:userId/permissions')
+    .all(app.auth.authenticate(),
+      [
+        param('userId').isString().withMessage('id should be specified')
+      ], paramCheck)
+    .get(app.wrap(permissionsController.permissionsList))
+    .post(
+      [
+        body('object').isString().isLength({ min: 1 }).withMessage('object should be provided'),
+        body('permission').isString().isLength({ min: 1 }).withMessage('permission should be provided'),
+        body('kind').optional().isString().isIn([kindAllow, kindDeny]).withMessage('kind should be specified with predefined values'),
+      ], paramCheck,
+      app.wrap(permissionsController.permissionsCreate))
+
+  router.route('/user/:userId/permissions/:permissionId')
+    .all(app.auth.authenticate(),
+      [
+        param('userId').isString().withMessage('id should be specified'),
+        param('permissionId').isString().withMessage('permissionId should be specified')
+      ], paramCheck)
+    .get(app.wrap(permissionsController.permissionsItem))
+    .put(app.wrap(permissionsController.permissionsSave))
+    .delete(app.wrap(permissionsController.permissionsDelete))
 
   return router
 }
