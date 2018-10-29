@@ -117,6 +117,12 @@ export default module.exports = (app) => {
       } else {
         aUser.kind = aKind
       }
+      return {
+        userId,
+        objectId,
+        permission,
+        kind
+      }
     },
     AddGroupPermission: (groupId, objectId, permission, kind) => {
       const aKind = kind || kindAllow
@@ -142,6 +148,8 @@ export default module.exports = (app) => {
         })
       })
       return arr
-    }
+    },
+    kindAllow,
+    kindDeny
   }
 }

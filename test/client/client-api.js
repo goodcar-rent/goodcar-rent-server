@@ -106,3 +106,16 @@ export const loginDelete = (context, data, expectedCode) => context.request.dele
   .type('json')
   .accept('json')
   .expect(expectedCode || expected.Deleted)
+
+export const aclList = (context, expectedCode) => context.request.get(`${context.apiRoot}/acl/object`)
+  .set('Authorization', `${context.authSchema} ${context.token}`)
+  .type('json')
+  .accept('json')
+  .expect(expectedCode || expected.Ok)
+
+export const aclCreate = (context, data, expectedCode) => context.request.post(`${context.apiRoot}/acl/object`)
+  .set('Authorization', `${context.authSchema} ${context.token}`)
+  .send(data)
+  .type('json')
+  .accept('json')
+  .expect(expectedCode || expected.Ok)
