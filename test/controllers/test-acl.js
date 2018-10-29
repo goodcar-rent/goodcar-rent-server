@@ -37,34 +37,34 @@ describe('(controller) acl:', function () {
       .then(() => app.models.UserGroup.createSystemData())
       .then(() => createAdminUser(context))
       .then((res) => {
-        expect(res.body).to.exist()
-        expect(res.body.email).to.exist()
-        expect(res.body.id).to.exist()
+        expect(res.body).to.exist('res.body should exist')
+        expect(res.body.email).to.exist('res.body.email should exist')
+        expect(res.body.id).to.exist('res.body.id should exist')
         context.UserAdminId = res.body.id
         return loginAs(context, UserAdmin)
       })
       .then((res) => {
-        expect(res.body).to.exist()
-        expect(res.body.token).to.exist()
+        expect(res.body).to.exist('res.body should exist')
+        expect(res.body.token).to.exist('res.body.token should exist')
         context.adminToken = context.token
         return inviteCreate(context, { email: UserFirst.email })
       })
       .then((res) => {
-        expect(res.body).to.exist()
-        expect(res.body.id).to.exist()
+        expect(res.body).to.exist('res.body should exist')
+        expect(res.body.id).to.exist('res.body.id should exist')
         context.userInvite = res.body.id
         return createUser(context, _.merge({}, UserFirst, { invite: context.userInvite }))
       })
       .then((res) => {
-        expect(res.body).to.exist()
-        expect(res.body.email).to.exist()
-        expect(res.body.id).to.exist()
+        expect(res.body).to.exist('res.body should exist')
+        expect(res.body.email).to.exist('res.body.email should exist')
+        expect(res.body.id).to.exist('res.body.id should exist')
         context.UserFirstId = res.body.id
         return loginAs(context, UserFirst)
       })
       .then((res) => {
-        expect(res.body).to.exist()
-        expect(res.body.token).to.exist()
+        expect(res.body).to.exist('res.body should exist')
+        expect(res.body.token).to.exist('res.body.token should exist')
         context.userToken = context.token
       })
       .then(() => done())
@@ -73,7 +73,7 @@ describe('(controller) acl:', function () {
       })
   })
 
-  describe('list method:', function () {
+  describe('create / list method:', function () {
     it('should list active ACLs:', function (done) {
       context.token = context.adminToken
 
@@ -82,12 +82,10 @@ describe('(controller) acl:', function () {
         object: 'Invite',
         permission: 'read',
         'kind': app.auth.kindAllow
-      };
+      }
 
       aclCreate(context, aData)
-        .then((res) => {
-          return aclList(context)
-        })
+        .then(() => aclList(context))
         .then((res) => {
           expect(res.body).to.exist('Body should exist')
           expect(res.body).to.be.an('array')

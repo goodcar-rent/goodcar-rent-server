@@ -1,4 +1,4 @@
-import { describe, it, before, beforeEach } from 'mocha'
+import { describe, it, beforeEach } from 'mocha'
 import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
 import App from '../../app'
@@ -35,7 +35,7 @@ describe('[service] login:', () => {
       .then(() => Login.create(data[2]))
       .then(() => Login.count())
       .then((cnt) => {
-        expect(cnt).to.exist()
+        expect(cnt).to.exist('Cnt should exist')
         expect(cnt).is.equal(3)
       })
       .then(() => done())
@@ -43,12 +43,11 @@ describe('[service] login:', () => {
   })
 
   describe('findById method', () => {
-
     it('should find items', (done) => {
       Login.findById(2)
         .then((item) => {
-          expect(item).to.exist()
-          expect(item.id).to.exist()
+          expect(item).to.exist('item should exist')
+          expect(item.id).to.exist('item.id should exist')
           expect(item.id).is.equal(2)
         })
         .then(() => {
@@ -62,8 +61,8 @@ describe('[service] login:', () => {
     it('should find one item', (done) => {
       Login.findOne({ where: { id: 2 } })
         .then((item) => {
-          expect(item).to.exist()
-          expect(item.id).to.exist()
+          expect(item).to.exist('item should exist')
+          expect(item.id).to.exist('item.id  should exist')
           expect(item.id).is.equal(2)
         })
         .then(() => {
@@ -77,7 +76,7 @@ describe('[service] login:', () => {
     it('should find all items', (done) => {
       Login.findAll({ where: { userId: '2' } })
         .then((items) => {
-          expect(items).to.exist()
+          expect(items).to.exist('items  should exist')
           expect(items).to.be.an('array')
           expect(items).to.have.lengthOf(2)
           expect(items[0].userId).to.be.equal('2')
@@ -94,7 +93,7 @@ describe('[service] login:', () => {
     it('should count items', (done) => {
       Login.count()
         .then((res) => {
-          expect(res).to.exist()
+          expect(res).to.exist('res should exist')
           expect(res).to.be.an('number')
           expect(res).to.be.equal(3)
         })
@@ -110,7 +109,7 @@ describe('[service] login:', () => {
       Login.delete(2)
         .then(() => Login.count())
         .then((res) => {
-          expect(res).to.exist()
+          expect(res).to.exist('res should exist')
           expect(res).to.be.an('number')
           expect(res).to.be.equal(2)
         })
@@ -126,7 +125,7 @@ describe('[service] login:', () => {
       Login.deleteAll({ where: { userId: '2' } })
         .then(() => Login.count())
         .then((res) => {
-          expect(res).to.exist()
+          expect(res).to.exist('res should exist')
           expect(res).to.be.an('number')
           expect(res).to.be.equal(1)
         })
@@ -141,15 +140,15 @@ describe('[service] login:', () => {
     it('should create items', (done) => {
       Login.count()
         .then((res) => {
-          expect(res).to.exist()
+          expect(res).to.exist('res should exist')
           expect(res).to.be.an('number')
           expect(res).to.be.equal(3)
         })
         .then(() => Login.findById(1))
         .then((res) => {
-          expect(res).to.exist()
+          expect(res).to.exist('res should exist')
           expect(res).to.be.an('object')
-          expect(res.createdAt).to.exist()
+          expect(res.createdAt).to.exist('res should exist')
           expect(res.createdAt).to.be.an('number')
           expect(res.createdAt).to.be.lessThan(Date.now())
         })
@@ -168,9 +167,9 @@ describe('[service] login:', () => {
         .then(() => Login.createOrUpdate({ id: 2, userId: '2', ip: '127.0.0.1' }))
         .then(() => Login.findById(2))
         .then((res) => {
-          expect(res).to.exist()
+          expect(res).to.exist('res should exist')
           expect(res).to.be.an('object')
-          expect(res.createdAt).to.exist()
+          expect(res.createdAt).to.exist('res.createdAt should exist')
           expect(res.createdAt).to.be.lessThan(Date.now())
           expect(res.createdAt).to.be.greaterThan(aTimestamp)
         })

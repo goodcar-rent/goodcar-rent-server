@@ -154,6 +154,7 @@ describe('(controller) auth:', () => {
       createAdminUser(context)
         .then(() => createUser(context, UserFirst, expected.ErrCodeForbidden))
         .then((res) => {
+          // eslint-disable-next-line
           if (app.env.APP_INVITE_ONLY) {
             expect(res.body).to.exist('body')
             expect(res.body.message).to.exist('body.message')
@@ -169,8 +170,8 @@ describe('(controller) auth:', () => {
         .then(() => loginAs(context, UserAdmin))
         .then(() => inviteCreate(context, { email: UserFirst.email }))
         .then((res) => {
-          expect(res.body).to.exist()
-          expect(res.body.id).to.exist()
+          expect(res.body).to.exist('res.body should exist')
+          expect(res.body.id).to.exist('res.body.id should exist')
           invite = res.body
           return createUser(context,
             {
@@ -195,8 +196,8 @@ describe('(controller) auth:', () => {
         .then(() => loginAs(context, UserAdmin))
         .then(() => inviteCreate(context, { email: UserFirst.email }))
         .then((res) => {
-          expect(res.body).to.exist()
-          expect(res.body.id).to.exist()
+          expect(res.body).to.exist('res.body should exist')
+          expect(res.body.id).to.exist('res.body.id should exist')
           invite = res.body
           return createUser(context,
             {
@@ -208,8 +209,8 @@ describe('(controller) auth:', () => {
             })
         })
         .then((res) => {
-          expect(res.body).to.exist('body')
-          expect(res.body.id).to.exist('id')
+          expect(res.body).to.exist('body should exist')
+          expect(res.body.id).to.exist('id should exist')
           expect(res.body.email).is.equal(UserFirst.email)
           expect(res.body.name).is.equal(UserFirst.name)
           done()

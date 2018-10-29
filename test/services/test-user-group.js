@@ -28,8 +28,8 @@ describe('[service] user-group:', () => {
       UserGroup.create({ name: 'admin', systemType: systemTypeAdmin })
         .then((ug) => {
           userGroup = ug
-          expect(userGroup).to.exist()
-          expect(userGroup.id).to.exist()
+          expect(userGroup).to.exist('userGroup should exist')
+          expect(userGroup.id).to.exist('userGroup.id should exist')
           expect(userGroup.systemType).is.equal(systemTypeAdmin)
           return UserGroup.count()
         })
@@ -38,11 +38,11 @@ describe('[service] user-group:', () => {
           return UserGroup.addUser(userGroup.id, users[0])
         })
         .then((user1) => {
-          expect(user1).to.exist()
+          expect(user1).to.exist('user1 should exist')
           return UserGroup.addUser(userGroup.id, users[1])
         })
         .then((user2) => {
-          expect(user2).to.exist()
+          expect(user2).to.exist('user2 should exist')
           expect(userGroup.users.length).is.equal(2)
           done()
         })
@@ -52,7 +52,7 @@ describe('[service] user-group:', () => {
       UserGroup.create({ name: 'admin', systemType: systemTypeAdmin })
         .then((ug) => {
           userGroup = ug
-          expect(userGroup).to.exist()
+          expect(userGroup).to.exist('userGroup should exist')
           return UserGroup.count()
         })
         .then((cnt) => {
@@ -60,11 +60,11 @@ describe('[service] user-group:', () => {
           return UserGroup.addUser(userGroup.id, users[0])
         })
         .then((user1) => {
-          expect(user1).to.exist()
+          expect(user1).to.exist('user1 should exist')
           return UserGroup.addUser(userGroup.id, users[1])
         })
         .then((user2) => {
-          expect(user2).to.exist()
+          expect(user2).to.exist('user2 should exist')
           expect(userGroup.users.length).is.equal(2)
           return UserGroup.removeUser(users[0].id)
         })
@@ -93,9 +93,9 @@ describe('[service] user-group:', () => {
         })
         .then((allGroups) => {
           expect(allGroups.length).is.equal(3)
-          expect(UserGroup.systemGroupAdmin()).is.not.null()
-          expect(UserGroup.systemGroupGuest()).is.not.null()
-          expect(UserGroup.systemGroupLoggedIn()).is.not.null()
+          expect(UserGroup.systemGroupAdmin()).is.not.null('systemGroupAdmin  should exist')
+          expect(UserGroup.systemGroupGuest()).is.not.null('systemGroupGuest should exist')
+          expect(UserGroup.systemGroupLoggedIn()).is.not.null('systemGroupLoggedIn should exist')
           done()
         })
         .catch((err) => done(err))
@@ -110,9 +110,9 @@ describe('[service] user-group:', () => {
         })
         .then((allGroups) => {
           expect(allGroups.length).is.equal(5)
-          expect(UserGroup.systemGroupAdmin()).is.not.null()
-          expect(UserGroup.systemGroupGuest()).is.not.null()
-          expect(UserGroup.systemGroupLoggedIn()).is.not.null()
+          expect(UserGroup.systemGroupAdmin()).is.not.null('systemGroupAdmin  should exist')
+          expect(UserGroup.systemGroupGuest()).is.not.null('systemGroupGuest should exist')
+          expect(UserGroup.systemGroupLoggedIn()).is.not.null('systemGroupLoggedIn should exist')
           done()
         })
         .catch((err) => done(err))
