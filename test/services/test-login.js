@@ -164,7 +164,7 @@ describe('[service] login:', () => {
     it('should delete all specified items', (done) => {
       const aTimestamp = Date.now()
 
-      new Promise(resolve => setTimeout(resolve, 500))
+      new Promise(resolve => setTimeout(resolve, 1100))
         .then(() => Login.createOrUpdate({ id: 2, userId: '2', ip: '127.0.0.1' }))
         .then(() => Login.findById(2))
         .then((res) => {

@@ -21,11 +21,11 @@ Check if any object permission is DENY: groups/user
 import _ from 'lodash'
 import { ServerNotAllowed } from '../config/errors'
 
-export const kindAllow = 'ALLOW'
+const kindAllow = 'ALLOW'
 
-export const kindDeny = 'DENY'
+const kindDeny = 'DENY'
 
-export const GuestUserId = -1
+const GuestUserId = -1
 
 /*
 ACL.Object:
@@ -150,6 +150,7 @@ export default module.exports = (app) => {
       return arr
     },
     kindAllow,
-    kindDeny
+    kindDeny,
+    GuestUserId
   }
 }

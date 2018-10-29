@@ -3,7 +3,7 @@ import { describe, it, beforeEach } from 'mocha'
 import supertest from 'supertest'
 import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
-//import { kindAllow } from '../../services/acl'
+import _ from 'lodash'
 import App from '../../app'
 import {
   createAdminUser,
@@ -37,45 +37,38 @@ describe('(controller) acl:', function () {
       .then(() => app.models.UserGroup.createSystemData())
       .then(() => createAdminUser(context))
       .then((res) => {
-        console.log(1)
         expect(res.body).to.exist()
         expect(res.body.email).to.exist()
         expect(res.body.id).to.exist()
-        UserAdmin.id = res.body.id
+        context.UserAdminId = res.body.id
         return loginAs(context, UserAdmin)
       })
       .then((res) => {
-        console.log(2)
         expect(res.body).to.exist()
         expect(res.body.token).to.exist()
         context.adminToken = context.token
-        return inviteCreate(context, {email: UserFirst.email})
+        return inviteCreate(context, { email: UserFirst.email })
       })
       .then((res) => {
-        console.log(3)
         expect(res.body).to.exist()
         expect(res.body.id).to.exist()
         context.userInvite = res.body.id
-        UserFirst.invite = context.userInvite
-        return createUser(context, UserFirst)
+        return createUser(context, _.merge({}, UserFirst, { invite: context.userInvite }))
       })
       .then((res) => {
-        console.log(4)
         expect(res.body).to.exist()
         expect(res.body.email).to.exist()
         expect(res.body.id).to.exist()
-        UserFirst.id = res.body.id
+        context.UserFirstId = res.body.id
         return loginAs(context, UserFirst)
       })
       .then((res) => {
-        console.log(5)
         expect(res.body).to.exist()
         expect(res.body.token).to.exist()
         context.userToken = context.token
       })
       .then(() => done())
       .catch((err) => {
-        console.log(err)
         done(err)
       })
   })
@@ -85,27 +78,23 @@ describe('(controller) acl:', function () {
       context.token = context.adminToken
 
       const aData = {
-        userId: UserFirst.id,
+        userId: context.UserFirstId,
         object: 'Invite',
         permission: 'read',
         'kind': app.auth.kindAllow
       };
 
-      console.log(aData)
       aclCreate(context, aData)
         .then((res) => {
-          console.log('1')
           return aclList(context)
         })
         .then((res) => {
-          console.log(2)
           expect(res.body).to.exist('Body should exist')
           expect(res.body).to.be.an('array')
-          expect(res.body).to.have.lengthOf(2)
+          expect(res.body).to.have.lengthOf(1)
         })
         .then(() => done())
         .catch((err) => {
-          console.log(err)
           done(err)
         })
     })

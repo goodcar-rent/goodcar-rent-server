@@ -149,6 +149,8 @@ describe('(controller) auth:', () => {
   })
   describe('signup method:', () => {
     it('should fail second sign up if INVITE_ONLY', function (done) {
+      console.log(UserFirst)
+      console.log(UserAdmin)
       createAdminUser(context)
         .then(() => createUser(context, UserFirst, expected.ErrCodeForbidden))
         .then((res) => {
