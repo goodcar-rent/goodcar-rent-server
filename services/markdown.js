@@ -25,7 +25,7 @@ const renderPlain = function () {
     return htmlEscapeToText(text) + '\r\n'
   }
 
-  // render just the text of a heading element, but indecate level
+  // render just the text of a heading element
   render.heading = function (text, level) {
     return level + ' ) ' + text
   }

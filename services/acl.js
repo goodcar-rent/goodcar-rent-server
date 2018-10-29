@@ -50,7 +50,7 @@ export const CheckPermission = (userId, object, permission) => {
   // find specified permission for object:
   const aPermission = _.find(aObject.permissions, { permission })
   if (!aPermission) {
-    return kindDeny // no permission decalration, DENY
+    return kindDeny // no permission declaration, DENY
   }
 
   // check if specified object have exact user permission:

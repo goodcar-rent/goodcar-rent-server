@@ -13,5 +13,6 @@ block content
                         label(for='password') Password
                         input.form-control(type='password' id='password' placeholder='password' name='password')
                     if invite
-                        input.d-none.form-control(type='text', id='invite', placeholder='', name='invite', value=invite)
+                        <!--suppress HtmlUnknownAttribute -->
+input.d-none.form-control(type='text', id='invite', placeholder='', name='invite', value=invite)
                     button.btn.btn-primary(type='submit') Log in

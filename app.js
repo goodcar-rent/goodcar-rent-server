@@ -29,11 +29,11 @@ export default () => {
   app.set('views', path.join(__dirname, 'views'))
   app.set('view engine', 'pug')
 
-  if (app.env.NODE_ENV === 'develompent') {
+  if (app.env.NODE_ENV === 'development' || app.env.NODE_ENV === 'test') {
     app.use(logger('dev'))
   }
 
-  if (app.env.NODE_ENV === 'develompent' || app.env.NODE_ENV === 'test') {
+  if (app.env.NODE_ENV === 'development' || app.env.NODE_ENV === 'test') {
     app.enable('trust proxy')
   }
   app.use(express.json())

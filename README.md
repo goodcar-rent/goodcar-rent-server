@@ -285,16 +285,3 @@ Get all permissions for account
 
 Check if permission for this object is ok
 
-### System default permissions
-
-Auth domain:
-    "POST /auth/login": GUEST
-    "POST /auth/signup": GUEST
-    "POST /auth/invite": LOGGEDIN
-    "GET /auth/invite": LOGGEDIN
-    "" 
-    
-## MVP:
-
-- initial signup as admin
-- signup other users via invite

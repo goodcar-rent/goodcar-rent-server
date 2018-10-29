@@ -115,9 +115,11 @@ describe('(controller) invite', function () {
         mailerData.to = to
         mailerData.subject = subject
         mailerData.message = message
-        console.log('Sended: ')
-        console.log(`to: ${to} subject: ${subject}\n\r
-          message: ${message}`)
+        if (app.env.NODE_ENV === 'development' || app.env.NODE_ENV === 'test') {
+          console.log('sent: ')
+          console.log(`to: ${to} subject: ${subject}\n\r
+            message: ${message}`)
+        }
       }
       done()
     })
