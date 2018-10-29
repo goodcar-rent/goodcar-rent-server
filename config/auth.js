@@ -3,7 +3,7 @@ import passport from 'passport'
 import _ from 'lodash'
 import { Strategy, ExtractJwt } from 'passport-jwt'
 import { ServerNotAllowed } from './errors'
-import Acl, { kindAllow, kindDeny } from '../services/acl'
+import Acl from '../services/acl'
 
 const loginTTL = 1000 * 60 * 24 // 24h in milliseconds
 

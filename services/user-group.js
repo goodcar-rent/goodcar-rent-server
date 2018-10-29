@@ -13,7 +13,6 @@ import {
   genericUpdate
 } from './generic-model'
 
-
 /*
 
 ## UserGroup:

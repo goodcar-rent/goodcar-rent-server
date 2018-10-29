@@ -29,7 +29,7 @@ export default module.exports = (app) => {
     },
 
     update: (item) => {
-      let foundItem = _.find(_invite, {id: item.id})
+      let foundItem = _.find(_invite, { id: item.id })
       if (foundItem) {
         foundItem = _.merge({}, foundItem, item)
       }

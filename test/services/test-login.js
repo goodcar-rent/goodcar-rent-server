@@ -170,7 +170,7 @@ describe('[service] login:', () => {
           expect(res).to.exist('res should exist')
           expect(res).to.be.an('object')
           expect(res.createdAt).to.exist('res.createdAt should exist')
-          expect(res.createdAt).to.be.lessThan(Date.now())
+          expect(res.createdAt).to.be.lessThan(Date.now() + 1)
           expect(res.createdAt).to.be.greaterThan(aTimestamp)
         })
         .then(() => {

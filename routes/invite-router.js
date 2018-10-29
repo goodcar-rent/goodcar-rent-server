@@ -8,7 +8,7 @@ export default (app) => {
 
   // noinspection JSCheckFunctionSignatures
   router.route('/invite')
-    //.all(app.auth.authenticate())
+    // .all(app.auth.authenticate())
     .all(app.auth.ACL('invite', 'read'))
     .get(app.wrap(controller.list))
     .post(// app.auth.ACL('invite', 'write'),

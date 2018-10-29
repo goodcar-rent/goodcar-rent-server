@@ -58,7 +58,5 @@ export default (passport) => {
       async (accessToken, refreshToken, profile, done) => done(null, transfomInstagramProfile(profile))
     )
   )
-
-
   return passport
 }

@@ -14,7 +14,7 @@ export default module.exports = (app) => {
         .then(() => app.models.Invite.ClearData())
         .then(() => app.models.UserGroup.ClearData())
         .then(() => app.models.Login.ClearData())
-        .catch((err) => { throw err})
+        .catch((err) => { throw err })
   }
   models.User.name = 'User'
   models.Invite.name = 'Invite'
