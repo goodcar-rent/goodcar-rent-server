@@ -67,25 +67,25 @@ describe('(controller) user-permissions:', function () {
         expect(res.body.token).to.exist('res.body.token should exist')
         context.userToken = context.token
       })
+      .then(() => {
+        context.token = context.adminToken
+        return aclCreate(context,
+          {
+            userId: context.UserFirstId,
+            object: 'Invite',
+            permission: 'read',
+            kind: app.auth.kindAllow
+          })
+      })
       .then(() => done())
       .catch((err) => {
         done(err)
       })
   })
 
-  describe('list method:', function () {
+  describe('list/create method:', function () {
     it('should list permissions for user:', function (done) {
-      context.token = context.adminToken
-
-      const aData = {
-        userId: context.UserFirstId,
-        object: 'Invite',
-        permission: 'read',
-        'kind': app.auth.kindAllow
-      }
-
-      aclCreate(context, aData)
-        .then(() => aclList(context))
+      aclList(context)
         .then((res) => {
           expect(res.body).to.exist('Body should exist')
           expect(res.body).to.be.an('array')

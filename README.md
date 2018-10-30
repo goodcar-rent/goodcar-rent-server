@@ -126,18 +126,6 @@ List all defined permission for this user
 
 Create new permission for specified user
 
-> GET /user/:userId/permissions/:permissionId
-
-Get info about specific permission for this user
-
-> PUT /user/:userId/permissions/:permissionId
-
-Update info about specific permission for this user
-
-> DELETE /user/:userId/permissions/:permissionId
-
-Delete specific permission for this user
-
 ### User login routes:
 
 > GET /user/:userId/logins
@@ -148,6 +136,15 @@ List logins of this user
 
 Manually log-off specified user
 
+### Me routes:
+
+> GET /me
+
+Return profile of currently logged-in user
+
+> GET /me/permissions
+
+List ACL permissions for currenly logged-in user
 
 ### Car management routes
 
@@ -160,8 +157,6 @@ Manually log-off specified user
 GET /login/:provider - return redirect page with login via provider (Instagram, Google, Facebook, Vk)
 POST /login/:provider - accept access token from social provider to login
 
-GET /me - return profile of currently logged user
-
 GET /me/social - list of linked social profiles for current user
 
 POST /me/social/:provider - link social profile with current user
@@ -170,69 +165,12 @@ DELETE /me/social/:provider - unlink social profile
 
 GET /social - list of supported social providers (google, instagram, facebook)
 
-## Feature proposals
 
-> all /user routes requires "Admin" permissions
+### TODO features
 
-### GET /user
-
-> Return list of users in system
-
-### POST /user
-
-> Create new user profile (same as /signup, but require admin perms)
-
-### DELETE /user/:id
-
-> Delete user profile from system
-
-### UPDATE /user/:id
-
-> Modify user profile
-
-### GET /user-group
-
-> Return list of user groups in system
-
-## ACL routes (WIP)
-
-> GET /acl/object
-
-List all objects in system
-
-> POST /acl/object
-
-Add new object to system
-
-> GET /acl/object/:id
-
-Get detail info about object
-
-> POST /acl/object/:id
-
-Update info about object
-
-> DELETE /acl/object/:id
-
-Delete object from system
-
-> GET /acl/object/:id/permission
-
-List of all permission associated with object
-
-> GET /acl/object/:id/permission/:permissionId/users
-
-List of users with this permission
-
-> GET /acl/object/:id/permission/:permissionId/user-groups
-
-List of all user groups with this permission
-
-## System features
-
-* Manage login sessions for users in system (list sessions, disconnect user
 * Disable user login
 * Manage actions in system (action list - protocol)
+* ACL for groups 
 
 ### ACL: Access control
 
@@ -279,9 +217,11 @@ API:
 
 Get user group
 
-Get all permissions for group
+Get all permissions for this object for group
 
-Get all permissions for account
+Resolve permission
 
-Check if permission for this object is ok
+Get all permissions for this object for specific user
+
+Resolve perission
 

@@ -48,15 +48,5 @@ export default (app) => {
       ], paramCheck,
       app.wrap(permissionsController.permissionsCreate))
 
-  router.route('/user/:userId/permissions/:permissionId')
-    .all(app.auth.authenticate(),
-      [
-        param('userId').isString().withMessage('id should be specified'),
-        param('permissionId').isString().withMessage('permissionId should be specified')
-      ], paramCheck)
-    .get(app.wrap(permissionsController.permissionsItem))
-    .put(app.wrap(permissionsController.permissionsSave))
-    .delete(app.wrap(permissionsController.permissionsDelete))
-
   return router
 }
