@@ -67,7 +67,6 @@ export const inviteCreate = (context, data, expectedCode) => context.request.pos
   .send(data)
   .type('json')
   .accept('json')
-  .accept('text')
   .expect(expectedCode || expected.Ok)
 
 export const inviteList = (context, expectedCode) => context.request.get(`${context.apiRoot}/auth/invite`)
@@ -116,6 +115,18 @@ export const aclList = (context, expectedCode) => context.request.get(`${context
 export const aclCreate = (context, data, expectedCode) => context.request.post(`${context.apiRoot}/acl/object`)
   .set('Authorization', `${context.authSchema} ${context.token}`)
   .send(data)
+  .type('json')
+  .accept('json')
+  .expect(expectedCode || expected.Ok)
+
+export const me = (context, expectedCode) => context.request.get(`${context.apiRoot}/me`)
+  .set('Authorization', `${context.authSchema} ${context.token}`)
+  .type('json')
+  .accept('json')
+  .expect(expectedCode || expected.Ok)
+
+export const mePermissions = (context, expectedCode) => context.request.get(`${context.apiRoot}/me/permissions`)
+  .set('Authorization', `${context.authSchema} ${context.token}`)
   .type('json')
   .accept('json')
   .expect(expectedCode || expected.Ok)

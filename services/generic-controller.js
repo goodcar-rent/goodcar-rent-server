@@ -2,7 +2,10 @@ import { ServerError, ServerGenericError, ServerNotFound } from '../config/error
 
 export const genericList = (Model) => (req, res) =>
   Model.findAll()
-    .then((foundData) => res.json(foundData))
+    .then((foundData) => {
+      res.json(foundData)
+      return foundData
+    })
     .catch((error) => {
       if (error instanceof ServerError) {
         throw error
@@ -13,7 +16,10 @@ export const genericList = (Model) => (req, res) =>
 
 export const genericCreate = (Model) => (req, res) =>
   Model.create(req.matchedData)
-    .then((item) => res.json(item))
+    .then((item) => {
+      res.json(item)
+      return item
+    })
     .catch((error) => {
       if (error instanceof ServerError) {
         throw error
@@ -29,6 +35,7 @@ export const genericItem = (Model) => (req, res) =>
         throw ServerNotFound(Model.name, req.params.id, `${Model.name} with id ${req.params.id} not found`)
       }
       res.json(foundData)
+      return foundData
     })
     .catch((error) => {
       if (error instanceof ServerError) {
@@ -41,7 +48,8 @@ export const genericItem = (Model) => (req, res) =>
 export const genericSave = (Model) => (req, res) =>
   Model.update(req.matchedData)
     .then((foundData) => {
-      return res.json(foundData)
+      res.json(foundData)
+      return foundData
     })
     .catch((error) => {
       if (error instanceof ServerError) {
@@ -55,7 +63,8 @@ export const genericDelete = (Model) => (req, res) =>
   Model.delete(req.params.id)
     .then((foundData) => {
       if (foundData) {
-        return res.status(204).json(foundData)
+        res.status(204).json(foundData)
+        return foundData
       }
       throw new ServerNotFound(Model.name, req.params.id, `${Model.name} with id ${req.params.id} not found`)
     })

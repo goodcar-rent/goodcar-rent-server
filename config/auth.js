@@ -32,15 +32,18 @@ export default module.exports = (app) => {
       .then((user) => {
         if (!user) {
           return done(new ServerNotAllowed('User not found'), null)
-        } else {
-          return done(null, {
-            id: user.id,
-            email: user.email,
-            loginId
-          })
         }
+        return done(null, {
+          id: user.id,
+          email: user.email,
+          loginId
+        })
       })
-      .catch(error => done(error, null))
+      .catch(error => {
+        console.log('strategy: error:')
+        console.log(error)
+        done(error, null)
+      })
   })
   passport.use(strategy)
   app.auth = {

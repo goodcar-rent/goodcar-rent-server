@@ -7,9 +7,9 @@ export default (app) => {
   const controller = InviteController(app)
 
   // noinspection JSCheckFunctionSignatures
-  router.route('/invite')
-    // .all(app.auth.authenticate())
-    .all(app.auth.ACL('invite', 'read'))
+  router.route('/auth/invite')
+    .all(app.auth.authenticate())
+    // .all(app.auth.ACL('invite', 'read'))
     .get(app.wrap(controller.list))
     .post(// app.auth.ACL('invite', 'write'),
       [
@@ -20,7 +20,7 @@ export default (app) => {
       app.wrap(controller.create))
 
   // noinspection JSCheckFunctionSignatures
-  router.route('/invite/:id')
+  router.route('/auth/invite/:id')
     .all(app.auth.authenticate(),
       [
         param('id').isString().withMessage('Invite id should be specified')
@@ -29,7 +29,7 @@ export default (app) => {
     .put(app.wrap(controller.save))
     .delete(app.wrap(controller.delete))
 
-  router.route('/invite/:id/send')
+  router.route('/auth/invite/:id/send')
     .all(app.auth.authenticate(),
       [
         param('id').isString().withMessage('Invite id should be specified')

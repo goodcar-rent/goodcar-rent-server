@@ -42,13 +42,13 @@ const aclObject = []
 
 export const CheckPermission = (userId, object, permission) => {
   // check if we have permission for user:
-  const aObject = _.find(aclObject, { id: object })
+  const aObject = _.find(aclObject, { id: object.toLowerCase() })
   if (!aObject) {
     return kindDeny // no object defined, DENY
   }
 
   // find specified permission for object:
-  const aPermission = _.find(aObject.permissions, { permission })
+  const aPermission = _.find(aObject.permissions, { permission: permission.toLowerCase() })
   if (!aPermission) {
     return kindDeny // no permission declaration, DENY
   }
@@ -62,18 +62,18 @@ export const CheckPermission = (userId, object, permission) => {
 }
 
 const FindOrAddObject = (objectId) => {
-  let aObject = _.find(aclObject, { id: objectId })
+  let aObject = _.find(aclObject, { id: objectId.toLowerCase() })
   if (!aObject) {
-    aObject = { id: objectId, permissions: [] }
+    aObject = { id: objectId.toLowerCase(), permissions: [] }
     aclObject.push(aObject)
   }
   return aObject
 }
 
 const FindOrAddPermission = (aObject, permission) => {
-  let aPermission = _.find(aObject.permissions, { permission })
+  let aPermission = _.find(aObject.permissions, { permission: permission.toLowerCase() })
   if (!aPermission) {
-    aPermission = { permission, users: [], userGroups: [] }
+    aPermission = { permission: permission.toLowerCase(), users: [], userGroups: [] }
     aObject.permissions.push(aPermission)
   }
   return aPermission
@@ -107,7 +107,10 @@ export default module.exports = (app) => {
       }
     },
     AddUserPermission: (userId, objectId, permission, kind) => {
-      const aKind = kind || kindAllow
+      let aKind = kindAllow
+      if (kind) {
+        aKind = kind.toUpperCase()
+      }
 
       const aObject = FindOrAddObject(objectId)
       const aPermission = FindOrAddPermission(aObject, permission)
@@ -119,13 +122,17 @@ export default module.exports = (app) => {
       }
       return {
         userId,
-        objectId,
-        permission,
-        kind
+        object: objectId.toLowerCase(),
+        permission: permission.toLowerCase(),
+        kind: kind.toUpperCase()
       }
     },
     AddGroupPermission: (groupId, objectId, permission, kind) => {
-      const aKind = kind || kindAllow
+      let aKind = kindAllow
+      if (kind) {
+        aKind = kind.toUpperCase()
+      }
+
       const aObject = FindOrAddObject(objectId)
       const aPermission = FindOrAddPermission(aObject, permission)
       let aGroup = _.find(aPermission.userGroups, { groupId })
@@ -142,8 +149,9 @@ export default module.exports = (app) => {
       const arr = []
       _.forEach(aclObject, (item) => {
         _.forEach(item.permissions, (perm) => {
-          if (_.includes(perm.users, userId)) {
-            arr.push({ object: item.id, permission: perm.id, kind: perm.kind })
+          if (_.find(perm.users, { userId })) {
+            const ret = { object: item.id, permission: perm.id, kind: perm.kind }
+            arr.push(ret)
           }
         })
       })

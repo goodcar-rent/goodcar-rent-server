@@ -19,7 +19,10 @@ export const genericDeleteAll = (Collection) => (opt) => {
   return Promise.resolve(arr)
 }
 
-export const genericFindById = (Collection) => (id) => Promise.resolve(_.find(Collection, { id }))
+export const genericFindById = (Collection) => (id) => {
+  const ret = _.find(Collection, { id })
+  return Promise.resolve(ret)
+}
 
 export const genericFindAll = (Collection) => (opt) => {
   if (opt && opt.where) {
