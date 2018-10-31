@@ -33,8 +33,9 @@ ACL.Object:
  * id: identifier for object, like "Invoice"
  * permissions: [] array of permissions:
    * permission: permission name, like "read", "write"
-   * kind of permission, one of ALLOW/DENY
-   * users: list of users that have this permission of this kind
+   * users: list of users that have this permission of this kind:
+     * id: userId
+     * kind: permission, one of ALLOW/DENY
    * userGroups: list of groups that have this permission of this kind
 */
 
@@ -54,7 +55,7 @@ export const CheckPermission = (userId, object, permission) => {
   }
 
   // check if specified object have exact user permission:
-  const aUser = _.find(aPermission.users, { userId })
+  const aUser = _.find(aPermission.users, { id: userId })
   if (!aUser) {
     return kindDeny
   }
@@ -114,9 +115,9 @@ export default module.exports = (app) => {
 
       const aObject = FindOrAddObject(objectId)
       const aPermission = FindOrAddPermission(aObject, permission)
-      let aUser = _.find(aPermission.users, { userId })
+      let aUser = _.find(aPermission.users, { id: userId })
       if (!aUser) {
-        aPermission.users.push({ userId, kind: aKind })
+        aPermission.users.push({ id: userId, kind: aKind })
       } else {
         aUser.kind = aKind
       }
@@ -143,14 +144,15 @@ export default module.exports = (app) => {
       }
     },
     ListACL: () => {
-      return aclObject.map(item => item.id)
+      return aclObject
     },
     ListACLForUser: (userId) => {
       const arr = []
       _.forEach(aclObject, (item) => {
         _.forEach(item.permissions, (perm) => {
-          if (_.find(perm.users, { userId })) {
-            const ret = { object: item.id, permission: perm.id, kind: perm.kind }
+          const aUser = _.find(perm.users, { id: userId })
+          if (aUser) {
+            const ret = { object: item.id, permission: perm.permission, kind: aUser.kind }
             arr.push(ret)
           }
         })

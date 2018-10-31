@@ -13,7 +13,7 @@ import {
   UserFirst,
   aclList,
   aclCreate,
-  createUser
+  createUser, userPermissions
 } from '../client/client-api'
 
 chai.use(dirtyChai)
@@ -84,12 +84,31 @@ describe('(controller) user-permissions:', function () {
   })
 
   describe('list/create method:', function () {
-    it('should list permissions for user:', function (done) {
+    it('should list permissions in system:', function (done) {
       aclList(context)
         .then((res) => {
           expect(res.body).to.exist('Body should exist')
           expect(res.body).to.be.an('array')
           expect(res.body).to.have.lengthOf(1)
+          expect(res.body[0].id).to.exist()
+          expect(res.body[0].permissions).to.exist()
+          expect(res.body[0].permissions).to.be.an('array')
+        })
+        .then(() => done())
+        .catch((err) => {
+          done(err)
+        })
+    })
+
+    it('should list same permissions for specified user:', function (done) {
+      userPermissions(context, context.UserFirstId)
+        .then((res) => {
+          expect(res.body).to.exist('Body should exist')
+          expect(res.body).to.be.an('array')
+          expect(res.body).to.have.lengthOf(1)
+          expect(res.body[0].object).to.exist()
+          expect(res.body[0].permission).to.exist()
+          expect(res.body[0].kind).to.exist()
         })
         .then(() => done())
         .catch((err) => {

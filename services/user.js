@@ -38,6 +38,18 @@ export default module.exports = (app) => {
       if (!item.disabled) {
         item.disabled = false
       }
+
+      if (!item.invitedBy) {
+        item.invitedBy = null
+      }
+
+      if (!item.inviteDate) {
+        item.inviteDate = null
+      }
+
+      if (!item.inviteId) {
+        item.inviteId = null
+      }
       _users.push(item)
       return Promise.resolve(item)
     },

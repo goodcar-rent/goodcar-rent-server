@@ -65,7 +65,7 @@ export const genericDelete = (Model) => (req, res) =>
   Model.delete(req.params.id)
     .then((foundData) => {
       if (foundData) {
-        res.status(204).json(foundData)
+        res.json(foundData)
         return foundData
       }
       throw new ServerNotFound(Model.name, req.params.id, `${Model.name} with id ${req.params.id} not found`)

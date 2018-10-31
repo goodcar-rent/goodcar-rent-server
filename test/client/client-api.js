@@ -207,4 +207,11 @@ export const userDelete = (context, userId, expectedCode) => context.request.del
   .set('Authorization', `${context.authSchema} ${context.token}`)
   .type('json')
   .accept('json')
-  .expect(expectedCode || expected.Deleted)
+  .expect(expectedCode || expected.Ok)
+
+export const userPermissions = (context, userId, expectedCode) => context.request.get(`${context.apiRoot}/user/${userId}/permissions`)
+  .set('Authorization', `${context.authSchema} ${context.token}`)
+  .type('json')
+  .accept('json')
+  .expect(expectedCode || expected.Ok)
+
