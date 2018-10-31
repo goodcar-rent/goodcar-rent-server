@@ -98,6 +98,24 @@ Update info about user group
 
 Delete user group from system
 
+> GET /user-group/:id/users
+
+List users in this usergroup
+
+> POST /user-group/:id/users
+
+Add user to usergroup
+
+> DELETE /user-group/:id/users/:userId
+
+Delete single user from group
+
+> DELETE /user-group/:id/users
+
+Delete specified list of users from group
+
+
+
 ### User router:
 
 > GET /user

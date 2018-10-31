@@ -12,15 +12,14 @@ import {
   UserAdmin,
   UserFirst,
   UserSecond,
-  aclList,
-  aclCreate,
-  createUser
+  createUser,
+  userGroupList
 } from '../client/client-api'
 
 chai.use(dirtyChai)
 
 // test case:
-describe('(controller) acl:', function () {
+describe('(controller) user-group:', function () {
   process.env.NODE_ENV = 'test' // just to be sure
   const app = App()
   const request = supertest(app)
@@ -96,19 +95,35 @@ describe('(controller) acl:', function () {
       })
   })
 
-  describe('create / list method:', function () {
-    it('should list active ACLs:', function (done) {
+  describe('list method:', function () {
+    it('should list defined user groups', function (done) {
       context.token = context.adminToken
+      me(context)
+        .then((res) => {
+          expect(res.body).to.exist('Body should exist')
+          expect(res.body).to.be.an('object')
+          expect(res.body.id).to.be.equal(context.UserAdminId)
+        })
+        .then(() => {
+          context.token = context.userToken
+          return me(context)
+        })
+        .then((res) => {
+          expect(res.body).to.exist('Body should exist')
+          expect(res.body).to.be.an('object')
+          expect(res.body.id).to.be.equal(context.UserFirstId)
+        })
+        .then(() => done())
+        .catch((err) => {
+          done(err)
+        })
+    })
+  })
 
-      const aData = {
-        userId: context.UserFirstId,
-        object: 'Invite',
-        permission: 'read',
-        'kind': app.auth.kindAllow
-      }
-
-      aclCreate(context, aData)
-        .then(() => aclList(context))
+  describe('permissions method:', function () {
+    it('should list permissions for UserFirst:', function (done) {
+      context.token = context.userToken
+      mePermissions(context)
         .then((res) => {
           expect(res.body).to.exist('Body should exist')
           expect(res.body).to.be.an('array')

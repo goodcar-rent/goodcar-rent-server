@@ -13,8 +13,9 @@ export default (app) => {
     .get(app.wrap(controller.list))
     .post(
       [
-        body('name').isString().isLength({ min: 1 }).withMessage('Name should be provided'),
-        body('systemType').optional().isIn([systemTypeAdmin, systemTypeGuest, systemTypeLoggedIn, systemTypeNone]).withMessage('systemType should be specified with predefined values'),
+        body('name').isString().isLength({ min: 1 }).withMessage('Name property should be provided for group'),
+        body('systemType').optional().isIn([systemTypeAdmin, systemTypeGuest, systemTypeLoggedIn, systemTypeNone])
+          .withMessage('systemType should be specified with predefined values'),
         body('users').optional().isArray().withMessage('Users should be array of iDs')
       ], paramCheck,
       app.wrap(controller.create))
@@ -23,11 +24,29 @@ export default (app) => {
   router.route('/user-group/:id')
     .all(app.auth.authenticate(),
       [
-        param('id').isString().withMessage('id should be specified')
+        param('id').isString().withMessage('id of group should be specified in URL')
       ], paramCheck)
-    .get(app.wrap(controller.item))
     .put(app.wrap(controller.save))
+    .get(app.wrap(controller.item))
     .delete(app.wrap(controller.delete))
+
+  // noinspection JSCheckFunctionSignatures
+  router.route('/user-group/:id/users')
+    .all(app.auth.authenticate(),
+      [
+        param('id').isString().withMessage('id of group should be specified in URL')
+      ], paramCheck)
+    .get(app.wrap(controller.usersList))
+    .post(
+      [
+        body('users').isArray().withMessage('Users property should be array of user\'s iDs')
+      ], paramCheck,
+      app.wrap(controller.usersAdd))
+    .delete(
+      [
+        body('users').isArray().withMessage('Users property should be array of user\'s iDs')
+      ], paramCheck,
+      app.wrap(controller.usersRemove))
 
   return router
 }

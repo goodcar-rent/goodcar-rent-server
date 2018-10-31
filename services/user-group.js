@@ -90,13 +90,36 @@ export default (app) => {
       group.users = _.union(group.users, [userId])
       return Promise.resolve(group)
     },
+    usersAdd: (groupId, users) => {
+      const group = _.find(_userGroup, { id: groupId })
+      if (!group) {
+        return Promise.reject(new Error(`addUser: group ${groupId} not found`))
+      }
+      group.users = _.union(group.users, users)
+      return Promise.resolve(group)
+    },
     removeUser: (groupId, userId) => {
       const group = _.find(_userGroup, { id: groupId })
       if (!group) {
-        return Promise.reject(group)
+        return Promise.reject(new Error(`removeUser: group ${groupId} not found`))
       }
       _.pull(group.users, [userId])
       return Promise.resolve(group)
+    },
+    usersRemove: (groupId, users) => {
+      const group = _.find(_userGroup, { id: groupId })
+      if (!group) {
+        return Promise.reject(new Error(`removeUsers: group ${groupId} not found`))
+      }
+      _.pull(group.users, users)
+      return Promise.resolve(group)
+    },
+    usersList: (groupId) => {
+      const group = _.find(_userGroup, { id: groupId })
+      if (!group) {
+        return Promise.reject(new Error(`usersList: group ${groupId} not found`))
+      }
+      return Promise.resolve(group.users)
     },
     createSystemData: () => {
       return Model.ClearData()
