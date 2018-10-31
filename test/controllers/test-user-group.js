@@ -13,7 +13,7 @@ import {
   UserFirst,
   UserSecond,
   createUser,
-  userGroupList
+  userGroupList, userGroupAdd, userGroupUsersAdd, userGroupUsersRemove
 } from '../client/client-api'
 
 chai.use(dirtyChai)
@@ -31,6 +31,9 @@ describe('(controller) user-group:', function () {
     adminToken: null,
     userToken: null
   }
+
+  const groupManagers = 'Managers'
+  const groupEmployees = 'Employees'
 
   beforeEach(function (done) {
     app.models.ClearData()
@@ -89,6 +92,25 @@ describe('(controller) user-group:', function () {
         expect(res.body.token).to.exist('res.body.token should exist')
         context.userSecondToken = context.token
       })
+      .then(() => {
+        return userGroupAdd(context, { name: groupManagers })
+      })
+      .then((res) => {
+        expect(res.body).to.exist('res.body should exist')
+        expect(res.body.name).to.exist('res.body.name should exist')
+        expect(res.body.id).to.exist('res.body.id should exist')
+        expect(res.body.name).to.be.equal(groupManagers)
+        context.groupManagersId = res.body.id
+
+        return userGroupAdd(context, { name: groupEmployees })
+      })
+      .then((res) => {
+        expect(res.body).to.exist('res.body should exist')
+        expect(res.body.name).to.exist('res.body.name should exist')
+        expect(res.body.id).to.exist('res.body.id should exist')
+        expect(res.body.name).to.be.equal(groupEmployees)
+        context.groupEmployeesId = res.body.id
+      })
       .then(() => done())
       .catch((err) => {
         done(err)
@@ -98,20 +120,11 @@ describe('(controller) user-group:', function () {
   describe('list method:', function () {
     it('should list defined user groups', function (done) {
       context.token = context.adminToken
-      me(context)
+      userGroupList(context)
         .then((res) => {
           expect(res.body).to.exist('Body should exist')
-          expect(res.body).to.be.an('object')
-          expect(res.body.id).to.be.equal(context.UserAdminId)
-        })
-        .then(() => {
-          context.token = context.userToken
-          return me(context)
-        })
-        .then((res) => {
-          expect(res.body).to.exist('Body should exist')
-          expect(res.body).to.be.an('object')
-          expect(res.body.id).to.be.equal(context.UserFirstId)
+          expect(res.body).to.be.an('array')
+          expect(res.body).to.have.lengthOf(5)
         })
         .then(() => done())
         .catch((err) => {
@@ -120,14 +133,59 @@ describe('(controller) user-group:', function () {
     })
   })
 
-  describe('permissions method:', function () {
-    it('should list permissions for UserFirst:', function (done) {
-      context.token = context.userToken
-      mePermissions(context)
+  describe('usersAdd method:', function () {
+    it('should add users to group', function (done) {
+      context.token = context.adminToken
+      userGroupUsersAdd(context, context.groupManagersId, [context.UserAdminId, context.UserFirstId])
         .then((res) => {
           expect(res.body).to.exist('Body should exist')
-          expect(res.body).to.be.an('array')
-          expect(res.body).to.have.lengthOf(1)
+          expect(res.body).to.be.an('object')
+          expect(res.body.name).to.exist('Name property should exist')
+          expect(res.body.name).to.be.equal(groupManagers)
+          expect(res.body.users).to.exist('Users array should exist')
+          expect(res.body.users).to.be.an('array')
+          expect(res.body.users).to.have.lengthOf(2)
+        })
+        .then(() => done())
+        .catch((err) => {
+          done(err)
+        })
+    })
+  })
+
+  describe('usersRemove method:', function () {
+    it('should remove users from group', function (done) {
+      context.token = context.adminToken
+      userGroupUsersAdd(context, context.groupManagersId, [context.UserAdminId, context.UserFirstId])
+        .then((res) => {
+          expect(res.body).to.exist('Body should exist')
+          expect(res.body).to.be.an('object')
+          expect(res.body.name).to.exist('Name property should exist')
+          expect(res.body.name).to.be.equal(groupManagers)
+          expect(res.body.users).to.exist('Users array should exist')
+          expect(res.body.users).to.be.an('array')
+          expect(res.body.users).to.have.lengthOf(2)
+
+          return userGroupUsersRemove(context, context.groupManagersId, [context.UserAdminId])
+        })
+        .then((res) => {
+          expect(res.body).to.exist('Body should exist')
+          expect(res.body).to.be.an('object')
+          expect(res.body.name).to.exist('Name property should exist')
+          expect(res.body.name).to.be.equal(groupManagers)
+          expect(res.body.users).to.exist('Users array should exist')
+          expect(res.body.users).to.be.an('array')
+          expect(res.body.users).to.have.lengthOf(1)
+          return userGroupUsersRemove(context, context.groupManagersId, [context.UserFirstId])
+        })
+        .then((res) => {
+          expect(res.body).to.exist('Body should exist')
+          expect(res.body).to.be.an('object')
+          expect(res.body.name).to.exist('Name property should exist')
+          expect(res.body.name).to.be.equal(groupManagers)
+          expect(res.body.users).to.exist('Users array should exist')
+          expect(res.body.users).to.be.an('array')
+          expect(res.body.users).to.have.lengthOf(0)
         })
         .then(() => done())
         .catch((err) => {

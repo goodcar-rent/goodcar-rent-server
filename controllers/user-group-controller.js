@@ -1,6 +1,5 @@
 import { genericCreate, genericDelete, genericItem, genericList, genericSave } from '../services/generic-controller'
 import { ServerError, ServerGenericError } from '../config/errors'
-import _ from 'lodash'
 
 export default module.exports = (app) => {
   const Model = app.models.UserGroup
@@ -26,7 +25,7 @@ export default module.exports = (app) => {
         })
     },
     usersAdd: (req, res) => {
-      return Model.usersAdd(req.matchedData.users)
+      return Model.usersAdd(req.params.id, req.matchedData.users)
         .then((item) => {
           res.json(item)
           return item
@@ -39,8 +38,8 @@ export default module.exports = (app) => {
           }
         })
     },
-    usersDelete: (req, res) => {
-      return Model.usersRemove(req.matchedData.users)
+    usersRemove: (req, res) => {
+      return Model.usersRemove(req.params.id, req.matchedData.users)
         .then((item) => {
           res.json(item)
           return item

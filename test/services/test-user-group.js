@@ -57,23 +57,30 @@ describe('[service] user-group:', () => {
         })
         .then((cnt) => {
           expect(cnt).is.equal(1)
-          return UserGroup.addUser(userGroup.id, users[0])
+          return UserGroup.addUser(userGroup.id, users[0].id)
         })
-        .then((user1) => {
-          expect(user1).to.exist('user1 should exist')
-          return UserGroup.addUser(userGroup.id, users[1])
+        .then((res) => {
+          expect(res).to.exist('res should exist')
+          expect(res.users).to.exist('res.users should exist')
+          expect(res.users).to.have.lengthOf(1)
+          return UserGroup.addUser(userGroup.id, users[1].id)
         })
-        .then((user2) => {
-          expect(user2).to.exist('user2 should exist')
-          expect(userGroup.users.length).is.equal(2)
-          return UserGroup.removeUser(users[0].id)
+        .then((res) => {
+          expect(res).to.exist('res should exist')
+          expect(res.users).to.exist('res.users should exist')
+          expect(res.users).to.have.lengthOf(2)
+          return UserGroup.removeUser(userGroup.id, users[0].id)
         })
-        .then(() => {
-          expect(userGroup.users.length).is.equal(1)
-          return UserGroup.removeUser(users[1].id)
+        .then((res) => {
+          expect(res).to.exist('res should exist')
+          expect(res.users).to.exist('res.users should exist')
+          expect(res.users).to.have.lengthOf(1)
+          return UserGroup.removeUser(userGroup.id, users[1].id)
         })
-        .then(() => {
-          expect(userGroup.users.length).is.equal(0)
+        .then((res) => {
+          expect(res).to.exist('res should exist')
+          expect(res.users).to.exist('res.users should exist')
+          expect(res.users).to.have.lengthOf(0)
           done()
         })
         .catch((err) => done(err))
