@@ -19,6 +19,7 @@ const _users = []
   invitedBy
   inviteDate
   inviteId -> Invite.id
+  disabled
 */
 
 export default module.exports = (app) => {
@@ -34,18 +35,27 @@ export default module.exports = (app) => {
       const salt = bcrypt.genSaltSync()
       item.password = bcrypt.hashSync(item.password, salt)
 
+      if (!item.disabled) {
+        item.disabled = false
+      }
       _users.push(item)
       return Promise.resolve(item)
     },
     update: (item) => {
-      let aItem = this.findById(item.id)
+      if (!item.id) {
+        return Promise.reject(new Error('user.update: item.id should have proper value'))
+      }
+
+      let aItem = _.find(_users, { id: item.id })
       if (!aItem) {
         return Promise.reject(new Error('user.update: item not found'))
       }
+
       if (item.password) {
         const salt = bcrypt.genSaltSync()
         item.password = bcrypt.hashSync(item.password, salt)
       }
+
       return Promise.resolve(_.assign(aItem, item))
     },
     isPassword: (encodedPassword, password) => bcrypt.compareSync(password, encodedPassword)

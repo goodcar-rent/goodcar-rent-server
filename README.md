@@ -114,8 +114,6 @@ Delete single user from group
 
 Delete specified list of users from group
 
-
-
 ### User router:
 
 > GET /user
@@ -134,7 +132,7 @@ Get user profile
 
 Update user profile
 
-### User permissions routes (WIP):
+### User permissions routes:
 
 > GET /user/:userId/permissions
 
@@ -150,6 +148,10 @@ Create new permission for specified user
 
 List logins of this user
 
+> GET /user/:userId/logins/:loginId
+
+Get details of logins for specified user
+
 > DELETE /user/:userId/logins/:loginId
 
 Manually log-off specified user
@@ -162,7 +164,7 @@ Return profile of currently logged-in user
 
 > GET /me/permissions
 
-List ACL permissions for currenly logged-in user
+List ACL permissions for currently logged-in user
 
 ### Car management routes
 

@@ -45,8 +45,9 @@ export const genericItem = (Model) => (req, res) =>
       }
     })
 
-export const genericSave = (Model) => (req, res) =>
-  Model.update(req.matchedData)
+export const genericSave = (Model) => (req, res) => {
+  req.matchedData.id = req.params.id
+  return Model.update(req.matchedData)
     .then((foundData) => {
       res.json(foundData)
       return foundData
@@ -58,6 +59,7 @@ export const genericSave = (Model) => (req, res) =>
         throw new ServerGenericError(error)
       }
     })
+}
 
 export const genericDelete = (Model) => (req, res) =>
   Model.delete(req.params.id)

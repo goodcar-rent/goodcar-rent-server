@@ -18,7 +18,8 @@ export default (app) => {
         body('password').isString().isLength({ min: 1 }).withMessage('Password should be provided'),
         body('invitedBy').optional().isString().withMessage('InvitedBy should be id'),
         body('inviteDate').optional().isBefore(Date.now()).withMessage('inviteDate should be less then now'),
-        body('inviteId').optional().isUUID()
+        body('inviteId').optional().isUUID().withMessage('"inviteId" property should be UUID type'),
+        body('disabled').optional().isBoolean().withMessage('"disabled" property should be boolean type')
       ], paramCheck,
       app.wrap(controller.create))
 
@@ -29,7 +30,16 @@ export default (app) => {
         param('id').isString().withMessage('id should be specified')
       ], paramCheck)
     .get(app.wrap(controller.item))
-    .put(app.wrap(controller.save))
+    .put(
+      [
+        body('email').optional().isEmail().isLength({ min: 1 }).withMessage('Email should be provided'),
+        body('password').optional().isString().isLength({ min: 1 }).withMessage('Password should be provided'),
+        body('invitedBy').optional().isString().withMessage('InvitedBy should be id'),
+        body('inviteDate').optional().isBefore(Date.now()).withMessage('inviteDate should be less then now'),
+        body('inviteId').optional().isUUID().withMessage('"inviteId" property should be UUID type'),
+        body('disabled').optional().isBoolean().withMessage('"disabled" property should be boolean type')
+      ], paramCheck,
+      app.wrap(controller.save))
     .delete(app.wrap(controller.delete))
 
   // User permissions management routes:

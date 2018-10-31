@@ -12,8 +12,9 @@ import {
   createUser,
   inviteCreate,
   UserAdmin,
-  UserFirst
+  UserFirst, userSave
 } from '../client/client-api'
+import _ from 'lodash'
 
 chai.use(dirtyChai)
 
@@ -138,6 +139,60 @@ describe('(controller) auth:', () => {
           User.findOne = original
           done(err)
         })
+    })
+
+    it('should fail for disabled user', function (done) {
+      createAdminUser(context)
+        .then((res) => {
+          expect(res.body).to.exist('res.body should exist')
+          expect(res.body.email).to.exist('res.body.email should exist')
+          expect(res.body.id).to.exist('res.body.id should exist')
+          context.UserAdminId = res.body.id
+          return loginAs(context, UserAdmin)
+        })
+        .then((res) => {
+          expect(res.body).to.exist('res.body should exist')
+          expect(res.body.token).to.exist('res.body.token should exist')
+          context.adminToken = context.token
+          return inviteCreate(context, { email: UserFirst.email })
+        })
+        .then((res) => {
+          expect(res.body).to.exist('res.body should exist')
+          expect(res.body.id).to.exist('res.body.id should exist')
+          context.userInvite = res.body.id
+          return createUser(context, _.merge({}, UserFirst, { invite: context.userInvite }))
+        })
+        .then((res) => {
+          expect(res.body).to.exist('res.body should exist')
+          expect(res.body.email).to.exist('res.body.email should exist')
+          expect(res.body.id).to.exist('res.body.id should exist')
+          context.UserFirstId = res.body.id
+          return loginAs(context, UserFirst)
+        })
+        .then((res) => {
+          expect(res.body).to.exist('res.body should exist')
+          expect(res.body.token).to.exist('res.body.token should exist')
+          context.userToken = context.token
+
+          // disable UserFirst:
+          context.adminToken = context.token
+          return userSave(context, context.UserFirstId, { disabled: true })
+        })
+        .then((res) => {
+          expect(res.body).to.exist('res.body should exist')
+          expect(res.body.email).to.exist('res.body.email should exist')
+          expect(res.body.id).to.exist('res.body.id should exist')
+          expect(res.body.disabled).to.exist('res.body.disabled should exist')
+          expect(res.body.disabled).to.be.true('res.body.disabled should be true')
+
+          return loginAs(context, UserFirst, expected.ErrCodeForbidden)
+        })
+        .then((res) => {
+          expect(res.body).to.exist('res.body should exist')
+          expect(res.body.error).to.exist()
+        })
+        .then(() => done())
+        .catch(err => done(err))
     })
 
     it('should login ok with proper credentials', function (done) {

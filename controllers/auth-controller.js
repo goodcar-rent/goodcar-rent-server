@@ -25,9 +25,15 @@ export default module.exports = (app) => {
           if (!user) {
             return Promise.reject(new ServerInvalidUsernamePassword('Invalid username or password'))
           }
+
+          if (user.disabled) {
+            return Promise.reject(new ServerNotAllowed('User is disabled'))
+          }
+
           // if (!user.emailVerified) {
           //  throw new ServerNotAllowed('Email should be verified')
           // }
+
           if (!User.isPassword(user.password, data.password)) {
             throw new ServerInvalidUsernamePassword('Invalid username or password') // password error
           }
