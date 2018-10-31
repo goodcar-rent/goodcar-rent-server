@@ -24,7 +24,6 @@ export const UserSecond = {
 
 export const expected = {
   Ok: 200,
-  Deleted: 204,
   ErrCodeNotLogged: 401,
   ErrCodeForbidden: 403,
   ErrCodeNotFound: 404,
@@ -150,7 +149,7 @@ export const loginDelete = (context, data, expectedCode) => context.request.dele
   .set('Authorization', `${context.authSchema} ${context.token}`)
   .type('json')
   .accept('json')
-  .expect(expectedCode || expected.Deleted)
+  .expect(expectedCode || expected.Ok)
 
 export const aclList = (context, expectedCode) => context.request.get(`${context.apiRoot}/acl/object`)
   .set('Authorization', `${context.authSchema} ${context.token}`)
@@ -214,4 +213,3 @@ export const userPermissions = (context, userId, expectedCode) => context.reques
   .type('json')
   .accept('json')
   .expect(expectedCode || expected.Ok)
-
