@@ -13,7 +13,7 @@ import {
   UserFirst,
   UserSecond,
   createUser,
-  userGroupList, userGroupAdd, userGroupUsersAdd, userGroupUsersRemove
+  userGroupList, userGroupAdd, userGroupUsersAdd, userGroupUsersRemove, userGroupDelete
 } from '../client/client-api'
 
 chai.use(dirtyChai)
@@ -125,6 +125,37 @@ describe('(controller) user-group:', function () {
           expect(res.body).to.exist('Body should exist')
           expect(res.body).to.be.an('array')
           expect(res.body).to.have.lengthOf(5)
+        })
+        .then(() => done())
+        .catch((err) => {
+          done(err)
+        })
+    })
+  })
+
+  describe('delete method:', function () {
+    it('should delete defined user groups', function (done) {
+      context.token = context.adminToken
+      userGroupDelete(context, context.groupEmployeesId)
+        .then((res) => {
+          expect(res.body).to.exist('Body should exist')
+          expect(res.body).to.be.an('object')
+          expect(res.body.id).to.exist()
+          expect(res.body.id).to.be.equal(context.groupEmployeesId)
+          return userGroupDelete(context, context.groupManagersId)
+        })
+        .then((res) => {
+          expect(res.body).to.exist('Body should exist')
+          expect(res.body).to.be.an('object')
+          expect(res.body.id).to.exist()
+          expect(res.body.id).to.be.equal(context.groupManagersId)
+
+          return userGroupList(context)
+        })
+        .then((res) => {
+          expect(res.body).to.exist('Body should exist')
+          expect(res.body).to.be.an('array')
+          expect(res.body).to.have.lengthOf(3)
         })
         .then(() => done())
         .catch((err) => {
