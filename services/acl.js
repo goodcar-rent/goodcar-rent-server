@@ -39,49 +39,70 @@ ACL.Object:
    * userGroups: list of groups that have this permission of this kind
 */
 
-const aclObject = []
-
-export const CheckPermission = (userId, object, permission) => {
-  // check if we have permission for user:
-  const aObject = _.find(aclObject, { id: object.toLowerCase() })
-  if (!aObject) {
-    return kindDeny // no object defined, DENY
-  }
-
-  // find specified permission for object:
-  const aPermission = _.find(aObject.permissions, { permission: permission.toLowerCase() })
-  if (!aPermission) {
-    return kindDeny // no permission declaration, DENY
-  }
-
-  // check if specified object have exact user permission:
-  const aUser = _.find(aPermission.users, { id: userId })
-  if (!aUser) {
-    return kindDeny
-  }
-  return aUser.kind
-}
-
-const FindOrAddObject = (objectId) => {
-  let aObject = _.find(aclObject, { id: objectId.toLowerCase() })
-  if (!aObject) {
-    aObject = { id: objectId.toLowerCase(), permissions: [] }
-    aclObject.push(aObject)
-  }
-  return aObject
-}
-
-const FindOrAddPermission = (aObject, permission) => {
-  let aPermission = _.find(aObject.permissions, { permission: permission.toLowerCase() })
-  if (!aPermission) {
-    aPermission = { permission: permission.toLowerCase(), users: [], userGroups: [] }
-    aObject.permissions.push(aPermission)
-  }
-  return aPermission
-}
-
 export default module.exports = (app) => {
+  const aclObject = []
   const { UserGroup } = app.models
+
+  const FindOrAddObject = (objectId) => {
+    let aObject = _.find(aclObject, { id: objectId.toLowerCase() })
+    if (!aObject) {
+      aObject = { id: objectId.toLowerCase(), permissions: [] }
+      aclObject.push(aObject)
+    }
+    return aObject
+  }
+
+  const FindOrAddPermission = (aObject, permission) => {
+    let aPermission = _.find(aObject.permissions, { permission: permission.toLowerCase() })
+    if (!aPermission) {
+      aPermission = { permission: permission.toLowerCase(), users: [], userGroups: [] }
+      aObject.permissions.push(aPermission)
+    }
+    return aPermission
+  }
+
+  const CheckPermission = (userId, object, permission) => {
+    let aKind = kindDeny
+
+    // check if we have permission for user:
+    const aObject = _.find(aclObject, { id: object.toLowerCase() })
+    if (!aObject) {
+      return kindDeny // no object defined, DENY
+    }
+
+    // find specified permission for object:
+    const aPermission = _.find(aObject.permissions, { permission: permission.toLowerCase() })
+    if (!aPermission) {
+      return kindDeny // no permission declaration, DENY
+    }
+
+    // check if we have some group permission:
+    let groupRes = 0
+    const groups = UserGroup.findGroupsForUserSync(userId)
+    _.each(groups, (group) => {
+      const aGroup = _.find(aPermission.userGroups, { id: group.id })
+      if (aGroup && groupRes !== kindDeny) {
+        groupRes = aGroup.kind
+      }
+    })
+
+    // check if specified object have exact user permission:
+    let userRes = 0
+    const aUser = _.find(aPermission.users, { id: userId })
+    if (aUser) {
+      userRes = aUser.kind
+    }
+
+    // set resulting permission according proprieties:
+    if (groupRes !== 0) {
+      aKind = groupRes
+    }
+
+    if (userRes !== 0) {
+      aKind = userRes
+    }
+    return aKind
+  }
   return {
     ACL: (object, permission) => {
       return (req, res, next) => {
@@ -136,11 +157,17 @@ export default module.exports = (app) => {
 
       const aObject = FindOrAddObject(objectId)
       const aPermission = FindOrAddPermission(aObject, permission)
-      let aGroup = _.find(aPermission.userGroups, { groupId })
+      let aGroup = _.find(aPermission.userGroups, { id: groupId })
       if (!aGroup) {
-        aPermission.userGroups.push({ groupId, kind: aKind })
+        aPermission.userGroups.push({ id: groupId, kind: aKind })
       } else {
         aGroup.kind = aKind
+      }
+      return {
+        groupId,
+        object: objectId.toLowerCase(),
+        permission: permission.toLowerCase(),
+        kind: kind.toUpperCase()
       }
     },
     ListACL: () => {

@@ -8,10 +8,10 @@ export default (app) => {
 
   // noinspection JSCheckFunctionSignatures
   router.route('/auth/invite')
-    .all(app.auth.authenticate())
-    // .all(app.auth.ACL('invite', 'read'))
+    // .all(app.auth.authenticate())
+    .all(app.auth.ACL('invite', 'read'))
     .get(app.wrap(controller.list))
-    .post(// app.auth.ACL('invite', 'write'),
+    .post(app.auth.ACL('invite', 'write'),
       [
         body('email').isEmail().isLength({ min: 5 }).withMessage('Email should be provided'),
         body('expireAt').optional().isAfter().withMessage('ExpireAt should be greater than now'),
@@ -21,16 +21,18 @@ export default (app) => {
 
   // noinspection JSCheckFunctionSignatures
   router.route('/auth/invite/:id')
-    .all(app.auth.authenticate(),
+    .all(app.auth.ACL('invite', 'read'),
+    // .all(app.auth.authenticate(),
       [
         param('id').isString().withMessage('Invite id should be specified')
       ], paramCheck)
     .get(app.wrap(controller.item))
-    .put(app.wrap(controller.save))
-    .delete(app.wrap(controller.delete))
+    .put(app.auth.ACL('invite', 'write'), app.wrap(controller.save))
+    .delete(app.auth.ACL('invite', 'write'), app.wrap(controller.delete))
 
   router.route('/auth/invite/:id/send')
-    .all(app.auth.authenticate(),
+    .all(app.auth.ACL('invite', 'write'),
+    // .all(app.auth.authenticate(),
       [
         param('id').isString().withMessage('Invite id should be specified')
       ], paramCheck)
