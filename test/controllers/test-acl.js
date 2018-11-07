@@ -97,7 +97,30 @@ describe('(controller) acl:', function () {
   })
 
   describe('create / list method:', function () {
-    it('should list active ACLs:', function (done) {
+    it('should list active ACLs for User:', function (done) {
+      context.token = context.adminToken
+
+      const aData = {
+        userId: context.UserFirstId,
+        object: 'Invite',
+        permission: 'read',
+        'kind': app.auth.kindAllow
+      }
+
+      aclCreate(context, aData)
+        .then(() => aclList(context))
+        .then((res) => {
+          expect(res.body).to.exist('Body should exist')
+          expect(res.body).to.be.an('array')
+          expect(res.body).to.have.lengthOf(1)
+        })
+        .then(() => done())
+        .catch((err) => {
+          done(err)
+        })
+    })
+
+    it('should list active ACLs for UserGroup:', function (done) {
       context.token = context.adminToken
 
       const aData = {

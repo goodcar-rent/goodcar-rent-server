@@ -117,15 +117,19 @@ describe('(controller) user-group:', function () {
       })
   })
 
-  describe('Set ACL for groups:', function () {
-    it('should check if ACL is checked for group defined permissions:', function (done) {
+  describe('Check if ACL work for groups:', function () {
+    it('Add group ACLs and check if they are ok:', function (done) {
       context.token = context.adminToken
       userGroupList(context)
         .then((res) => {
+          // check if group are defined:
           expect(res.body).to.exist('Body should exist')
           expect(res.body).to.be.an('array')
           expect(res.body).to.have.lengthOf(5)
+
+          // add group permissions:
         })
+        .then(())
         .then(() => done())
         .catch((err) => {
           done(err)

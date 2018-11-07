@@ -182,13 +182,26 @@ export default module.exports = (app) => {
     ListACL: () => {
       return aclObject
     },
-    ListACLForUser: (userId) => {
+    ListACLForUserSync: (userId) => {
       const arr = []
       _.forEach(aclObject, (item) => {
         _.forEach(item.permissions, (perm) => {
           const aUser = _.find(perm.users, { id: userId })
           if (aUser) {
-            const ret = { object: item.id, permission: perm.permission, kind: aUser.kind }
+            const ret = { object: item.id, permission: perm.permission, kind: aUser.kind || kindAllow }
+            arr.push(ret)
+          }
+        })
+      })
+      return arr
+    },
+    ListACLForUserGroupSync: (groupId) => {
+      const arr = []
+      _.forEach(aclObject, (item) => {
+        _.forEach(item.permissions, (perm) => {
+          const aItem = _.find(perm.userGroups, { id: groupId })
+          if (aItem) {
+            const ret = { object: item.id, permission: perm.permission, kind: aItem.kind || kindAllow }
             arr.push(ret)
           }
         })
