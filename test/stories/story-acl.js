@@ -71,7 +71,7 @@ describe('(controller) user-group:', function () {
         context.userToken = context.token
 
         // register second user:
-        context.adminToken = context.token
+        context.token = context.adminToken
         return inviteCreate(context, { email: UserSecond.email })
       })
       .then((res) => {
@@ -91,8 +91,8 @@ describe('(controller) user-group:', function () {
         expect(res.body).to.exist('res.body should exist')
         expect(res.body.token).to.exist('res.body.token should exist')
         context.userSecondToken = context.token
-      })
-      .then(() => {
+
+        context.token = context.adminToken
         return userGroupAdd(context, { name: groupManagers })
       })
       .then((res) => {

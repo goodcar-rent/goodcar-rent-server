@@ -63,6 +63,15 @@ export default module.exports = (app) => {
 
   const CheckPermission = (userId, object, permission) => {
     let aKind = kindDeny
+    // console.log(`CheckPermission( ${userId}, ${object}, ${permission})`)
+    // console.log('aclObject:')
+    // console.log(aclObject)
+
+    // check if user is admin, and have all permissions:
+    const adminGroup = UserGroup.systemGroupAdmin()
+    if (adminGroup && UserGroup.isUserInGroupSync(adminGroup, userId)) {
+      return kindAllow
+    }
 
     // check if we have permission for user:
     const aObject = _.find(aclObject, { id: object.toLowerCase() })

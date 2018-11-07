@@ -69,7 +69,7 @@ describe('(controller) acl:', function () {
         context.userToken = context.token
 
         // register second user:
-        context.adminToken = context.token
+        context.token = context.adminToken
         return inviteCreate(context, { email: UserSecond.email })
       })
       .then((res) => {
