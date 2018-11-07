@@ -165,14 +165,14 @@ export const aclUserCreate = (context, userId, data, expectedCode) => context.re
   .expect(expectedCode || expected.Ok)
 
 export const aclUserGroupList = (context, groupId, expectedCode) =>
-  context.request.get(`${context.apiRoot}/acl/usergroup/${groupId}`)
+  context.request.get(`${context.apiRoot}/acl/user-group/${groupId}`)
     .set('Authorization', `${context.authSchema} ${context.token}`)
     .type('json')
     .accept('json')
     .expect(expectedCode || expected.Ok)
 
 export const aclUserGroupCreate = (context, groupId, data, expectedCode) =>
-  context.request.post(`${context.apiRoot}/acl/usergroup/${groupId}`)
+  context.request.post(`${context.apiRoot}/acl/user-group/${groupId}`)
     .set('Authorization', `${context.authSchema} ${context.token}`)
     .send(data)
     .type('json')

@@ -18,13 +18,21 @@ GoodCar.rent server app
 
 ### ACL routes:
 
-> GET /acl/object
+> GET /acl/user/:userId
 
-Returns list of ACL objects defined in system
+Returns list of ACL objects defined in system for specified user
 
-> POST /acl/object
+> POST /acl/user/:userId
 
 Define ACL object with permissions for specified users
+
+> GET /acl/user-group/:groupId
+
+Returns list of ACLs for specified user group
+
+> POST /acl/user-group/:groupId
+
+Define ACLs for user group
 
 ### Auth routes:
 

@@ -21,7 +21,7 @@ export default (app) => {
       app.wrap(controller.create))
 
   // noinspection JSCheckFunctionSignatures
-  router.route('/acl/usergroup/:groupId')
+  router.route('/acl/user-group/:groupId')
     .all(
       [
         param('groupId').isUUID().isLength({ min: 1 }).withMessage('groupId should be provided in URL')
