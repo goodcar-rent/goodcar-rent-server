@@ -151,18 +151,33 @@ export const loginDelete = (context, data, expectedCode) => context.request.dele
   .accept('json')
   .expect(expectedCode || expected.Ok)
 
-export const aclList = (context, expectedCode) => context.request.get(`${context.apiRoot}/acl/object`)
+export const aclUserList = (context, userId, expectedCode) => context.request.get(`${context.apiRoot}/acl/user/${userId}`)
   .set('Authorization', `${context.authSchema} ${context.token}`)
   .type('json')
   .accept('json')
   .expect(expectedCode || expected.Ok)
 
-export const aclCreate = (context, data, expectedCode) => context.request.post(`${context.apiRoot}/acl/object`)
+export const aclUserCreate = (context, userId, data, expectedCode) => context.request.post(`${context.apiRoot}/acl/user/${userId}`)
   .set('Authorization', `${context.authSchema} ${context.token}`)
   .send(data)
   .type('json')
   .accept('json')
   .expect(expectedCode || expected.Ok)
+
+export const aclUserGroupList = (context, groupId, expectedCode) =>
+  context.request.get(`${context.apiRoot}/acl/usergroup/${groupId}`)
+    .set('Authorization', `${context.authSchema} ${context.token}`)
+    .type('json')
+    .accept('json')
+    .expect(expectedCode || expected.Ok)
+
+export const aclUserGroupCreate = (context, groupId, data, expectedCode) =>
+  context.request.post(`${context.apiRoot}/acl/usergroup/${groupId}`)
+    .set('Authorization', `${context.authSchema} ${context.token}`)
+    .send(data)
+    .type('json')
+    .accept('json')
+    .expect(expectedCode || expected.Ok)
 
 export const me = (context, expectedCode) => context.request.get(`${context.apiRoot}/me`)
   .set('Authorization', `${context.authSchema} ${context.token}`)

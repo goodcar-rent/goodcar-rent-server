@@ -25,7 +25,7 @@ export default module.exports = (app) => {
         })
     },
     permissions: (req, res) => {
-      const ret = app.auth.ListACLForUser(req.user.id)
+      const ret = app.auth.ListACLForUserSync(req.user.id)
       res.json(ret)
       return app.Promise.resolve(ret)
     }

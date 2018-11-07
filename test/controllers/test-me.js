@@ -11,7 +11,7 @@ import {
   loginAs,
   UserAdmin,
   UserFirst,
-  aclCreate,
+  aclUserCreate,
   createUser,
   me, mePermissions
 } from '../client/client-api'
@@ -69,9 +69,9 @@ describe('(controller) me:', function () {
       })
       .then(() => {
         context.token = context.adminToken
-        return aclCreate(context,
+        return aclUserCreate(context,
+          context.UserFirstId,
           {
-            userId: context.UserFirstId,
             object: 'Invite',
             permission: 'read',
             kind: app.auth.kindAllow

@@ -11,8 +11,8 @@ import {
   loginAs,
   UserAdmin,
   UserFirst,
-  aclList,
-  aclCreate,
+  aclUserList,
+  aclUserCreate,
   createUser, userPermissions
 } from '../client/client-api'
 
@@ -69,9 +69,9 @@ describe('(controller) user-permissions:', function () {
       })
       .then(() => {
         context.token = context.adminToken
-        return aclCreate(context,
+        return aclUserCreate(context,
+          context.UserFirstId,
           {
-            userId: context.UserFirstId,
             object: 'Invite',
             permission: 'read',
             kind: app.auth.kindAllow
@@ -85,14 +85,15 @@ describe('(controller) user-permissions:', function () {
 
   describe('list/create method:', function () {
     it('should list permissions in system:', function (done) {
-      aclList(context)
+      aclUserList(context, context.UserFirstId)
         .then((res) => {
           expect(res.body).to.exist('Body should exist')
           expect(res.body).to.be.an('array')
           expect(res.body).to.have.lengthOf(1)
-          expect(res.body[0].id).to.exist()
-          expect(res.body[0].permissions).to.exist()
-          expect(res.body[0].permissions).to.be.an('array')
+          expect(res.body[0]).to.be.an('object')
+          expect(res.body[0].object).to.exist()
+          expect(res.body[0].permission).to.exist()
+          expect(res.body[0].kind).to.exist()
         })
         .then(() => done())
         .catch((err) => {
@@ -106,6 +107,7 @@ describe('(controller) user-permissions:', function () {
           expect(res.body).to.exist('Body should exist')
           expect(res.body).to.be.an('array')
           expect(res.body).to.have.lengthOf(1)
+          expect(res.body[0]).to.be.an('object')
           expect(res.body[0].object).to.exist()
           expect(res.body[0].permission).to.exist()
           expect(res.body[0].kind).to.exist()

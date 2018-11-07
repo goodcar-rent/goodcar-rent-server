@@ -70,30 +70,40 @@ export default module.exports = (app) => {
     // check if user is admin, and have all permissions:
     const adminGroup = UserGroup.systemGroupAdmin()
     if (adminGroup && UserGroup.isUserInGroupSync(adminGroup, userId)) {
+      // console.log('user is admin, allow')
       return kindAllow
     }
 
     // check if we have permission for user:
     const aObject = _.find(aclObject, { id: object.toLowerCase() })
     if (!aObject) {
+      // console.log('object not defined, DENY')
       return kindDeny // no object defined, DENY
     }
 
     // find specified permission for object:
     const aPermission = _.find(aObject.permissions, { permission: permission.toLowerCase() })
     if (!aPermission) {
+      // console.log('no such permission, DENY')
       return kindDeny // no permission declaration, DENY
     }
+    // console.log('Permission:')
+    // console.log(aPermission)
 
     // check if we have some group permission:
+    // console.log('checkGroups:')
     let groupRes = 0
     const groups = UserGroup.findGroupsForUserSync(userId)
+    // console.log(groups)
     _.each(groups, (group) => {
+      // console.log(` - group: ${group.id} ${group.name}`)
       const aGroup = _.find(aPermission.userGroups, { id: group.id })
       if (aGroup && groupRes !== kindDeny) {
+        // console.log(`set kind === ${aGroup.kind}`)
         groupRes = aGroup.kind
       }
     })
+    // console.log(`groupRes = ${groupRes}`)
 
     // check if specified object have exact user permission:
     let userRes = 0
@@ -115,24 +125,26 @@ export default module.exports = (app) => {
   return {
     ACL: (object, permission) => {
       return (req, res, next) => {
+        // console.log(`ACL`)
         const auth = app.auth.passport.authenticate('jwt', { session: false })
         auth(req, res, () => {
+          // console.log(`ACL.auth: req.user=${req.user.id} ${req.user.email}`)
+          let aUserId = null
+
           if (req.user) {
-            // user already authenticated:
-            if (UserGroup.isUserInGroupSync(UserGroup.systemGroupAdmin(), req.user.id)) {
-              next() // user is in system admin group
-            } else if (CheckPermission(req.user.id, object, permission) === kindAllow) {
-              next() // user have allow kind of permission for this object/permission
-            } else {
-              next(new ServerNotAllowed(`Permission deny for user on ${object}.${permission}`))
-            }
+            // console.log('req.user authed')
+            aUserId = req.user.id
           } else {
-            // user not authenticated, check permission for guest user:
-            if (CheckPermission(GuestUserId, object, permission) === kindAllow) {
-              next()
-            } else {
-              next(new ServerNotAllowed(`Permission deny for guest user on ${object}.${permission}`))
-            }
+            // console.log('user not authed, guest user')
+            aUserId = GuestUserId
+          }
+
+          if (CheckPermission(aUserId, object, permission) === kindAllow) {
+            // console.log('permission === allow')
+            next() // user have allow kind of permission for this object/permission
+          } else {
+            // console.log('permission === deny')
+            next(new ServerNotAllowed(`Permission deny for user on ${object}.${permission}`))
           }
         })
       }

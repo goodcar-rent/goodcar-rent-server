@@ -54,8 +54,8 @@ export default (app) => {
     count: genericCount(_userGroup),
     ClearData: genericClearData(_userGroup),
     update: genericUpdate(_userGroup),
-    findGroupsForUser: (userId) => Promise.resolve(_.filter(_userGroup, (item) => (_.includes(item.users, userId) !== -1))),
-    findGroupsForUserSync: (userId) => _.filter(_userGroup, (item) => (_.includes(item.users, userId) !== -1)),
+    findGroupsForUser: (userId) => Promise.resolve(_.filter(_userGroup, (item) => (_.includes(item.users, userId) !== false))),
+    findGroupsForUserSync: (userId) => _.filter(_userGroup, (item) => (_.includes(item.users, userId) !== false)),
     isUserInGroup: (groupId, userId) => {
       const aGroup = _.find(_userGroup, { id: groupId })
       if (!aGroup) {
