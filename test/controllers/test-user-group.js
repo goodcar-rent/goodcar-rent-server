@@ -13,7 +13,7 @@ import {
   UserFirst,
   UserSecond,
   createUser,
-  userGroupList, userGroupAdd, userGroupUsersAdd, userGroupUsersRemove, userGroupDelete
+  userGroupList, userGroupAdd, userGroupUsersAdd, userGroupUsersRemove, userGroupDelete, userGroupItem
 } from '../client/client-api'
 
 chai.use(dirtyChai)
@@ -34,6 +34,7 @@ describe('(controller) user-group:', function () {
 
   const groupManagers = 'Managers'
   const groupEmployees = 'Employees'
+  const groupSome = 'SomeUserGroup'
 
   beforeEach(function (done) {
     app.models.ClearData()
@@ -50,6 +51,36 @@ describe('(controller) user-group:', function () {
         expect(res.body).to.exist('res.body should exist')
         expect(res.body.token).to.exist('res.body.token should exist')
         context.adminToken = context.token
+
+        // create user groups:
+        return userGroupAdd(context, { name: groupSome })
+      })
+      .then((res) => {
+        expect(res.body).to.exist('res.body should exist')
+        expect(res.body.name).to.exist('res.body.name should exist')
+        expect(res.body.id).to.exist('res.body.id should exist')
+        expect(res.body.name).to.be.equal(groupSome)
+        context.groupSomeId = res.body.id
+
+        return userGroupAdd(context, { name: groupManagers })
+      })
+      .then((res) => {
+        expect(res.body).to.exist('res.body should exist')
+        expect(res.body.name).to.exist('res.body.name should exist')
+        expect(res.body.id).to.exist('res.body.id should exist')
+        expect(res.body.name).to.be.equal(groupManagers)
+        context.groupManagersId = res.body.id
+
+        return userGroupAdd(context, { name: groupEmployees })
+      })
+      .then((res) => {
+        expect(res.body).to.exist('res.body should exist')
+        expect(res.body.name).to.exist('res.body.name should exist')
+        expect(res.body.id).to.exist('res.body.id should exist')
+        expect(res.body.name).to.be.equal(groupEmployees)
+        context.groupEmployeesId = res.body.id
+
+        // create second user
         return inviteCreate(context, { email: UserFirst.email })
       })
       .then((res) => {
@@ -72,7 +103,7 @@ describe('(controller) user-group:', function () {
 
         // register second user:
         context.token = context.adminToken
-        return inviteCreate(context, { email: UserSecond.email })
+        return inviteCreate(context, { email: UserSecond.email, assignUserGroups: [context.groupSomeId] })
       })
       .then((res) => {
         expect(res.body).to.exist('res.body should exist')
@@ -93,23 +124,6 @@ describe('(controller) user-group:', function () {
         context.userSecondToken = context.token
 
         context.token = context.adminToken
-        return userGroupAdd(context, { name: groupManagers })
-      })
-      .then((res) => {
-        expect(res.body).to.exist('res.body should exist')
-        expect(res.body.name).to.exist('res.body.name should exist')
-        expect(res.body.id).to.exist('res.body.id should exist')
-        expect(res.body.name).to.be.equal(groupManagers)
-        context.groupManagersId = res.body.id
-
-        return userGroupAdd(context, { name: groupEmployees })
-      })
-      .then((res) => {
-        expect(res.body).to.exist('res.body should exist')
-        expect(res.body.name).to.exist('res.body.name should exist')
-        expect(res.body.id).to.exist('res.body.id should exist')
-        expect(res.body.name).to.be.equal(groupEmployees)
-        context.groupEmployeesId = res.body.id
       })
       .then(() => done())
       .catch((err) => {
@@ -124,7 +138,7 @@ describe('(controller) user-group:', function () {
         .then((res) => {
           expect(res.body).to.exist('Body should exist')
           expect(res.body).to.be.an('array')
-          expect(res.body).to.have.lengthOf(5)
+          expect(res.body).to.have.lengthOf(6)
         })
         .then(() => done())
         .catch((err) => {
@@ -155,7 +169,7 @@ describe('(controller) user-group:', function () {
         .then((res) => {
           expect(res.body).to.exist('Body should exist')
           expect(res.body).to.be.an('array')
-          expect(res.body).to.have.lengthOf(3)
+          expect(res.body).to.have.lengthOf(4)
         })
         .then(() => done())
         .catch((err) => {
@@ -217,6 +231,27 @@ describe('(controller) user-group:', function () {
           expect(res.body.users).to.exist('Users array should exist')
           expect(res.body.users).to.be.an('array')
           expect(res.body.users).to.have.lengthOf(0)
+        })
+        .then(() => done())
+        .catch((err) => {
+          done(err)
+        })
+    })
+  })
+  describe('userGroup.item method and invite assignUserGroups feature:', function () {
+    it('should list invited users in specified groups', function (done) {
+      context.token = context.adminToken
+
+      userGroupItem(context, context.groupSomeId)
+        .then((res) => {
+          expect(res.body).to.exist('Body should exist')
+          expect(res.body).to.be.an('object')
+          expect(res.body.name).to.exist('Name property should exist')
+          expect(res.body.name).to.be.equal(groupSome)
+          expect(res.body.users).to.exist('Users array should exist')
+          expect(res.body.users).to.be.an('array')
+          expect(res.body.users).to.have.lengthOf(1)
+          expect(res.body.users[0]).to.be.equal(context.UserSecondId)
         })
         .then(() => done())
         .catch((err) => {

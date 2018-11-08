@@ -9,9 +9,24 @@ export default module.exports = (app) => {
     list: genericList(Model),
 
     create: (req, res) => {
+      // fill optional field - expireAt
       if (!req.matchedData.expireAt) {
         req.matchedData.expireAt = Date.now() + 60000000
       }
+
+      // fill optional field - createdBy
+      if (!req.matchedData.createdBy) {
+        req.matchedData.createdBy = null
+        if (req.user) {
+          req.matchedData.createdBy = req.user.id
+        }
+      }
+
+      // fill optional field - assignUserGroups
+      if (!req.matchedData.assignUserGroups) {
+        req.matchedData.assignUserGroups = []
+      }
+
       return _create(req, res)
     },
 

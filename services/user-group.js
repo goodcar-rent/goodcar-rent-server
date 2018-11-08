@@ -84,9 +84,13 @@ export default (app) => {
       return Promise.resolve(item)
     },
     addUser: (groupId, userId) => {
+      // console.log(`addUser (${groupId},${userId})`)
       const group = _.find(_userGroup, { id: groupId })
       if (!group) {
         return Promise.reject(new Error(`addUser: group ${groupId} not found`))
+      }
+      if (!userId) {
+        return Promise.reject(new Error(`addUser: user ${userId} should be specified`))
       }
       group.users = _.union(group.users, [userId])
       return Promise.resolve(group)
@@ -95,6 +99,9 @@ export default (app) => {
       const group = _.find(_userGroup, { id: groupId })
       if (!group) {
         return Promise.reject(new Error(`removeUser: group ${groupId} not found`))
+      }
+      if (!userId) {
+        return Promise.reject(new Error(`addUser: user ${userId} should be specified`))
       }
       _.pull(group.users, userId)
       return Promise.resolve(group)
@@ -121,6 +128,10 @@ export default (app) => {
         return Promise.reject(new Error(`usersList: group ${groupId} not found`))
       }
       return Promise.resolve(group.users)
+    },
+    addUserGroupsForUser: (userId, userGroups) => {
+      // console.log(`addUserGroupsForUser: ( ${userId}, ${userGroups})`)
+      return Promise.all(userGroups.map((item) => Model.addUser(item, userId)))
     },
     createSystemData: () => {
       return Model.ClearData()

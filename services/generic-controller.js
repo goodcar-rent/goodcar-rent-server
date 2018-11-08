@@ -29,7 +29,7 @@ export const genericCreate = (Model) => (req, res) =>
     })
 
 export const genericItem = (Model) => (req, res) =>
-  Model.findOne(req.params.id)
+  Model.findById(req.params.id)
     .then((foundData) => {
       if (!foundData) {
         throw ServerNotFound(Model.name, req.params.id, `${Model.name} with id ${req.params.id} not found`)

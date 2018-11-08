@@ -102,6 +102,7 @@ export default module.exports = (app) => {
       const aData = {} // data bag for promise chain to simplify data transfer
 
       // flow for generic registration via invite
+      let assignUserGroups = []
       return Invite.findById(data.invite)
         .then((foundInvite) => {
           if (!foundInvite) {
@@ -129,11 +130,24 @@ export default module.exports = (app) => {
           data.inviteId = foundInvite.id
 
           aData.invite = foundInvite
+
+          assignUserGroups = foundInvite.assignUserGroups
           return User.create(data)
         })
         .then((createdUser) => {
           res.json(createdUser)
-          return Invite.update(aData.invite, { registeredUser: createdUser.id })
+          aData.invite.registeredUser = createdUser.id
+          return Invite.update(aData.invite)
+        })
+        .then((updatedInvite) => {
+          // console.log('signup: updatedInvite:')
+          // console.log(updatedInvite)
+          // console.log('assignUserGroups:')
+          // console.log(assignUserGroups)
+
+          if (assignUserGroups && assignUserGroups.length > 0 ) {
+            return UserGroup.addUserGroupsForUser(updatedInvite.registeredUser, assignUserGroups)
+          }
         })
         .catch((error) => {
           console.log('signup: error')

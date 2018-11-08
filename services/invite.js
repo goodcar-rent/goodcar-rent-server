@@ -29,11 +29,13 @@ export default module.exports = (app) => {
     },
 
     update: (item) => {
-      let foundItem = _.find(_invite, { id: item.id })
-      if (foundItem) {
-        foundItem = _.merge({}, foundItem, item)
+      // console.log(`Invite.update:`)
+      // console.log(item)
+      const foundItem = _.find(_invite, { id: item.id })
+      if (!foundItem) {
+        return Promise.reject(new Error(`Invite ${item.id} not found`))
       }
-      return Promise.resolve(foundItem)
+      return Promise.resolve(_.merge({}, foundItem, item))
     },
 
     delete: (id) => Promise.resolve((_.remove(_invite, { id })).length === 1),

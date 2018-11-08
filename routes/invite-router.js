@@ -15,7 +15,9 @@ export default (app) => {
       [
         body('email').isEmail().isLength({ min: 5 }).withMessage('Email should be provided'),
         body('expireAt').optional().isAfter().withMessage('ExpireAt should be greater than now'),
-        body('disabled').optional().isBoolean().withMessage('Invite disabled state should be boolean value')
+        body('disabled').optional().isBoolean().withMessage('Invite disabled state should be boolean value'),
+        body('createdBy').optional().isString(),
+        body('assignUserGroups').optional().isArray()
       ], paramCheck,
       app.wrap(controller.create))
 
