@@ -9,10 +9,13 @@ GoodCar.rent server app
 * user groups
 * email invites for registration with predefined user groups
 * object/permission ACLs for users/user groups
+* disable user login
+* disable invite
 
 ## Planned features
 * Joi based object schema validation
 * social login via Facebook, Google, Instagram, Vk
+* Manage actions in system (action list - protocol)
 
 ## Models/Services
 
@@ -65,6 +68,14 @@ System types:
 * Admin: system type for admin user (first user in system at least) - manually can be added other user accounts
 * Guest: not authenticated user
 * LoggedIn: Authenticated users (any - admin, other users)
+
+### ACL priorities
+
+If no ACL is defined, then user access will be DENY.
+
+Lowerst priority is for group permissions
+
+User-specific permissions have priority over group permissions.
 
 ## Endpoints
 
@@ -245,25 +256,6 @@ DELETE /me/social/:provider - unlink social profile
 
 GET /social - list of supported social providers (google, instagram, facebook)
 
-
-### TODO features
-
-* Disable user login
-* Manage actions in system (action list - protocol)
-* ACL for groups 
-
-### ACL: Access control
-
-Access control allow to set separate permissions for group of users
-
-API:
-
-* we should have some Express middleware to check if this route allowed or not
-* special role for Guest: not authenticated group of users
-* special role for Admin: all permissions automatically
-* user routes: /me profile, /users for manage users for Admins, POST user with admin permissions;
-* user group route: /group
-
 ### ACL testcase
 
 * car list: 
@@ -290,18 +282,3 @@ API:
         - car list
         - car features
     - car booking
-* permissions: any string identifier
-
-     
-### Allow algorithm
-
-Get user group
-
-Get all permissions for this object for group
-
-Resolve permission
-
-Get all permissions for this object for specific user
-
-Resolve perission
-
