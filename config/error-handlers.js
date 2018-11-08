@@ -8,7 +8,7 @@ import {
 
 export default module.exports = (app) => {
   app.use((error, req, res, next) => {
-    // default error handlers for DokkaBot (rich error messages):
+    // default error handlers (rich error messages):
     if (error instanceof ServerError) {
       if (error instanceof ServerInvalidParameters) {
         res.status(412).json({ message: error.message, error })

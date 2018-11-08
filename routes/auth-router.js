@@ -10,9 +10,9 @@ export default (app) => {
     '/login',
     [
       body('email').isEmail().withMessage('Email should be provided'),
-      body('password').isLength({ min: 1 }).withMessage('Password should be specified'),
+      body('password').isLength({ min: 1 }).withMessage('Password should be specified')
     ],
-    app.wrap(controller.loginPost))
+    app.wrap(controller.login))
 
   // noinspection JSCheckFunctionSignatures
   router.post(
@@ -24,15 +24,14 @@ export default (app) => {
       body('isAdmin').optional().isBoolean(),
       body('invite').optional().isString()
     ],
-    app.wrap(controller.signupPost))
+    app.wrap(controller.signup))
 
   // return login page
-  router.get('/login',
+  router.get('/signup',
     [
       query('invite').optional().isString()
     ],
-    app.wrap(controller.loginGet))
-
+    app.wrap(controller.signupPage))
 
   /*
   router.get('/facebook', app.passport.authenticate('facebook'))

@@ -1,77 +1,38 @@
 import { ServerError, ServerGenericError, ServerNotFound } from '../config/errors'
+import { genericCreate, genericDelete, genericItem, genericList, genericSave } from '../services/generic-controller'
 
 export default module.exports = (app) => {
   const Model = app.models.Invite
+  const _create = genericCreate(Model)
 
   return {
-    list: (req, res) => {
-      return Model.findAll()
-        .then((foundData) => res.json(foundData))
-        .catch((error) => {
-          if (error instanceof ServerError) {
-            throw error
-          } else {
-            throw new ServerGenericError(error)
-          }
-        })
-    },
+    list: genericList(Model),
 
     create: (req, res) => {
+      // fill optional field - expireAt
       if (!req.matchedData.expireAt) {
         req.matchedData.expireAt = Date.now() + 60000000
       }
 
-      return Model.create(req.matchedData)
-        .then((item) => res.json(item))
-        .catch((error) => {
-          if (error instanceof ServerError) {
-            throw error
-          } else {
-            throw new ServerGenericError(error)
-          }
-        })
+      // fill optional field - createdBy
+      if (!req.matchedData.createdBy) {
+        req.matchedData.createdBy = null
+        if (req.user) {
+          req.matchedData.createdBy = req.user.id
+        }
+      }
+
+      // fill optional field - assignUserGroups
+      if (!req.matchedData.assignUserGroups) {
+        req.matchedData.assignUserGroups = []
+      }
+
+      return _create(req, res)
     },
 
-    item: (req, res) => {
-      return Model.findOne(req.params.id)
-        .then((foundData) => {
-          if (!foundData) {
-            throw ServerNotFound('Invite', req.params.id, 'Invite not found')
-          }
-          res.json(foundData)
-        })
-        .catch((error) => {
-          if (error instanceof ServerError) {
-            throw error
-          } else {
-            throw new ServerGenericError(error)
-          }
-        })
-    },
-
-    save: (req, res) => {
-      return Model.update(req.matchedData)
-        .then((foundData) => {
-          return res.json(foundData)
-        })
-        .catch((error) => {
-          if (error instanceof ServerError) {
-            throw error
-          } else {
-            throw new ServerGenericError(error)
-          }
-        })
-    },
-
-    delete: (req, res) => {
-      return Model.delete(req.params.id)
-        .then((foundData) => {
-          if (foundData) {
-            return res.sendStatus(204)
-          }
-          throw new ServerNotFound('Invite', req.params.id, 'Invite not found by id for delete')
-        })
-    },
+    item: genericItem(Model),
+    save: genericSave(Model),
+    delete: genericDelete(Model),
 
     send: (req, res) => {
       return Model.findById(req.params.id)
@@ -79,9 +40,9 @@ export default module.exports = (app) => {
           if (!foundData) {
             throw ServerNotFound('Invite', req.params.id, 'Invite not found')
           }
-          const msg = `# Invite for GoodCar.rent site registration\
-            \
-            Please use this link to [register](${app.serverAddress}/auth/login?invite=${foundData.id})`
+          const msg = `# Invite for GoodCar.rent site registration\n\r
+            \n\r
+            Please use this link to [register](${app.serverAddress}/auth/signup?invite=${foundData.id})`
           return app.mail(foundData.email, 'Invite for GoodCar.rent', msg)
         })
         .then(() => res.sendStatus(200))

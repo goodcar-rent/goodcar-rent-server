@@ -1,4 +1,5 @@
 import sgMail from '@sendgrid/mail'
+import _ from 'lodash'
 import { markdown, plaintext } from './markdown'
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)

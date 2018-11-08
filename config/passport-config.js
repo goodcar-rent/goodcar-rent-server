@@ -15,7 +15,7 @@ const transformGoogleProfile = (profile) => ({
   avatar: profile.image.url
 })
 
-const transfomInstagramProfile = (profile) => ({
+const transformInstagramProfile = (profile) => ({
   name: profile.displayName,
   avatar: profile._json.data.profile_picture
 })
@@ -55,10 +55,8 @@ export default (passport) => {
         clientSecret: process.env.INSTAGRAM_CLIENT_SECRET,
         callbackURL: 'http://127.0.0.1:3000/auth/instagram/callback'
       },
-      async (accessToken, refreshToken, profile, done) => done(null, transfomInstagramProfile(profile))
+      async (accessToken, refreshToken, profile, done) => done(null, transformInstagramProfile(profile))
     )
   )
-
-
   return passport
 }

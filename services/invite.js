@@ -3,11 +3,13 @@ import uuid from 'uuid/v4'
 
 const _invite = []
 
-/*
-  id : uuid
-  expireAt : date
-  registeredUser : -> User.id
-  disabled : boolean
+/* Invite:
+  * id : uuid
+  * expireAt : date
+  * registeredUser : -> User.id
+  * disabled : boolean
+  * email: invited to this email
+  * assignUserGroups: [] array of user group Ids to assign for user created via this invite
 */
 
 export default module.exports = (app) => {
@@ -28,11 +30,13 @@ export default module.exports = (app) => {
     },
 
     update: (item) => {
-      let foundItem = _.find(_invite, {id: item.id})
-      if (foundItem) {
-        foundItem = _.merge({}, foundItem, item)
+      // console.log(`Invite.update:`)
+      // console.log(item)
+      const foundItem = _.find(_invite, { id: item.id })
+      if (!foundItem) {
+        return Promise.reject(new Error(`Invite ${item.id} not found`))
       }
-      return Promise.resolve(foundItem)
+      return Promise.resolve(_.merge({}, foundItem, item))
     },
 
     delete: (id) => Promise.resolve((_.remove(_invite, { id })).length === 1),

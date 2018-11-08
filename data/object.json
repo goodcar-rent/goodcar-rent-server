@@ -1,0 +1,7 @@
+[
+  {
+    "id": "f2194a89-4c7c-4236-b4f6-5e5ccc7df733",
+    "name": "Car list",
+    "permissions": [ "List", "Modify", "Delete" ]
+  }
+]

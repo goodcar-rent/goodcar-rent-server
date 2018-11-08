@@ -1,4 +1,6 @@
 /* eslint-env mocha */
+import { describe, it, before, beforeEach } from 'mocha'
+import Moment from 'moment'
 import supertest from 'supertest'
 import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
@@ -11,14 +13,12 @@ import {
   loginAs,
   UserAdmin,
   UserFirst, inviteSend
-} from '../services/testutils'
-import Moment from 'moment'
-import { describe, it, before } from 'mocha'
+} from '../client/client-api'
 
 chai.use(dirtyChai)
 
 // test case:
-describe('invite-controller:', function () {
+describe('(controller) invite', function () {
   process.env.NODE_ENV = 'test' // just to be sure
   const app = App()
   const request = supertest(app)
@@ -31,6 +31,7 @@ describe('invite-controller:', function () {
 
   beforeEach(function (done) {
     app.models.ClearData()
+      .then(() => app.models.UserGroup.createSystemData())
       .then(() => createAdminUser(context))
       .then(() => loginAs(context, UserAdmin))
       .then(() => done())
@@ -70,7 +71,6 @@ describe('invite-controller:', function () {
 
     describe('should be ok with proper params:', function () {
       const aMoment = (Moment(Date.now() + 1000 * 60 * 60 * 24)).format('YYYY-MM-DD')
-      console.log(aMoment)
 
       it('should be ok with email only', function (done) {
         inviteCreate(context, { email: 'user@email.com' })
@@ -115,9 +115,11 @@ describe('invite-controller:', function () {
         mailerData.to = to
         mailerData.subject = subject
         mailerData.message = message
-        console.log('Sended: ')
-        console.log(`to: ${to} subject: ${subject}\
-          message: ${message}`)
+        if (app.env.NODE_ENV === 'development' || app.env.NODE_ENV === 'test') {
+          console.log('sent: ')
+          console.log(`to: ${to} subject: ${subject}\n\r
+            message: ${message}`)
+        }
       }
       done()
     })
