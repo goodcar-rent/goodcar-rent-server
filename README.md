@@ -6,13 +6,65 @@ GoodCar.rent server app
 
 * jwt tokens auth
 * email/password login
-* email invites for registration
+* user groups
+* email invites for registration with predefined user groups
+* object/permission ACLs for users/user groups
 
 ## Planned features
-
-* ACL for user groups, objects with flexible permission schemas
+* Joi based object schema validation
 * social login via Facebook, Google, Instagram, Vk
 
+## Models/Services
+
+### ACL:
+
+* id: ACL identifier
+* permissions: [] array of permissions:
+* permission: permission name, like "read", "write"
+    * users: list of users that have this permission of this kind:
+        * id: userId
+        * kind: permission, one of ALLOW/DENY
+    * userGroups: list of groups that have this permission of this kind
+
+### Invite:
+
+ * id : uuid
+ * expireAt : date
+ * registeredUser : -> User.id
+ * disabled : boolean
+ * email: invited to this email
+ * assignUserGroups: [] array of user group Ids to assign for user created via this invite
+
+### Login:
+
+* id: login identifier, UUID
+* userId: -> User.id: user, associated with this login
+* createdAt: date of logging-in
+* ip: IP address of user's endpoint
+  
+### User:
+
+* id: user identifier, UUID
+* email: email, that user choose for registering
+* password: hashed password
+* invitedBy: -> User.id: user that created invite
+* inviteDate: date of invite
+* inviteId -> Invite.id: link to invite
+* disabled: if user account is disabled
+
+### UserGroup:
+
+* id
+* name
+* systemType: null, Admin, Guest, LoggedIn
+* users: [User]
+
+System types:
+
+* Null: all members are defined by users, not system
+* Admin: system type for admin user (first user in system at least) - manually can be added other user accounts
+* Guest: not authenticated user
+* LoggedIn: Authenticated users (any - admin, other users)
 
 ## Endpoints
 

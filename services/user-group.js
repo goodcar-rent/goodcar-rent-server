@@ -17,10 +17,10 @@ import {
 
 ## UserGroup:
 
-  id
-  name
-  systemType: null, Admin, Guest, LoggedIn
-  users: [User]
+* id
+* name
+* systemType: null, Admin, Guest, LoggedIn
+* users: [User]
 
 ## System types:
 

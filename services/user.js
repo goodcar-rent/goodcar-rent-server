@@ -12,14 +12,14 @@ import {
 
 const _users = []
 
-/*
-  id
-  email
-  password
-  invitedBy
-  inviteDate
-  inviteId -> Invite.id
-  disabled
+/* User:
+  * id: user identifier, UUID
+  * email: email, that user choose for registering
+  * password: hashed password
+  * invitedBy: -> User.id: user that created invite
+  * inviteDate: date of invite
+  * inviteId -> Invite.id: link to invite
+  * disabled: if user account is disabled
 */
 
 export default module.exports = (app) => {

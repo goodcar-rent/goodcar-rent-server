@@ -12,11 +12,11 @@ import {
 
 const _logins = []
 
-/* Login model:
-  id
-  userId
-  createdAt
-  ip
+/* Login:
+  * id: login identifier, UUID
+  * userId: -> User.id: user, associated with this login
+  * createdAt: date of logging-in
+  * ip: IP address of user's endpoint
 */
 
 export default module.exports = (app) => {

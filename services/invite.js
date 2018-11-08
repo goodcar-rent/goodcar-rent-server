@@ -3,12 +3,13 @@ import uuid from 'uuid/v4'
 
 const _invite = []
 
-/*
-  id : uuid
-  expireAt : date
-  registeredUser : -> User.id
-  disabled : boolean
-  email: invited to this email
+/* Invite:
+  * id : uuid
+  * expireAt : date
+  * registeredUser : -> User.id
+  * disabled : boolean
+  * email: invited to this email
+  * assignUserGroups: [] array of user group Ids to assign for user created via this invite
 */
 
 export default module.exports = (app) => {
