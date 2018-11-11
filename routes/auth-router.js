@@ -7,7 +7,7 @@ export default (app) => {
 
   // noinspection JSCheckFunctionSignatures
   router.post(
-    '/login',
+    '/auth/login',
     [
       body('email').isEmail().withMessage('Email should be provided'),
       body('password').isLength({ min: 1 }).withMessage('Password should be specified')
@@ -16,7 +16,7 @@ export default (app) => {
 
   // noinspection JSCheckFunctionSignatures
   router.post(
-    '/signup',
+    '/auth/signup',
     [
       body('name').isLength({ min: 1 }).withMessage('Name should be specified'),
       body('email').isEmail().withMessage('Email should be specified'),
@@ -27,7 +27,7 @@ export default (app) => {
     app.wrap(controller.signup))
 
   // return login page
-  router.get('/signup',
+  router.get('/auth/signup',
     [
       query('invite').optional().isString()
     ],

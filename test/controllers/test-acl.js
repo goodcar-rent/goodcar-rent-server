@@ -128,7 +128,7 @@ describe('(controller) acl:', function () {
       context.token = context.adminToken
 
       const aData = {
-        object: 'Invite',
+        object: '/auth/invite',
         permission: 'read',
         'kind': app.auth.kindAllow
       }
@@ -152,7 +152,7 @@ describe('(controller) acl:', function () {
       context.token = context.adminToken
 
       const aData = {
-        object: 'Invite',
+        object: '/auth/invite',
         permission: 'read',
         kind: app.auth.kindAllow
       }
@@ -174,7 +174,7 @@ describe('(controller) acl:', function () {
       context.token = context.adminToken
 
       const aData = {
-        object: 'Invite',
+        object: '/auth/invite',
         permission: 'read',
         kind: app.auth.kindAllow
       }
@@ -194,7 +194,7 @@ describe('(controller) acl:', function () {
       context.token = context.adminToken
 
       const aData = {
-        object: 'Invite',
+        object: '/auth/invite',
         permission: 'read',
         kind: app.auth.kindAllow
       }

@@ -10,9 +10,10 @@ export default (app) => {
 
   // noinspection JSCheckFunctionSignatures
   router.route('/user')
-    .all(app.auth.authenticate())
+    // .all(app.auth.authenticate())
+    .all(app.auth.ACL('user', 'read'))
     .get(app.wrap(controller.list))
-    .post(
+    .post(app.auth.ACL('user', 'write'),
       [
         body('email').isEmail().isLength({ min: 1 }).withMessage('Email should be provided'),
         body('password').isString().isLength({ min: 1 }).withMessage('Password should be provided'),
@@ -25,12 +26,13 @@ export default (app) => {
 
   // noinspection JSCheckFunctionSignatures
   router.route('/user/:id')
-    .all(app.auth.authenticate(),
+    // .all(app.auth.authenticate(),
+    .all(app.auth.ACL('user', 'read'),
       [
         param('id').isString().withMessage('id should be specified')
       ], paramCheck)
     .get(app.wrap(controller.item))
-    .put(
+    .put(app.auth.ACL('user', 'write'),
       [
         body('email').optional().isEmail().isLength({ min: 1 }).withMessage('Email should be provided'),
         body('password').optional().isString().isLength({ min: 1 }).withMessage('Password should be provided'),
@@ -40,16 +42,17 @@ export default (app) => {
         body('disabled').optional().isBoolean().withMessage('"disabled" property should be boolean type')
       ], paramCheck,
       app.wrap(controller.save))
-    .delete(app.wrap(controller.delete))
+    .delete(app.auth.ACL('user', 'write'), app.wrap(controller.delete))
 
   // User permissions management routes:
   router.route('/user/:userId/permissions')
-    .all(app.auth.authenticate(),
+    // .all(app.auth.authenticate(),
+    .all(app.auth.ACL('user', 'read'),
       [
         param('userId').isString().withMessage('id should be specified')
       ], paramCheck)
     .get(app.wrap(permissionsController.permissionsList))
-    .post(
+    .post(app.auth.ACL('user', 'write'),
       [
         body('object').isString().isLength({ min: 1 }).withMessage('object should be provided'),
         body('permission').isString().isLength({ min: 1 }).withMessage('permission should be provided'),

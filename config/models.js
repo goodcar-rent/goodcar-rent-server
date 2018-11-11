@@ -21,6 +21,15 @@ export default module.exports = (app) => {
   models.UserGroup.name = 'UserGroup'
   models.Login.name = 'Login'
 
-  app.asyncInit.push(models.UserGroup.createSystemData())
+  app.asyncInit.push(
+    models.UserGroup.createSystemData()
+      .then(() => {
+        app.auth.AddGroupPermission(
+          models.UserGroup.systemGroupLoggedIn(),
+          'me',
+          'read',
+          app.auth.kindAllow)
+      })
+  )
   return models
 }

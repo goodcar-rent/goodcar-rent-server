@@ -175,7 +175,7 @@ describe('(controller) auth:', () => {
           context.userToken = context.token
 
           // disable UserFirst:
-          context.adminToken = context.token
+          context.token = context.adminToken
           return userSave(context, context.UserFirstId, { disabled: true })
         })
         .then((res) => {

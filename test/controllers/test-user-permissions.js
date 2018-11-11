@@ -72,7 +72,7 @@ describe('(controller) user-permissions:', function () {
         return aclUserCreate(context,
           context.UserFirstId,
           {
-            object: 'Invite',
+            object: '/auth/invite',
             permission: 'read',
             kind: app.auth.kindAllow
           })

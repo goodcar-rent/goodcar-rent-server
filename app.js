@@ -52,10 +52,10 @@ export default () => {
 
   // configure routes
   app.use(AclRouter(app))
-  app.use('/', indexRouter)
+  app.use(indexRouter)
   app.use(UserRouter(app))
   app.use(InviteRouter(app))
-  app.use('/auth', AuthRouter(app))
+  app.use(AuthRouter(app))
   app.use(LoginRouter(app))
   app.use(UserGroupRouter(app))
   app.use(MeRouter(app))

@@ -6,13 +6,13 @@ export default (app) => {
 
   // noinspection JSCheckFunctionSignatures
   router.route('/me')
-    .all(app.auth.authenticate())
-    // .all(app.auth.ACL('me', 'read'))
+    // .all(app.auth.authenticate())
+    .all(app.auth.ACL('me', 'read'))
     .get(app.wrap(controller.me))
 
   router.route('/me/permissions')
-    .all(app.auth.authenticate())
-    // .all(app.auth.ACL('me', 'read'))
+    // .all(app.auth.authenticate())
+    .all(app.auth.ACL('me', 'read'))
     .get(app.wrap(controller.permissions))
 
   return router
