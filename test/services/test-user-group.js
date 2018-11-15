@@ -2,12 +2,13 @@ import { describe, it, before, beforeEach } from 'mocha'
 import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
 import App from '../../app'
-import { systemTypeAdmin } from '../../services/user-group'
+import env from 'dotenv-safe'
 
 chai.use(dirtyChai)
 
 // test case:
 describe('[service] user-group:', () => {
+  env.config()
   process.env.NODE_ENV = 'test' // just to be sure
   const app = App()
   const { UserGroup } = app.models
@@ -25,12 +26,12 @@ describe('[service] user-group:', () => {
     let userGroup = {}
 
     it('should add items', (done) => {
-      UserGroup.create({ name: 'admin', systemType: systemTypeAdmin })
+      UserGroup.create({ name: 'admin', systemType: app.consts.systemTypeAdmin })
         .then((ug) => {
           userGroup = ug
           expect(userGroup).to.exist('userGroup should exist')
           expect(userGroup.id).to.exist('userGroup.id should exist')
-          expect(userGroup.systemType).is.equal(systemTypeAdmin)
+          expect(userGroup.systemType).is.equal(app.consts.systemTypeAdmin)
           return UserGroup.count()
         })
         .then((cnt) => {
@@ -49,7 +50,7 @@ describe('[service] user-group:', () => {
         .catch((err) => done(err))
     })
     it('should remove items', (done) => {
-      UserGroup.create({ name: 'admin', systemType: systemTypeAdmin })
+      UserGroup.create({ name: 'admin', systemType: app.consts.systemTypeAdmin })
         .then((ug) => {
           userGroup = ug
           expect(userGroup).to.exist('userGroup should exist')

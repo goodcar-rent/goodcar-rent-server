@@ -5,6 +5,7 @@ import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
 import _ from 'lodash'
 import App from '../../app'
+import env from 'dotenv-safe'
 import {
   createAdminUser,
   inviteCreate,
@@ -23,6 +24,7 @@ chai.use(dirtyChai)
 
 // test case:
 describe('(controller) acl:', function () {
+  env.config()
   process.env.NODE_ENV = 'test' // just to be sure
   const app = App()
   const request = supertest(app)
@@ -130,7 +132,7 @@ describe('(controller) acl:', function () {
       const aData = {
         object: '/auth/invite',
         permission: 'read',
-        'kind': app.auth.kindAllow
+        'kind': app.consts.kindAllow
       }
 
       aclUserCreate(context, context.UserFirstId, aData)
@@ -154,7 +156,7 @@ describe('(controller) acl:', function () {
       const aData = {
         object: '/auth/invite',
         permission: 'read',
-        kind: app.auth.kindAllow
+        kind: app.consts.kindAllow
       }
 
       aclUserGroupCreate(context, context.groupManagersId, aData)
@@ -176,7 +178,7 @@ describe('(controller) acl:', function () {
       const aData = {
         object: '/auth/invite',
         permission: 'read',
-        kind: app.auth.kindAllow
+        kind: app.consts.kindAllow
       }
 
       aclUserGroupCreate(context, context.groupManagersId, aData)
@@ -196,7 +198,7 @@ describe('(controller) acl:', function () {
       const aData = {
         object: '/auth/invite',
         permission: 'read',
-        kind: app.auth.kindAllow
+        kind: app.consts.kindAllow
       }
 
       aclUserGroupCreate(context, context.groupManagersId, aData)

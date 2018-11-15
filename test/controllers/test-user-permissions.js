@@ -15,11 +15,13 @@ import {
   aclUserCreate,
   createUser, userPermissions
 } from '../client/client-api'
+import env from 'dotenv-safe'
 
 chai.use(dirtyChai)
 
 // test case:
 describe('(controller) user-permissions:', function () {
+  env.config()
   process.env.NODE_ENV = 'test' // just to be sure
   const app = App()
   const request = supertest(app)
@@ -74,7 +76,7 @@ describe('(controller) user-permissions:', function () {
           {
             object: '/auth/invite',
             permission: 'read',
-            kind: app.auth.kindAllow
+            kind: app.consts.kindAllow
           })
       })
       .then(() => done())

@@ -1,9 +1,16 @@
-import User from '../services/user'
-import Invite from '../services/invite'
-import UserGroup from '../services/user-group'
-import Login from '../services/login'
-
 export default module.exports = (app) => {
+  let ModelPath = '../services/model-storage-memory'
+  if (app.env.APP_STORAGE === 'memory') {
+    ModelPath = '../services/model-storage-memory'
+  } else if (app.env.APP_STORAGE === 'sqlite') {
+    ModelPath = '../services/model-storage-sqlite'
+  }
+
+  const User = require(`${ModelPath}/user`)
+  const Invite = require(`${ModelPath}/invite`)
+  const UserGroup = require(`${ModelPath}/user-group`)
+  const Login = require(`${ModelPath}/login`)
+
   const models = {
     User: User(app),
     Invite: Invite(app),
@@ -28,7 +35,7 @@ export default module.exports = (app) => {
           models.UserGroup.systemGroupLoggedIn(),
           'me',
           'read',
-          app.auth.kindAllow)
+          app.consts.kindAllow)
       })
   )
   return models

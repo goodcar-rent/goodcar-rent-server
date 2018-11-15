@@ -2,6 +2,7 @@ import { describe, it, beforeEach } from 'mocha'
 import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
 import App from '../../app'
+import env from 'dotenv-safe'
 
 chai.use(dirtyChai)
 
@@ -19,6 +20,7 @@ chai.use(dirtyChai)
     createOrUpdate:
 */
 describe('[service] login:', () => {
+  env.config()
   process.env.NODE_ENV = 'test' // just to be sure
   const app = App()
   const { Login } = app.models

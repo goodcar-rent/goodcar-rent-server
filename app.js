@@ -1,4 +1,3 @@
-import env from 'dotenv-safe'
 import express from 'express'
 import path from 'path'
 import cookieParser from 'cookie-parser'
@@ -18,12 +17,15 @@ import ErrorHandlers from './config/error-handlers'
 import wrap from './services/wrap'
 import mail from './services/mail'
 
-export default () => {
-  env.config()
+export default (env) => {
   const app = express()
   app.Promise = Promise
   app.express = express
-  app.env = process.env
+  if (env) {
+    app.env = env
+  } else {
+    app.env = process.env
+  }
   app.asyncInit = []
 
   // view engine setup
@@ -43,6 +45,9 @@ export default () => {
   app.use(express.static(path.join(__dirname, 'public')))
 
   // configure models
+  if (!app.env.APP_STORAGE) {
+    app.env.APP_STORAGE = 'memory'
+  }
   app.models = Models(app)
 
   // configure auth via passport

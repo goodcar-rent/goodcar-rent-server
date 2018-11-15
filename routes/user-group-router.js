@@ -1,7 +1,7 @@
 import { body, param } from 'express-validator/check'
 import Controller from '../controllers/user-group-controller'
 import paramCheck from '../services/param-check'
-import { systemTypeAdmin, systemTypeGuest, systemTypeLoggedIn, systemTypeNone } from '../services/user-group'
+import { systemTypeAdmin, systemTypeGuest, systemTypeLoggedIn, systemTypeNone } from '../services/model-storage-memory/user-group'
 
 export default (app) => {
   const router = app.express.Router()

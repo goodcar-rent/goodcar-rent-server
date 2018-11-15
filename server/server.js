@@ -8,14 +8,16 @@ import Debug from 'debug'
 import http from 'http'
 
 import App from '../app'
+import env from 'dotenv-safe'
 
 const debug = Debug('goodcar-rent-server:server')
 
 /**
  * Get port from environment and store in Express.
  */
+env.config()
 
-const app = App()
+const app = App(env)
 const port = normalizePort(process.env.PORT || '3000')
 app.set('port', port)
 

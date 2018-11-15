@@ -15,11 +15,13 @@ import {
   createUser,
   userGroupList, userGroupAdd, userGroupUsersAdd, userGroupUsersRemove, userGroupDelete, userGroupItem
 } from '../client/client-api'
+import env from 'dotenv-safe'
 
 chai.use(dirtyChai)
 
 // test case:
 describe('(controller) user-group:', function () {
+  env.config()
   process.env.NODE_ENV = 'test' // just to be sure
   const app = App()
   const request = supertest(app)

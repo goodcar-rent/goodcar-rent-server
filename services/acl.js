@@ -43,6 +43,14 @@ export default module.exports = (app) => {
   const aclObject = []
   const { UserGroup } = app.models
 
+  if (!app.consts) {
+    app.consts = {}
+  }
+
+  app.consts.kindAllow = kindAllow
+  app.consts.kindDeny = kindDeny
+  app.consts.GuestUserId = GuestUserId
+
   const FindOrAddObject = (objectId) => {
     let aObject = _.find(aclObject, { id: objectId.toLowerCase() })
     if (!aObject) {
@@ -219,9 +227,6 @@ export default module.exports = (app) => {
         })
       })
       return arr
-    },
-    kindAllow,
-    kindDeny,
-    GuestUserId
+    }
   }
 }

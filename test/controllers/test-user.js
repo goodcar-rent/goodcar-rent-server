@@ -7,19 +7,18 @@ import _ from 'lodash'
 import App from '../../app'
 import {
   createAdminUser,
-  inviteCreate,
   loginAs,
   UserAdmin,
   UserFirst,
-  UserSecond,
-  createUser,
   userList, userCreate, userDelete, userSave
 } from '../client/client-api'
+import env from 'dotenv-safe'
 
 chai.use(dirtyChai)
 
 // test case:
 describe('(controller) user:', function () {
+  env.config()
   process.env.NODE_ENV = 'test' // just to be sure
   const app = App()
   const request = supertest(app)

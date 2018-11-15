@@ -13,11 +13,13 @@ import {
   loginList,
   createUser, loginItem, loginDelete, userGroupList, expected
 } from '../client/client-api'
+import env from 'dotenv-safe'
 
 chai.use(dirtyChai)
 
 // test case:
 describe('(controller) login:', function () {
+  env.config()
   process.env.NODE_ENV = 'test' // just to be sure
   const app = App()
   const request = supertest(app)
