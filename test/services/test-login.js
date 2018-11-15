@@ -1,8 +1,9 @@
-import { describe, it, beforeEach } from 'mocha'
+import { describe, it, beforeEach, before } from 'mocha'
 import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
 import App from '../../app'
 import env from 'dotenv-safe'
+import supertest from 'supertest'
 
 chai.use(dirtyChai)
 
@@ -14,7 +15,7 @@ chai.use(dirtyChai)
     findAll:
     count:
     delete:
-    ClearData:
+    clearData:
     update:
     create:
     createOrUpdate:
@@ -22,8 +23,31 @@ chai.use(dirtyChai)
 describe('[service] login:', () => {
   env.config()
   process.env.NODE_ENV = 'test' // just to be sure
-  const app = App()
-  const { Login } = app.models
+
+  let app = null
+  let Login = null
+
+  const context = {
+    request: null,
+    apiRoot: '',
+    authSchema: 'Bearer',
+    adminToken: null,
+    userToken: null
+  }
+
+  before((done) => {
+    App()
+      .then((a) => {
+        app = a
+        context.request = supertest(app)
+        Login = app.models.Login
+        done()
+      })
+      .catch((err) => {
+        done(err)
+      })
+  })
+
   const data = [
     { id: 1, userId: '1', ip: '8.8.4.4' },
     { id: 2, userId: '2', ip: '127.0.0.1' },
@@ -31,7 +55,7 @@ describe('[service] login:', () => {
   ]
 
   beforeEach(function (done) {
-    app.models.ClearData()
+    app.models.clearData()
       .then(() => Login.create(data[0]))
       .then(() => Login.create(data[1]))
       .then(() => Login.create(data[2]))

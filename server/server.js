@@ -20,6 +20,8 @@ env.config()
 const app = App(env)
 const port = normalizePort(process.env.PORT || '3000')
 app.set('port', port)
+app.serverPort = port
+app.serverAddress = `http://localhost:${app.serverPort}`
 
 /**
  * Create HTTP server.
@@ -30,7 +32,7 @@ const server = http.createServer(app)
 /**
  * Listen on provided port, on all network interfaces.
  */
-Promise.all(app.asyncInit)
+Promise.all(app.modelsInit)
   .then(() => {
     server.listen(port)
     server.on('error', onError)

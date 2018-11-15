@@ -52,7 +52,7 @@ export default (app) => {
     findAll: genericFindAll(_userGroup),
     delete: genericDelete(_userGroup),
     count: genericCount(_userGroup),
-    ClearData: genericClearData(_userGroup),
+    clearData: genericClearData(_userGroup),
     update: genericUpdate(_userGroup),
     findGroupsForUser: (userId) => Promise.resolve(_.filter(_userGroup, (item) => (_.includes(item.users, userId) !== false))),
     findGroupsForUserSync: (userId) => _.filter(_userGroup, (item) => (_.includes(item.users, userId) !== false)),
@@ -134,7 +134,7 @@ export default (app) => {
       return Promise.all(userGroups.map((item) => Model.addUser(item, userId)))
     },
     createSystemData: () => {
-      return Model.ClearData()
+      return Model.clearData()
         .then(() => {
           _systemGroupAdmin = null
           _systemGroupGuest = null

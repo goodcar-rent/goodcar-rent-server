@@ -3,6 +3,7 @@ import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
 import App from '../../app'
 import env from 'dotenv-safe'
+import supertest from 'supertest'
 
 chai.use(dirtyChai)
 
@@ -10,8 +11,30 @@ chai.use(dirtyChai)
 describe('[service] user-group:', () => {
   env.config()
   process.env.NODE_ENV = 'test' // just to be sure
-  const app = App()
-  const { UserGroup } = app.models
+  let app = null
+  let UserGroup = null
+
+  const context = {
+    request: null,
+    apiRoot: '',
+    authSchema: 'Bearer',
+    adminToken: null,
+    userToken: null
+  }
+
+  before((done) => {
+    App()
+      .then((a) => {
+        app = a
+        context.request = supertest(app)
+        UserGroup = app.models.UserGroup
+        done()
+      })
+      .catch((err) => {
+        done(err)
+      })
+  })
+
   const users = [
     { id: 1, name: '1' },
     { id: 2, name: '2' }
@@ -19,7 +42,7 @@ describe('[service] user-group:', () => {
 
   describe('add/remove method', () => {
     beforeEach(function (done) {
-      app.models.ClearData()
+      app.models.clearData()
         .then(() => done())
     })
 
@@ -89,7 +112,7 @@ describe('[service] user-group:', () => {
   })
   describe('create_x_Data methods', () => {
     before((done) => {
-      app.models.ClearData()
+      app.models.clearData()
         .then(() => done())
     })
     it('should create system data', (done) => {

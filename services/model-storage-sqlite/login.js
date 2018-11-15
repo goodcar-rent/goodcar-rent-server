@@ -27,7 +27,7 @@ export default module.exports = (app) => {
     count: genericCount(_logins),
     delete: genericDelete(_logins),
     deleteAll: genericDeleteAll(_logins),
-    ClearData: genericClearData(_logins),
+    clearData: genericClearData(_logins),
     update: genericUpdate(_logins),
     create: (item) => {
       if (!item.id) {

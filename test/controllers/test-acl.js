@@ -24,24 +24,36 @@ chai.use(dirtyChai)
 
 // test case:
 describe('(controller) acl:', function () {
+  const groupManagers = 'Managers'
+  const groupEmployees = 'Employees'
+
   env.config()
   process.env.NODE_ENV = 'test' // just to be sure
-  const app = App()
-  const request = supertest(app)
+
+  let app = null
 
   const context = {
-    request,
+    request: null,
     apiRoot: '',
     authSchema: 'Bearer',
     adminToken: null,
     userToken: null
   }
 
-  const groupManagers = 'Managers'
-  const groupEmployees = 'Employees'
+  before((done) => {
+    App()
+      .then((a) => {
+        app = a
+        context.request = supertest(app)
+        done()
+      })
+      .catch((err) => {
+        done(err)
+      })
+  })
 
   beforeEach(function (done) {
-    app.models.ClearData()
+    app.models.clearData()
       .then(() => app.models.UserGroup.createSystemData())
       .then(() => createAdminUser(context))
       .then((res) => {

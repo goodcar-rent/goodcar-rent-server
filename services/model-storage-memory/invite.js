@@ -41,6 +41,8 @@ export default module.exports = (app) => {
 
     delete: (id) => Promise.resolve((_.remove(_invite, { id })).length === 1),
 
-    ClearData: () => Promise.resolve(_invite.length = 0)
+    initData: () => Promise.resolve(true),
+
+    clearData: () => Promise.resolve(_invite.length = 0)
   }
 }

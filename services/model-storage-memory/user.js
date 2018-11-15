@@ -29,7 +29,8 @@ export default module.exports = (app) => {
     findAll: genericFindAll(_users),
     count: genericCount(_users),
     delete: genericDelete(_users),
-    ClearData: genericClearData(_users),
+    initData: () => Promise.resolve(true),
+    clearData: genericClearData(_users),
     create: (item) => {
       item.id = uuid()
       const salt = bcrypt.genSaltSync()
