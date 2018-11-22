@@ -14,6 +14,7 @@ const _invite = []
 
 export default module.exports = (app) => {
   return {
+    initData: () => Promise.resolve(true),
     findById: (id) => Promise.resolve(_.find(_invite, { id })),
 
     findOne: (opt) => Promise.resolve(_.find(_invite, [Object.keys(opt.where)[0], Object.values(opt.where)[0]])),

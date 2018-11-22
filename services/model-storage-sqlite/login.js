@@ -8,7 +8,7 @@ import {
   genericFindById,
   genericFindOne,
   genericUpdate
-} from './generic-model'
+} from '../generic-model'
 
 const _logins = []
 
@@ -21,6 +21,7 @@ const _logins = []
 
 export default module.exports = (app) => {
   const Model = {
+    initData: () => Promise.resolve(true),
     findById: genericFindById(_logins),
     findOne: genericFindOne(_logins),
     findAll: genericFindAll(_logins),

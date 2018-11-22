@@ -24,12 +24,12 @@ const _users = []
 
 export default module.exports = (app) => {
   return {
+    initData: () => Promise.resolve(true),
     findById: genericFindById(_users),
     findOne: genericFindOne(_users),
     findAll: genericFindAll(_users),
     count: genericCount(_users),
     delete: genericDelete(_users),
-    initData: () => Promise.resolve(true),
     clearData: genericClearData(_users),
     create: (item) => {
       item.id = uuid()

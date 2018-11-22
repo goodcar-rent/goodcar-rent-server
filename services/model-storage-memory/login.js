@@ -21,6 +21,7 @@ const _logins = []
 
 export default module.exports = (app) => {
   const Model = {
+    initData: () => Promise.resolve(true),
     findById: genericFindById(_logins),
     findOne: genericFindOne(_logins),
     findAll: genericFindAll(_logins),
@@ -28,7 +29,6 @@ export default module.exports = (app) => {
     delete: genericDelete(_logins),
     deleteAll: genericDeleteAll(_logins),
     clearData: genericClearData(_logins),
-    initData: () => Promise.resolve(true),
     update: genericUpdate(_logins),
     create: (item) => {
       if (!item.id) {

@@ -5,7 +5,6 @@ export default module.exports = (app) => {
   } else if (app.env.APP_STORAGE === 'sqlite') {
     ModelPath = '../services/model-storage-sqlite'
   }
-
   const User = require(`${ModelPath}/user`)
   const Invite = require(`${ModelPath}/invite`)
   const UserGroup = require(`${ModelPath}/user-group`)
@@ -28,16 +27,21 @@ export default module.exports = (app) => {
   models.UserGroup.name = 'UserGroup'
   models.Login.name = 'Login'
 
-  app.modelsInit = () => models.UserGroup.createSystemData()
-    .then(() => {
-      app.auth.AddGroupPermission(
-        models.UserGroup.systemGroupLoggedIn(),
-        'me',
-        'read',
-        app.consts.kindAllow)
-    })
-    .then(() => { return app })
-    .catch((err) => { throw err })
+  app.modelsInit = () =>
+    models.User.initData()
+      .then(() => models.Invite.initData())
+      .then(() => models.Login.initData())
+      .then(() => models.UserGroup.initData())
+      .then(() => models.UserGroup.createSystemData())
+      .then(() => {
+        app.auth.AddGroupPermission(
+          models.UserGroup.systemGroupLoggedIn(),
+          'me',
+          'read',
+          app.consts.kindAllow)
+      })
+      .then(() => { return app })
+      .catch((err) => { throw err })
 
   return models
 }

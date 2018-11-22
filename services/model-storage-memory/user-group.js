@@ -53,6 +53,7 @@ export default module.exports = (app) => {
   app.consts.systemTypeLoggedIn = systemTypeLoggedIn
 
   const Model = {
+    initData: () => Promise.resolve(true),
     systemGroupAdmin: () => _systemGroupAdmin,
     systemGroupGuest: () => _systemGroupGuest,
     systemGroupLoggedIn: () => _systemGroupLoggedIn,
@@ -61,7 +62,6 @@ export default module.exports = (app) => {
     findAll: genericFindAll(_userGroup),
     delete: genericDelete(_userGroup),
     count: genericCount(_userGroup),
-    initData: () => Promise.resolve(true),
     clearData: genericClearData(_userGroup),
     update: genericUpdate(_userGroup),
     findGroupsForUser: (userId) => Promise.resolve(_.filter(_userGroup, (item) => (_.includes(item.users, userId) !== false))),
