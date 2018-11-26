@@ -1,8 +1,12 @@
 import SQL from 'sql-template-strings'
 
 import uuid from 'uuid/v4'
-import _ from 'lodash'
 import bcrypt from 'bcrypt'
+import {
+  genericInit,
+  genericFindById,
+  genericFindOne, genericFindAll, genericCount, genericDelete, genericClearData
+} from './generic-sqlite'
 
 /* User:
   * id: user identifier, UUID
@@ -14,71 +18,50 @@ import bcrypt from 'bcrypt'
   * disabled: if user account is disabled
 */
 
+const Model = {
+  name: 'User',
+  props: [
+    {
+      name: 'id',
+      type: 'id'
+    },
+    {
+      name: 'email',
+      type: 'email'
+    },
+    {
+      name: 'password',
+      type: 'password'
+    },
+    {
+      name: 'invitedBy',
+      type: 'ref'
+    },
+    {
+      name: 'invitedDate',
+      type: 'datetime'
+    },
+    {
+      name: 'inviteId',
+      type: 'ref'
+    },
+    {
+      name: 'disabled',
+      type: 'boolean'
+    }
+  ]
+}
+
 export default module.exports = (app) => {
+  Model.app = app
   return {
-    initData: () => {
-      app.storage.db.run(
-        SQL`CREATE TABLE IF NOT EXISTS "User" ( 
-          "id" TEXT PRIMARY KEY,
-          "email" TEXT,
-          "password" TEXT,
-          "invitedBy" TEXT,
-          "inviteDate" TEXT,
-          "inviteId" TEXT,
-          "disabled" INTEGER 
-          );`
-      )
-    },
-
-    findById: (id) => {
-      return app.storage.db.get(
-        SQL`SELECT * FROM "User" WHERE id=${id};`
-      )
-    },
-
-    findOne: (opt) => {
-      const field = (Object.keys(opt.where))[0]
-      const val = (Object.values(opt.where))[0]
-      const query = SQL`SELECT * FROM "User" WHERE `
-        .append(field)
-        .append(SQL`=${val} LIMIT 1;`)
-      return app.storage.db.get(query)
-        .catch((err) => {
-          console.log('err')
-          console.log(err)
-          throw err
-        })
-    },
-
-    findAll: (opt) => {
-      const query = SQL`SELECT * FROM User`
-      if (opt) {
-        const field = (Object.keys(opt.where))[0]
-        const val = (Object.values(opt.where))[0]
-        query.append(field).append(SQL`=${val}`)
-      }
-      return app.storage.db.all(query)
-    },
-
-    count: () => app.storage.db.get(SQL`SELECT count(*) FROM "User";`)
-      .then((res) => Object.values(res)[0])
-      .catch((err) => { throw err }),
-
-    delete: (id) => {
-      return app.storage.db.get(SQL`SELECT * FROM User WHERE id=${id}`)
-        .then((res) => {
-          if (!res) {
-            throw new Error(`User.delete: user with id ${id} not found`)
-          }
-          return Promise.all([res, app.storage.db.run(SQL`DELETE FROM "User" WHERE id=${id};`)])
-        })
-        .then((values) => {
-          return values[0] // res
-        })
-        .catch((err) => { throw err })
-    },
-
-    clearData: () => app.storage.db.run(SQL`DELETE FROM "User";`),
+    initData: genericInit(Model),
+    findById: genericFindById(Model),
+    findOne: genericFindOne(Model),
+    findAll: genericFindAll(Model),
+    count: genericCount(Model),
+    delete: genericDelete(Model),
+    clearData: genericClearData(Model),
 
     create: (item) => {
       item.id = uuid()
