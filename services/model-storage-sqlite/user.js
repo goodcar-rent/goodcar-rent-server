@@ -1,3 +1,6 @@
+import sqlite from 'sqlite'
+import SQL from 'sql-template-strings'
+
 import uuid from 'uuid/v4'
 import _ from 'lodash'
 import bcrypt from 'bcrypt'
@@ -24,7 +27,19 @@ const _users = []
 
 export default module.exports = (app) => {
   return {
-    initData: () => Promise.resolve(true),
+    initData: () => {
+      app.storage.db.run(
+        SQL`CREATE TABLE IF NOT EXISTS "User" ( 
+          "id" TEXT PRIMARY KEY,
+          "email" TEXT,
+          "password" TEXT,
+          "invitedBy" TEXT,
+          "inviteDate" TEXT,
+          "inviteId" TEXT,
+          "disabled" INTEGER 
+          );`
+      )
+    },
     findById: genericFindById(_users),
     findOne: genericFindOne(_users),
     findAll: genericFindAll(_users),

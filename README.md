@@ -16,6 +16,10 @@ GoodCar.rent server app
 * Joi based object schema validation
 * social login via Facebook, Google, Instagram, Vk
 * Manage actions in system (action list - protocol)
+* multiple storages (WIP):
+    * in-memory JSON storage
+    * in-memory sqlite3 storage
+    * sqlite3 database storage
 
 ## Models/Services
 

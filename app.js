@@ -60,9 +60,6 @@ export default (env) => {
       return app
     })
     .then((app) => {
-      return Storage(app)
-    })
-    .then((app) => {
       app.models = Models(app)
 
       // configure auth via passport

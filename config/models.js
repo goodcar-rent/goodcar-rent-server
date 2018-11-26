@@ -1,10 +1,10 @@
+import Storage from './storage'
+
 export default module.exports = (app) => {
-  let ModelPath = '../services/model-storage-memory'
-  if (app.env.APP_STORAGE === 'memory') {
-    ModelPath = '../services/model-storage-memory'
-  } else if (app.env.APP_STORAGE === 'sqlite') {
-    ModelPath = '../services/model-storage-sqlite'
-  }
+  // init storage via storage service
+  Storage(app)
+
+  const ModelPath = app.storage.modelPath
   const User = require(`${ModelPath}/user`)
   const Invite = require(`${ModelPath}/invite`)
   const UserGroup = require(`${ModelPath}/user-group`)
@@ -28,7 +28,8 @@ export default module.exports = (app) => {
   models.Login.name = 'Login'
 
   app.modelsInit = () =>
-    models.User.initData()
+    app.storage.initStorage(app)
+      .then(() => models.User.initData())
       .then(() => models.Invite.initData())
       .then(() => models.Login.initData())
       .then(() => models.UserGroup.initData())
