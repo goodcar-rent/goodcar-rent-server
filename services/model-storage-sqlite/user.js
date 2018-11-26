@@ -1,19 +1,8 @@
-import sqlite from 'sqlite'
 import SQL from 'sql-template-strings'
 
 import uuid from 'uuid/v4'
 import _ from 'lodash'
 import bcrypt from 'bcrypt'
-import {
-  genericClearData,
-  genericCount,
-  genericDelete,
-  genericFindAll,
-  genericFindById,
-  genericFindOne
-} from '../generic-model'
-
-const _users = []
 
 /* User:
   * id: user identifier, UUID
@@ -40,12 +29,57 @@ export default module.exports = (app) => {
           );`
       )
     },
-    findById: genericFindById(_users),
-    findOne: genericFindOne(_users),
-    findAll: genericFindAll(_users),
-    count: genericCount(_users),
-    delete: genericDelete(_users),
-    clearData: genericClearData(_users),
+
+    findById: (id) => {
+      return app.storage.db.get(
+        SQL`SELECT * FROM "User" WHERE id=${id};`
+      )
+    },
+
+    findOne: (opt) => {
+      const field = (Object.keys(opt.where))[0]
+      const val = (Object.values(opt.where))[0]
+      const query = SQL`SELECT * FROM "User" WHERE `
+        .append(field)
+        .append(SQL`=${val} LIMIT 1;`)
+      return app.storage.db.get(query)
+        .catch((err) => {
+          console.log('err')
+          console.log(err)
+          throw err
+        })
+    },
+
+    findAll: (opt) => {
+      const query = SQL`SELECT * FROM User`
+      if (opt) {
+        const field = (Object.keys(opt.where))[0]
+        const val = (Object.values(opt.where))[0]
+        query.append(field).append(SQL`=${val}`)
+      }
+      return app.storage.db.all(query)
+    },
+
+    count: () => app.storage.db.get(SQL`SELECT count(*) FROM "User";`)
+      .then((res) => Object.values(res)[0])
+      .catch((err) => { throw err }),
+
+    delete: (id) => {
+      return app.storage.db.get(SQL`SELECT * FROM User WHERE id=${id}`)
+        .then((res) => {
+          if (!res) {
+            throw new Error(`User.delete: user with id ${id} not found`)
+          }
+          return Promise.all([res, app.storage.db.run(SQL`DELETE FROM "User" WHERE id=${id};`)])
+        })
+        .then((values) => {
+          return values[0] // res
+        })
+        .catch((err) => { throw err })
+    },
+
+    clearData: () => app.storage.db.run(SQL`DELETE FROM "User";`),
+
     create: (item) => {
       item.id = uuid()
       const salt = bcrypt.genSaltSync()
@@ -66,17 +100,19 @@ export default module.exports = (app) => {
       if (!item.inviteId) {
         item.inviteId = null
       }
-      _users.push(item)
-      return Promise.resolve(item)
+      // _users.push(item)
+      return app.storage.db.get(
+        SQL`INSERT INTO User 
+          (id,email,password,invitedBy,inviteDate,inviteId,disabled)
+        VALUES
+          (${item.id},${item.email},${item.password},${item.invitedBy},${item.inviteDate},${item.inviteId},${item.disabled});`)
+        .then(() => item)
+        .catch((err) => { throw err })
     },
+
     update: (item) => {
       if (!item.id) {
         return Promise.reject(new Error('user.update: item.id should have proper value'))
-      }
-
-      let aItem = _.find(_users, { id: item.id })
-      if (!aItem) {
-        return Promise.reject(new Error('user.update: item not found'))
       }
 
       if (item.password) {
@@ -84,8 +120,53 @@ export default module.exports = (app) => {
         item.password = bcrypt.hashSync(item.password, salt)
       }
 
-      return Promise.resolve(_.assign(aItem, item))
+      const query = SQL`UPDATE User SET `
+      let delim = ' '
+
+      if (item.email) {
+        query.append(delim).append(SQL`email=${item.email}`)
+        delim = ','
+      }
+      if (item.password) {
+        query.append(delim).append(SQL`password=${item.password}`)
+        delim = ','
+      }
+      if (item.invitedBy) {
+        query.append(delim).append(SQL`invitedBy=${item.invitedBy}`)
+        delim = ','
+      }
+      if (item.inviteDate) {
+        query.append(delim).append(SQL`inviteDate=${item.inviteDate}`)
+        delim = ','
+      }
+      if (item.inviteId) {
+        query.append(delim).append(SQL`inviteId=${item.inviteId}`)
+        delim = ','
+      }
+      if (item.disabled) {
+        const val = item.disabled ? 1 : 0
+        query.append(delim).append(SQL` disabled=${val}`)
+        delim = ','
+      }
+
+      query.append(SQL` WHERE id=${item.id};`)
+
+      console.log('query')
+      console.log(query.sql)
+      console.log(query.values)
+      return app.storage.db.run(query)
+        .then(() => app.storage.db.get(SQL`SELECT * FROM User WHERE id=${item.id}`))
+        .then((res) => {
+          if (res.disabled) {
+            res.disabled = true
+          } else {
+            res.disabled = false
+          }
+          return res
+        })
+        .catch((err) => { throw err })
     },
+
     isPassword: (encodedPassword, password) => bcrypt.compareSync(password, encodedPassword)
   }
 }

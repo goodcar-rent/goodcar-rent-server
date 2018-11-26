@@ -145,7 +145,7 @@ export default module.exports = (app) => {
           // console.log('assignUserGroups:')
           // console.log(assignUserGroups)
 
-          if (assignUserGroups && assignUserGroups.length > 0 ) {
+          if (assignUserGroups && assignUserGroups.length > 0) {
             return UserGroup.addUserGroupsForUser(updatedInvite.registeredUser, assignUserGroups)
           }
         })
