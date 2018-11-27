@@ -54,16 +54,15 @@ export default module.exports = (app) => {
   Model.app = app
   const aModel = {
     initData: genericInit(Model),
+    clearData: genericClearData(Model),
     findById: genericFindById(Model),
     findOne: genericFindOne(Model),
     findAll: genericFindAll(Model),
     count: genericCount(Model),
     delete: genericDelete(Model),
-    clearData: genericClearData(Model),
+    deleteAll: genericDeleteAll(Model),
     create: genericCreate(Model),
     update: genericUpdate(Model),
-
-    deleteAll: genericDeleteAll(Model),
 
     createOrUpdate: (item) => {
       return aModel.findOne({ where: { userId: item.userId, ip: item.ip } })

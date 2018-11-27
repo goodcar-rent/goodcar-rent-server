@@ -3,7 +3,14 @@ import bcrypt from 'bcrypt'
 import {
   genericInit,
   genericFindById,
-  genericFindOne, genericFindAll, genericCount, genericDelete, genericClearData, genericCreate, genericUpdate
+  genericFindOne,
+  genericFindAll,
+  genericCount,
+  genericDelete,
+  genericClearData,
+  genericCreate,
+  genericUpdate,
+  genericDeleteAll
 } from './generic-sqlite'
 
 /* User:
@@ -62,12 +69,13 @@ export default module.exports = (app) => {
   Model.app = app
   return {
     initData: genericInit(Model),
+    clearData: genericClearData(Model),
     findById: genericFindById(Model),
     findOne: genericFindOne(Model),
     findAll: genericFindAll(Model),
     count: genericCount(Model),
     delete: genericDelete(Model),
-    clearData: genericClearData(Model),
+    deleteAll: genericDeleteAll(Model),
     create: genericCreate(Model),
     update: genericUpdate(Model),
 
