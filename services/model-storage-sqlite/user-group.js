@@ -96,66 +96,69 @@ export default module.exports = (app) => {
     systemGroupLoggedIn: () => _systemGroupLoggedIn,
 
     findGroupsForUser: (userId) => Promise.resolve(_.filter(_userGroup, (item) => (_.includes(item.users, userId) !== false))),
-    findGroupsForUserSync: (userId) => _.filter(_userGroup, (item) => (_.includes(item.users, userId) !== false)),
     isUserInGroup: (groupId, userId) => {
-      const aGroup = _.find(_userGroup, { id: groupId })
-      if (!aGroup) {
-        return Promise.reject(new Error(`Group ${groupId} can not be found`))
-      }
-      return Promise.resolve(_.includes(aGroup.users, userId))
-    },
-    isUserInGroupSync: (groupId, userId) => {
-      const aGroup = _.find(_userGroup, { id: groupId })
-      if (!aGroup) {
-        return false
-      }
-      return _.includes(aGroup.users, userId)
+      return aModel.findById(groupId)
+        .then((group) => {
+          if (!group) {
+            throw new Error(`isUserInGroup: group ${groupId} not found`)
+          }
+          return _.includes(group.users, userId)
+        })
+        .catch((err) => { throw err })
     },
     addUser: (groupId, userId) => {
-      // console.log(`addUser (${groupId},${userId})`)
-      const group = _.find(_userGroup, { id: groupId })
-      if (!group) {
-        return Promise.reject(new Error(`addUser: group ${groupId} not found`))
-      }
-      if (!userId) {
-        return Promise.reject(new Error(`addUser: user ${userId} should be specified`))
-      }
-      group.users = _.union(group.users, [userId])
-      return Promise.resolve(group)
+      return aModel.findById(groupId)
+        .then((group) => {
+          if (!group) {
+            throw new Error(`addUser: group ${groupId} not found`)
+          }
+          group.users = _.union(group.users, [userId])
+          return aModel.update(group)
+        })
+        .catch((err) => { throw err })
     },
     removeUser: (groupId, userId) => {
-      const group = _.find(_userGroup, { id: groupId })
-      if (!group) {
-        return Promise.reject(new Error(`removeUser: group ${groupId} not found`))
-      }
-      if (!userId) {
-        return Promise.reject(new Error(`addUser: user ${userId} should be specified`))
-      }
-      _.pull(group.users, userId)
-      return Promise.resolve(group)
+      return aModel.findById(groupId)
+        .then((group) => {
+          if (!group) {
+            throw new Error(`removeUser: group ${groupId} not found`)
+          }
+          _.pull(group.users, userId)
+          return aModel.update(group)
+        })
+        .catch((err) => { throw err })
     },
     usersAdd: (groupId, users) => {
-      const group = _.find(_userGroup, { id: groupId })
-      if (!group) {
-        return Promise.reject(new Error(`addUser: group ${groupId} not found`))
-      }
-      group.users = _.union(group.users, users)
-      return Promise.resolve(group)
+      return aModel.findById(groupId)
+        .then((group) => {
+          if (!group) {
+            throw new Error(`usersAdd: group ${groupId} not found`)
+          }
+          group.users = _.union(group.users, users)
+          return aModel.update(group)
+        })
+        .catch((err) => { throw err })
     },
     usersRemove: (groupId, users) => {
-      const group = _.find(_userGroup, { id: groupId })
-      if (!group) {
-        return Promise.reject(new Error(`removeUsers: group ${groupId} not found`))
-      }
-      _.pullAll(group.users, users)
-      return Promise.resolve(group)
+      return aModel.findById(groupId)
+        .then((group) => {
+          if (!group) {
+            throw new Error(`usersRemove: group ${groupId} not found`)
+          }
+          _.pullAll(group.users, users)
+          return aModel.update(group)
+        })
+        .catch((err) => { throw err })
     },
     usersList: (groupId) => {
-      const group = _.find(_userGroup, { id: groupId })
-      if (!group) {
-        return Promise.reject(new Error(`usersList: group ${groupId} not found`))
-      }
-      return Promise.resolve(group.users)
+      return aModel.findById(groupId)
+        .then((group) => {
+          if (!group) {
+            throw new Error(`usersList: group ${groupId} not found`)
+          }
+          return group.users
+        })
+        .catch((err) => { throw err })
     },
     addUserGroupsForUser: (userId, userGroups) => {
       // console.log(`addUserGroupsForUser: ( ${userId}, ${userGroups})`)

@@ -230,8 +230,9 @@ export const genericCreate = (Model) => (item) => {
   })
   query.append(');')
 
-  return Model.app.storage.db.get(query)
-    .then(() => item)
+  const getById = genericFindById(Model)
+  return Model.app.storage.db.run(query)
+    .then(() => getById(item.id))
     .catch((err) => { throw err })
 }
 
