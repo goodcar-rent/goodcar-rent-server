@@ -12,6 +12,7 @@ import {
   genericFindOne,
   genericUpdate
 } from '../model-storage-memory/generic-memory'
+import { genericCreate, genericDeleteAll, genericInit } from './generic-sqlite'
 
 /*
 
@@ -30,12 +31,37 @@ import {
 * LoggedIn: Authenticated users (any - admin, other users)
 
 */
-
 const systemTypeNone = null
 
 const systemTypeAdmin = 'Admin'
 const systemTypeGuest = 'Guest'
 const systemTypeLoggedIn = 'LoggedIn'
+
+const Model = {
+  name: 'UserGroup',
+  props: [
+    {
+      name: 'id',
+      type: 'id',
+      default: () => uuid()
+    },
+    {
+      name: 'name',
+      type: 'text',
+      default: null
+    },
+    {
+      name: 'systemType',
+      type: 'text',
+      default: systemTypeNone
+    },
+    {
+      name: 'users',
+      type: 'refs',
+      default: []
+    }
+  ]
+}
 
 export default module.exports = (app) => {
   let _userGroup = []
@@ -52,18 +78,23 @@ export default module.exports = (app) => {
   app.consts.systemTypeGuest = systemTypeGuest
   app.consts.systemTypeLoggedIn = systemTypeLoggedIn
 
-  const Model = {
-    initData: () => Promise.resolve(true),
+  Model.app = app
+  const aModel = {
+    initData: genericInit(Model),
+    clearData: genericClearData(Model),
+    findById: genericFindById(Model),
+    findOne: genericFindOne(Model),
+    findAll: genericFindAll(Model),
+    count: genericCount(Model),
+    delete: genericDelete(Model),
+    deleteAll: genericDeleteAll(Model),
+    create: genericCreate(Model),
+    update: genericUpdate(Model),
+
     systemGroupAdmin: () => _systemGroupAdmin,
     systemGroupGuest: () => _systemGroupGuest,
     systemGroupLoggedIn: () => _systemGroupLoggedIn,
-    findById: genericFindById(_userGroup),
-    findOne: genericFindOne(_userGroup),
-    findAll: genericFindAll(_userGroup),
-    delete: genericDelete(_userGroup),
-    count: genericCount(_userGroup),
-    clearData: genericClearData(_userGroup),
-    update: genericUpdate(_userGroup),
+
     findGroupsForUser: (userId) => Promise.resolve(_.filter(_userGroup, (item) => (_.includes(item.users, userId) !== false))),
     findGroupsForUserSync: (userId) => _.filter(_userGroup, (item) => (_.includes(item.users, userId) !== false)),
     isUserInGroup: (groupId, userId) => {
@@ -79,19 +110,6 @@ export default module.exports = (app) => {
         return false
       }
       return _.includes(aGroup.users, userId)
-    },
-    create: (item) => {
-      if (!item.id) {
-        item.id = uuid()
-      }
-      if (!item.systemType) {
-        item.systemType = systemTypeNone
-      }
-      if (!item.users) {
-        item.users = []
-      }
-      _userGroup.push(item)
-      return Promise.resolve(item)
     },
     addUser: (groupId, userId) => {
       // console.log(`addUser (${groupId},${userId})`)
@@ -141,16 +159,16 @@ export default module.exports = (app) => {
     },
     addUserGroupsForUser: (userId, userGroups) => {
       // console.log(`addUserGroupsForUser: ( ${userId}, ${userGroups})`)
-      return Promise.all(userGroups.map((item) => Model.addUser(item, userId)))
+      return Promise.all(userGroups.map((item) => aModel.addUser(item, userId)))
     },
     createSystemData: () => {
-      return Model.clearData()
+      return aModel.clearData()
         .then(() => {
           _systemGroupAdmin = null
           _systemGroupGuest = null
           _systemGroupLoggedIn = null
           const arr = dataUserGroupSystem.map((item) => {
-            Model.create(item)
+            aModel.create(item)
               .then((newItem) => {
                 if (!newItem) throw Error('Fail to create new UserGroup')
 
@@ -169,7 +187,7 @@ export default module.exports = (app) => {
           return Promise.all(arr)
         })
     },
-    createData: () => Promise.all(dataUserGroup.map((item) => Model.create(item)))
+    createData: () => Promise.all(dataUserGroup.map((item) => aModel.create(item)))
   }
-  return Model
+  return aModel
 }
