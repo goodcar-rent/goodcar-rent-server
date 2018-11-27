@@ -1,4 +1,5 @@
 import SQL from 'sql-template-strings'
+import _ from 'lodash'
 
 export const genericInit = (Model) => (id) => {
   const query = SQL`CREATE TABLE IF NOT EXISTS `
@@ -51,7 +52,18 @@ export const genericFindById = (Model) => (id) => {
   const query = SQL`SELECT * FROM `
     .append(Model.name)
     .append(SQL` WHERE id=${id};`)
+
   return Model.app.storage.db.get(query)
+    .then((res) => {
+      if (!res) return res
+      Model.props.map((prop) => {
+        if (prop.type === 'boolean') {
+          res[prop.name] = (!!res[prop.name])
+        }
+      })
+      return res
+    })
+    .catch((err) => { throw err })
 }
 
 export const genericFindOne = (Model) => (opt) => {
@@ -69,6 +81,16 @@ export const genericFindOne = (Model) => (opt) => {
   query.append(';')
 
   return Model.app.storage.db.get(query)
+    .then((res) => {
+      if (res) {
+        Model.props.map((prop) => {
+          if (prop.type === 'boolean') {
+            res[prop.name] = (!!res[prop.name])
+          }
+        })
+      }
+      return res
+    })
     .catch((err) => { throw err })
 }
 
@@ -91,6 +113,17 @@ export const genericFindAll = (Model) => (opt) => {
   query.append(';')
 
   return Model.app.storage.db.all(query)
+    .then((res) => {
+      res.map((item) => {
+        Model.props.map((prop) => {
+          if (prop.type === 'boolean') {
+            item[prop.name] = (!!item[prop.name])
+          }
+        })
+      })
+
+      return res
+    })
     .catch((err) => { throw err })
 }
 
@@ -136,7 +169,7 @@ export const genericCreate = (Model) => (item) => {
       }
     }
 
-    if (prop.beforeSet && (typeof prop.beforeSet === 'function')) {
+    if (item[prop.name] && prop.beforeSet && (typeof prop.beforeSet === 'function')) {
       item[prop.name] = prop.beforeSet(item)
     }
 
@@ -166,5 +199,44 @@ export const genericCreate = (Model) => (item) => {
 
   return Model.app.storage.db.get(query)
     .then(() => item)
+    .catch((err) => { throw err })
+}
+
+export const genericUpdate = (Model) => (item) => {
+  if (!item.id) {
+    return Promise.reject(new Error('user.update: item.id should have proper value'))
+  }
+
+  const aKeys = Object.keys(item)
+  const aItem = {}
+  const aId = _.find(Model.props, { type: 'id' })
+  // process all item's props
+  aKeys.map((key) => {
+    aItem[key] = item[key]
+
+    // exec beforeSet hook:
+    const aProp = _.find(Model.props, { name: key })
+    if (aProp && aProp.beforeSet && (typeof aProp.beforeSet === 'function')) {
+      aItem[key] = aProp.beforeSet(item)
+    }
+    // process booleans
+    if (aProp.type === 'boolean') {
+      aItem[key] = item[key] ? 1 : 0
+    }
+  })
+
+  // process all props in item:
+  const query = SQL`UPDATE `.append(Model.name).append(SQL` SET `)
+  let delim = ''
+
+  aKeys.map((key) => {
+    query.append(delim).append(key).append(SQL`=${aItem[key]}`)
+    delim = ','
+  })
+  query.append(SQL` WHERE `.append(aId.name).append(SQL` = ${item.id}`))
+
+  const getItem = genericFindById(Model)
+  return Model.app.storage.db.run(query)
+    .then(() => getItem(item.id))
     .catch((err) => { throw err })
 }
