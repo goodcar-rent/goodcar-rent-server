@@ -1,7 +1,13 @@
 import _ from 'lodash'
 import uuid from 'uuid/v4'
-
-const _invite = []
+import {
+  genericClearData,
+  genericCount, genericCreate, genericDelete, genericDeleteAll,
+  genericFindAll,
+  genericFindById,
+  genericFindOne,
+  genericInit, genericUpdate
+} from './generic-sqlite'
 
 /* Invite:
   * id : uuid
@@ -11,37 +17,55 @@ const _invite = []
   * email: invited to this email
   * assignUserGroups: [] array of user group Ids to assign for user created via this invite
 */
+const Model = {
+  name: 'Invite',
+  props: [
+    {
+      name: 'id',
+      type: 'id',
+      default: () => uuid()
+    },
+    {
+      name: 'expireAt',
+      type: 'datetime',
+      default: () => Date.now()
+    },
+    {
+      name: 'registeredUser',
+      type: 'ref',
+      default: null
+    },
+    {
+      name: 'disabled',
+      type: 'boolean',
+      default: false
+    },
+    {
+      name: 'email',
+      type: 'text',
+      default: null
+    },
+    {
+      name: 'assignUserGroups',
+      type: 'refs',
+      default: []
+    }
+  ]
+}
 
 export default module.exports = (app) => {
-  return {
-    initData: () => Promise.resolve(true),
-    findById: (id) => Promise.resolve(_.find(_invite, { id })),
-
-    findOne: (opt) => Promise.resolve(_.find(_invite, [Object.keys(opt.where)[0], Object.values(opt.where)[0]])),
-
-    findAll: () => Promise.resolve(_invite),
-
-    count: () => Promise.resolve(_invite.length),
-
-    create: (item) => {
-      item.id = uuid()
-
-      _invite.push(item)
-      return Promise.resolve(item)
-    },
-
-    update: (item) => {
-      // console.log(`Invite.update:`)
-      // console.log(item)
-      const foundItem = _.find(_invite, { id: item.id })
-      if (!foundItem) {
-        return Promise.reject(new Error(`Invite ${item.id} not found`))
-      }
-      return Promise.resolve(_.merge({}, foundItem, item))
-    },
-
-    delete: (id) => Promise.resolve((_.remove(_invite, { id })).length === 1),
-
-    clearData: () => Promise.resolve(_invite.length = 0)
+  Model.app = app
+  const aModel = {
+    initData: genericInit(Model),
+    clearData: genericClearData(Model),
+    findById: genericFindById(Model),
+    findOne: genericFindOne(Model),
+    findAll: genericFindAll(Model),
+    count: genericCount(Model),
+    delete: genericDelete(Model),
+    deleteAll: genericDeleteAll(Model),
+    create: genericCreate(Model),
+    update: genericUpdate(Model)
   }
+  return aModel
 }

@@ -32,6 +32,11 @@ export const genericInit = (Model) => (id) => {
         .append(prop.name)
         .append(SQL` TEXT`)
       delim = ','
+    } else if (prop.type === 'refs') {
+      query.append(delim)
+        .append(prop.name)
+        .append(SQL` TEXT`)
+      delim = ','
     } else if (prop.type === 'datetime') {
       query.append(delim)
         .append(prop.name)
@@ -60,6 +65,9 @@ export const genericFindById = (Model) => (id) => {
         if (prop.type === 'boolean') {
           res[prop.name] = (!!res[prop.name])
         }
+        if (prop.type === 'refs' && res[prop.name].length > 0) {
+          res[prop.name] = res[prop.name].split(',')
+        }
       })
       return res
     })
@@ -86,6 +94,9 @@ export const genericFindOne = (Model) => (opt) => {
         Model.props.map((prop) => {
           if (prop.type === 'boolean') {
             res[prop.name] = (!!res[prop.name])
+          }
+          if (prop.type === 'refs' && res[prop.name].length > 0) {
+            res[prop.name] = res[prop.name].split(',')
           }
         })
       }
@@ -118,6 +129,9 @@ export const genericFindAll = (Model) => (opt) => {
         Model.props.map((prop) => {
           if (prop.type === 'boolean') {
             item[prop.name] = (!!item[prop.name])
+          }
+          if (prop.type === 'refs' && item[prop.name].length > 0) {
+            item[prop.name] = item[prop.name].split(',')
           }
         })
       })
@@ -195,6 +209,11 @@ export const genericCreate = (Model) => (item) => {
       aItem[prop.name] = item[prop.name] ? 1 : 0
     }
 
+    // replace refs array with string representation
+    if (prop.type === 'refs') {
+      aItem[prop.name] = item[prop.name].join(',')
+    }
+
     aNames = aNames + delim + prop.name
     delim = ','
   })
@@ -236,6 +255,11 @@ export const genericUpdate = (Model) => (item) => {
     // process booleans
     if (aProp.type === 'boolean') {
       aItem[key] = item[key] ? 1 : 0
+    }
+
+    // process refs:
+    if (aProp.type === 'refs') {
+      aItem[key] = item[key].join(',')
     }
   })
 
