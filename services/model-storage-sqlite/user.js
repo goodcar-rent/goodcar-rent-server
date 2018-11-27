@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt'
 import {
   genericInit,
   genericFindById,
-  genericFindOne, genericFindAll, genericCount, genericDelete, genericClearData
+  genericFindOne, genericFindAll, genericCount, genericDelete, genericClearData, genericCreate
 } from './generic-sqlite'
 
 /* User:
@@ -23,31 +23,39 @@ const Model = {
   props: [
     {
       name: 'id',
-      type: 'id'
+      type: 'id',
+      default: () => uuid()
     },
     {
       name: 'email',
-      type: 'email'
+      type: 'email',
+      default: null
     },
     {
       name: 'password',
-      type: 'password'
+      type: 'password',
+      default: null,
+      beforeSet: (item) => bcrypt.hashSync(item.password, bcrypt.genSaltSync())
     },
     {
       name: 'invitedBy',
-      type: 'ref'
+      type: 'ref',
+      default: null
     },
     {
-      name: 'invitedDate',
-      type: 'datetime'
+      name: 'inviteDate',
+      type: 'datetime',
+      default: null
     },
     {
       name: 'inviteId',
-      type: 'ref'
+      type: 'ref',
+      default: null
     },
     {
       name: 'disabled',
-      type: 'boolean'
+      type: 'boolean',
+      default: false
     }
   ]
 }
@@ -62,36 +70,7 @@ export default module.exports = (app) => {
     count: genericCount(Model),
     delete: genericDelete(Model),
     clearData: genericClearData(Model),
-
-    create: (item) => {
-      item.id = uuid()
-      const salt = bcrypt.genSaltSync()
-      item.password = bcrypt.hashSync(item.password, salt)
-
-      if (!item.disabled) {
-        item.disabled = false
-      }
-
-      if (!item.invitedBy) {
-        item.invitedBy = null
-      }
-
-      if (!item.inviteDate) {
-        item.inviteDate = null
-      }
-
-      if (!item.inviteId) {
-        item.inviteId = null
-      }
-      // _users.push(item)
-      return app.storage.db.get(
-        SQL`INSERT INTO User 
-          (id,email,password,invitedBy,inviteDate,inviteId,disabled)
-        VALUES
-          (${item.id},${item.email},${item.password},${item.invitedBy},${item.inviteDate},${item.inviteId},${item.disabled});`)
-        .then(() => item)
-        .catch((err) => { throw err })
-    },
+    create: genericCreate(Model),
 
     update: (item) => {
       if (!item.id) {

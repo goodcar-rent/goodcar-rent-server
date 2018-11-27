@@ -118,3 +118,53 @@ export const genericDelete = (Model) => (id) => {
 }
 
 export const genericClearData = (Model) => () => Model.app.storage.db.run(SQL`DELETE FROM `.append(Model.name))
+
+export const genericCreate = (Model) => (item) => {
+  // process props with hooks (default value / beforeSet
+  const aItem = {}
+  let aNames = ''
+  let delim = '('
+  Model.props.map((prop) => {
+    if (!item[prop.name]) {
+      // no property in new item, set default value
+      if (prop.default) {
+        if (typeof prop.default === 'function') {
+          item[prop.name] = prop.default(item)
+        } else {
+          item[prop.name] = prop.default
+        }
+      }
+    }
+
+    if (prop.beforeSet && (typeof prop.beforeSet === 'function')) {
+      item[prop.name] = prop.beforeSet(item)
+    }
+
+    // cope property to tep object
+    aItem[prop.name] = item[prop.name]
+
+    // replace boolean values with number:
+    if (prop.type === 'boolean') {
+      aItem[prop.name] = item[prop.name] ? 1 : 0
+    }
+
+    aNames = aNames + delim + prop.name
+    delim = ','
+  })
+  if (aNames.length > 0) {
+    aNames = aNames + ')'
+  }
+
+  // build query:
+  const query = SQL`INSERT INTO `.append(Model.name).append(aNames).append(' VALUES (')
+  delim = ''
+  Model.props.map((prop) => {
+    query.append(delim).append(SQL`${aItem[prop.name]}`)
+    delim = ','
+  })
+  query.append(');')
+
+  return Model.app.storage.db.get(query)
+    .then(() => item)
+    .catch((err) => { throw err })
+}

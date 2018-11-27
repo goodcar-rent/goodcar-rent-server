@@ -8,7 +8,7 @@ import {
   genericFindById,
   genericFindOne,
   genericUpdate
-} from '../generic-model'
+} from './generic-memory'
 
 const _logins = []
 

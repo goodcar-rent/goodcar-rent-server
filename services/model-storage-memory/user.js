@@ -8,7 +8,7 @@ import {
   genericFindAll,
   genericFindById,
   genericFindOne
-} from '../generic-model'
+} from './generic-memory'
 
 const _users = []
 

@@ -11,7 +11,7 @@ import {
   genericFindById,
   genericFindOne,
   genericUpdate
-} from '../generic-model'
+} from '../model-storage-memory/generic-memory'
 
 /*
 
