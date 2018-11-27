@@ -35,7 +35,7 @@ export const genericInit = (Model) => (id) => {
     } else if (prop.type === 'datetime') {
       query.append(delim)
         .append(prop.name)
-        .append(SQL` TEXT`)
+        .append(SQL` INTEGER`)
       delim = ','
     } else if (prop.type === 'boolean') {
       query.append(delim)
@@ -146,6 +146,20 @@ export const genericDelete = (Model) => (id) => {
     })
     .then((values) => {
       return values[0] // res
+    })
+    .catch((err) => { throw err })
+}
+
+export const genericDeleteAll = (Model) => (opt) => {
+  const findAll = genericFindAll(Model)
+  const deleteById = genericDelete(Model)
+
+  return findAll(opt)
+    .then((res) => {
+      if (res) {
+        return Promise.all(res.map((item) => deleteById(item.id)))
+      }
+      return null
     })
     .catch((err) => { throw err })
 }

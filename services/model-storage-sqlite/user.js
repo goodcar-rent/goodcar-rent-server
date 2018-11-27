@@ -1,5 +1,3 @@
-import SQL from 'sql-template-strings'
-
 import uuid from 'uuid/v4'
 import bcrypt from 'bcrypt'
 import {

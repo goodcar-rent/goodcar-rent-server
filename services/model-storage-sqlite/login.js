@@ -1,16 +1,16 @@
 import uuid from 'uuid/v4'
 import {
-  genericClearData,
-  genericCount,
-  genericDelete,
-  genericDeleteAll,
-  genericFindAll,
+  genericInit,
   genericFindById,
   genericFindOne,
-  genericUpdate
-} from '../model-storage-memory/generic-memory'
-
-const _logins = []
+  genericFindAll,
+  genericCount,
+  genericDelete,
+  genericClearData,
+  genericCreate,
+  genericUpdate,
+  genericDeleteAll
+} from './generic-sqlite'
 
 /* Login:
   * id: login identifier, UUID
@@ -19,39 +19,63 @@ const _logins = []
   * ip: IP address of user's endpoint
 */
 
-export default module.exports = (app) => {
-  const Model = {
-    initData: () => Promise.resolve(true),
-    findById: genericFindById(_logins),
-    findOne: genericFindOne(_logins),
-    findAll: genericFindAll(_logins),
-    count: genericCount(_logins),
-    delete: genericDelete(_logins),
-    deleteAll: genericDeleteAll(_logins),
-    clearData: genericClearData(_logins),
-    update: genericUpdate(_logins),
-    create: (item) => {
-      if (!item.id) {
-        item.id = uuid()
-      }
-      if (!item.createdAt) {
-        item.createdAt = Date.now()
-      }
-      _logins.push(item)
-      return Promise.resolve(item)
+const Model = {
+  name: 'Login',
+  props: [
+    {
+      name: 'id',
+      type: 'id',
+      default: () => uuid()
     },
+    {
+      name: 'userId',
+      type: 'ref',
+      default: null
+    },
+    {
+      name: 'createdAt',
+      type: 'datetime',
+      default: () => Date.now()
+    },
+    {
+      name: 'ip',
+      type: 'text',
+      default: null
+    },
+    {
+      name: 'disabled',
+      type: 'boolean',
+      default: false
+    }
+  ]
+}
+
+export default module.exports = (app) => {
+  Model.app = app
+  const aModel = {
+    initData: genericInit(Model),
+    findById: genericFindById(Model),
+    findOne: genericFindOne(Model),
+    findAll: genericFindAll(Model),
+    count: genericCount(Model),
+    delete: genericDelete(Model),
+    clearData: genericClearData(Model),
+    create: genericCreate(Model),
+    update: genericUpdate(Model),
+
+    deleteAll: genericDeleteAll(Model),
+
     createOrUpdate: (item) => {
-      return Model.findOne({ where: { userId: item.userId, ip: item.ip } })
+      return aModel.findOne({ where: { userId: item.userId, ip: item.ip } })
         .then((res) => {
           if (!res) {
-            return Model.create(item)
+            return aModel.create(item)
           } else {
             item.createdAt = Date.now()
-            return Model.update(item)
+            return aModel.update(item)
           }
         })
     }
   }
-
-  return Model
+  return aModel
 }
