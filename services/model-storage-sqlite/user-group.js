@@ -4,15 +4,17 @@ import uuid from 'uuid/v4'
 import dataUserGroupSystem from '../../data/user-group-system'
 import dataUserGroup from '../../data/user-group'
 import {
-  genericClearData,
-  genericCount,
-  genericDelete,
-  genericFindAll,
+  genericInit,
   genericFindById,
   genericFindOne,
-  genericUpdate
-} from '../model-storage-memory/generic-memory'
-import { genericCreate, genericDeleteAll, genericInit } from './generic-sqlite'
+  genericFindAll,
+  genericCount,
+  genericDelete,
+  genericClearData,
+  genericCreate,
+  genericUpdate,
+  genericDeleteAll
+} from './generic-sqlite'
 
 /*
 
@@ -165,14 +167,27 @@ export default module.exports = (app) => {
       return Promise.all(userGroups.map((item) => aModel.addUser(item, userId)))
     },
     createSystemData: () => {
+      console.log('createSystemData')
+      console.log(aModel)
+      console.log(aModel.clearData.toString())
       return aModel.clearData()
+        .then(() => aModel.findAll())
+        .then((res) => {
+          console.log('findAll:')
+          console.log(res)
+        })
         .then(() => {
           _systemGroupAdmin = null
           _systemGroupGuest = null
           _systemGroupLoggedIn = null
+          console.log(dataUserGroupSystem)
           const arr = dataUserGroupSystem.map((item) => {
-            aModel.create(item)
+            console.log('adding item:')
+            console.log(item)
+            return aModel.create(item)
               .then((newItem) => {
+                console.log('newItem')
+                console.log(newItem)
                 if (!newItem) throw Error('Fail to create new UserGroup')
 
                 if (newItem.systemType && newItem.systemType === systemTypeAdmin) {
@@ -189,6 +204,11 @@ export default module.exports = (app) => {
           })
           return Promise.all(arr)
         })
+        .then((values) => {
+          console.log('all groups:')
+          console.log(values)
+        })
+        .catch((err) => { throw err })
     },
     createData: () => Promise.all(dataUserGroup.map((item) => aModel.create(item)))
   }

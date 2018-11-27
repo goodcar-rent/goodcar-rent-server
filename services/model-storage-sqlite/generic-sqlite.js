@@ -106,6 +106,8 @@ export const genericFindOne = (Model) => (opt) => {
 }
 
 export const genericFindAll = (Model) => (opt) => {
+  console.log('findAll - opt')
+  console.log(opt)
   let aKeys = []
   let aValues = []
   if (opt && opt.where) {
@@ -125,6 +127,8 @@ export const genericFindAll = (Model) => (opt) => {
 
   return Model.app.storage.db.all(query)
     .then((res) => {
+      console.log('all:')
+      console.log(res)
       res.map((item) => {
         Model.props.map((prop) => {
           if (prop.type === 'boolean') {
@@ -182,6 +186,8 @@ export const genericClearData = (Model) => () => Model.app.storage.db.run(SQL`DE
 
 export const genericCreate = (Model) => (item) => {
   // process props with hooks (default value / beforeSet
+  console.log('genericCreate')
+  console.log(item)
   const aItem = {}
   let aNames = ''
   let delim = '('
@@ -230,10 +236,21 @@ export const genericCreate = (Model) => (item) => {
   })
   query.append(');')
 
+  console.log(query.sql)
+  console.log(query.values)
   const getById = genericFindById(Model)
   return Model.app.storage.db.run(query)
     .then(() => getById(item.id))
-    .catch((err) => { throw err })
+    .then((res) => {
+      console.log(res)
+      return res
+    })
+    .catch((err) => {
+      console.log('error')
+      console.log(err)
+      console.log(item.id)
+      throw err
+    })
 }
 
 export const genericUpdate = (Model) => (item) => {
