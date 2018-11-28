@@ -196,7 +196,7 @@ export default module.exports = (app) => {
           _systemGroupAdmin = null
           _systemGroupGuest = null
           _systemGroupLoggedIn = null
-          console.log(dataUserGroupSystem)
+          // console.log(dataUserGroupSystem)
           const arr = dataUserGroupSystem.map((item) => {
             // console.log('adding item:')
             // console.log(item)

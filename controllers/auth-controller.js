@@ -45,8 +45,8 @@ export default module.exports = (app) => {
           return UserGroup.addUser(UserGroup.systemGroupLoggedIn(), login.userId)
         })
         .catch((error) => {
-          console.log('login: error')
-          console.log(error)
+          // console.log('login: error')
+          // console.log(error)
           if (error instanceof ServerError) {
             throw error
           } else {
@@ -64,7 +64,7 @@ export default module.exports = (app) => {
 
       const isAdmin = data.isAdmin || false
       // if (data[isAdmin] !== undefined) {
-      console.log('\nremoving data.isAdmin field\n')
+      // console.log('\nremoving data.isAdmin field\n')
       delete data.isAdmin
       // }
 
@@ -82,13 +82,13 @@ export default module.exports = (app) => {
             data.inviteDate = null
             data.inviteId = null
 
-            console.log('create user:')
-            console.log(data)
+            // console.log('create user:')
+            // console.log(data)
             return User.create(data)
           })
           .then((newUser) => {
-            console.log('newUser:')
-            console.log(newUser)
+            // console.log('newUser:')
+            // console.log(newUser)
             res.json(newUser)
             const _adminGroup = UserGroup.systemGroupAdmin()
             return UserGroup.addUser(_adminGroup, newUser.id)
@@ -140,7 +140,7 @@ export default module.exports = (app) => {
 
           assignUserGroups = foundInvite.assignUserGroups
 
-          console.log(`\npreparing to create user: ${JSON.stringify(data)}`)
+          // console.log(`\npreparing to create user: ${JSON.stringify(data)}`)
           return User.create(data)
         })
         .then((createdUser) => {

@@ -133,8 +133,8 @@ describe('(controller) acl:', function () {
       })
       .then(() => userGroupItem(context, context.groupManagersId))
       .then((res) => {
-        console.log('final managers group:')
-        console.log(res.body)
+        // console.log('final managers group:')
+        // console.log(res.body)
         expect(res.body).to.exist('res.body should exist')
         expect(res.body.id).to.exist('res.body.id should exist')
         expect(res.body.name).to.be.equal(groupManagers)

@@ -2,7 +2,7 @@ import SQL from 'sql-template-strings'
 import _ from 'lodash'
 
 const processDefaults = (Model, item) => {
-  console.log(`\nprocessDefaults(${Model.name}, ${JSON.stringify(item)})\n`)
+  // console.log(`\nprocessDefaults(${Model.name}, ${JSON.stringify(item)})\n`)
   const aItem = _.merge({}, item)
 
   // process all default props if they are not defined in item:
@@ -15,13 +15,13 @@ const processDefaults = (Model, item) => {
       }
     }
   })
-  console.log(`processDefaults result:\n${JSON.stringify(aItem)}`)
+  // console.log(`processDefaults result:\n${JSON.stringify(aItem)}`)
   return aItem
 }
 
 // transform some item using rules from Model:l
 const processGetProps = (Model, item) => {
-  console.log(`\nprocessGetProps(${Model.name}, ${JSON.stringify(item)}\n`)
+  // console.log(`\nprocessGetProps(${Model.name}, ${JSON.stringify(item)}\n`)
   // if item is not defined, return null
   if (!item) {
     return item
@@ -51,7 +51,7 @@ const processGetProps = (Model, item) => {
       }
     }
   })
-  console.log(`processGetProps result:\n${JSON.stringify(aItem)}`)
+  // console.log(`processGetProps result:\n${JSON.stringify(aItem)}`)
   return aItem
 }
 
@@ -140,8 +140,8 @@ export const genericFindOne = (Model) => (opt) => {
 }
 
 export const genericFindAll = (Model) => (opt) => {
-  console.log('findAll - opt')
-  console.log(opt)
+  // console.log('findAll - opt')
+  // console.log(opt)
   let aKeys = []
   let aValues = []
   if (opt && opt.where) {
@@ -161,8 +161,8 @@ export const genericFindAll = (Model) => (opt) => {
 
   return Model.app.storage.db.all(query)
     .then((res) => {
-      console.log('all:')
-      console.log(res)
+      // console.log('all:')
+      // console.log(res)
       return res.map((item) => processGetProps(Model, item))
     })
     .catch((err) => { throw err })
@@ -209,7 +209,7 @@ export const genericClearData = (Model) => () => Model.app.storage.db.run(SQL`DE
 
 export const genericCreate = (Model) => (item) => {
   // process props with hooks (default value / beforeSet
-  console.log(`--\n${Model.name}.genericCreate(${JSON.stringify(item)})\n`)
+  // console.log(`--\n${Model.name}.genericCreate(${JSON.stringify(item)})\n`)
   let aNames = ''
   let delim = '('
 
@@ -256,16 +256,16 @@ export const genericCreate = (Model) => (item) => {
   })
   query.append(');')
 
-  console.log(`\nQuery prepared:\nSQL:${JSON.stringify(query.sql)}\nValues:${JSON.stringify(query.values)}`)
+  // console.log(`\nQuery prepared:\nSQL:${JSON.stringify(query.sql)}\nValues:${JSON.stringify(query.values)}`)
   const getById = genericFindById(Model)
   return Model.app.storage.db.run(query)
     .then(() => getById(aItem.id))
     .then((res) => {
-      console.log(`created item: ${JSON.stringify(res)}`)
+      // console.log(`created item: ${JSON.stringify(res)}`)
       return res
     })
     .catch((err) => {
-      console.log(`--\nError: ${JSON.stringify(err)}`)
+      // console.log(`--\nError: ${JSON.stringify(err)}`)
       throw err
     })
 }
