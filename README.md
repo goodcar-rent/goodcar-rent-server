@@ -11,15 +11,18 @@ GoodCar.rent server app
 * object/permission ACLs for users/user groups
 * disable user login
 * disable invite
+* multiple storages:
+    * in-memory JSON storage
+    * in-memory sqlite3 storage
+    * sqlite3 database storage
 
 ## Planned features
 * Joi based object schema validation
 * social login via Facebook, Google, Instagram, Vk
 * Manage actions in system (action list - protocol)
-* multiple storages (WIP):
-    * in-memory JSON storage
-    * in-memory sqlite3 storage
-    * sqlite3 database storage
+* Unified storage architecture (common service code for different storage adapters - "generic-xx" based)
+* car management feature
+* car garage feature
 
 ## Models/Services
 
@@ -37,21 +40,24 @@ GoodCar.rent server app
 
  * id : uuid
  * expireAt : date
- * registeredUser : -> User.id
+ * registeredUser -> User.id
+ * createdBy -> User.id
  * disabled : boolean
  * email: invited to this email
- * assignUserGroups: [] array of user group Ids to assign for user created via this invite
+ * assignUserGroups [ UserGroup ]: array of user group Ids to assign for user created via this invite
 
 ### Login:
 
 * id: login identifier, UUID
-* userId: -> User.id: user, associated with this login
+* userId -> User.id: user, associated with this login
 * createdAt: date of logging-in
 * ip: IP address of user's endpoint
+* disabled: if this login is disabled
   
 ### User:
 
 * id: user identifier, UUID
+* name: user's full name
 * email: email, that user choose for registering
 * password: hashed password
 * invitedBy: -> User.id: user that created invite
@@ -61,10 +67,10 @@ GoodCar.rent server app
 
 ### UserGroup:
 
-* id
-* name
+* id: identifier, UUID
+* name: group caption
 * systemType: null, Admin, Guest, LoggedIn
-* users: [User]
+* users [User]: members of this group
 
 System types:
 
@@ -81,7 +87,7 @@ Lowerst priority is for group permissions
 
 User-specific permissions have priority over group permissions.
 
-## Endpoints
+## API Endpoints
 
 ### ACL routes:
 
@@ -240,49 +246,3 @@ Return profile of currently logged-in user
 > GET /me/permissions
 
 List ACL permissions for currently logged-in user
-
-### Car management routes
-
-#### GET /car
-
-> Return 
-
-## TODO: 
-
-GET /login/:provider - return redirect page with login via provider (Instagram, Google, Facebook, Vk)
-POST /login/:provider - accept access token from social provider to login
-
-GET /me/social - list of linked social profiles for current user
-
-POST /me/social/:provider - link social profile with current user
-
-DELETE /me/social/:provider - unlink social profile
-
-GET /social - list of supported social providers (google, instagram, facebook)
-
-### ACL testcase
-
-* car list: 
-    * Guest can read
-    * Emp can readwrite
-    * Manager can read/write/grant 
-* car booking:
-    * Guest can NOT read
-    * Emp can read/write
-    * Manager can write
-* users:
-    - admin
-    - emp 1
-    - emp 2
-    - manager
-* groups:
-    - guest
-    - admin
-    - loggedIn
-    - management
-    - emp
-* domains/objects:
-    - car management
-        - car list
-        - car features
-    - car booking
