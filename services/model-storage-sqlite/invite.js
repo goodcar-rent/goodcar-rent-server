@@ -36,6 +36,11 @@ const Model = {
       default: null
     },
     {
+      name: 'createdBy',
+      type: 'ref',
+      default: null
+    },
+    {
       name: 'disabled',
       type: 'boolean',
       default: false

@@ -1,15 +1,9 @@
 import SQL from 'sql-template-strings'
 import _ from 'lodash'
 
-const processDefaults = ()
-// transform some item using rules from Model:l
-const processGetProps = (Model, item) => {
-  // if item is not defined, return null
-  if (!item) {
-    return item
-  }
-
-  const aItem = {}
+const processDefaults = (Model, item) => {
+  console.log(`\nprocessDefaults(${Model.name}, ${JSON.stringify(item)})\n`)
+  const aItem = _.merge({}, item)
 
   // process all default props if they are not defined in item:
   Model.props.map((prop) => {
@@ -21,8 +15,21 @@ const processGetProps = (Model, item) => {
       }
     }
   })
+  console.log(`processDefaults result:\n${JSON.stringify(aItem)}`)
+  return aItem
+}
 
-  const aKeys = Object.keys(item)
+// transform some item using rules from Model:l
+const processGetProps = (Model, item) => {
+  console.log(`\nprocessGetProps(${Model.name}, ${JSON.stringify(item)}\n`)
+  // if item is not defined, return null
+  if (!item) {
+    return item
+  }
+
+  const aItem = processDefaults(Model, item)
+
+  const aKeys = Object.keys(aItem)
   aKeys.map((key) => {
     const prop = _.find(Model.props, { name: key })
     if (!prop) {
@@ -44,10 +51,7 @@ const processGetProps = (Model, item) => {
       }
     }
   })
-  // console.log('processedGetProps for:')
-  // console.log(item)
-  // console.log('aItem:')
-  // console.log(aItem)
+  console.log(`processGetProps result:\n${JSON.stringify(aItem)}`)
   return aItem
 }
 
@@ -205,38 +209,35 @@ export const genericClearData = (Model) => () => Model.app.storage.db.run(SQL`DE
 
 export const genericCreate = (Model) => (item) => {
   // process props with hooks (default value / beforeSet
-  console.log('genericCreate')
-  console.log(item)
-  const aItem = {}
+  console.log(`--\n${Model.name}.genericCreate(${JSON.stringify(item)})\n`)
   let aNames = ''
   let delim = '('
-  Model.props.map((prop) => {
-    if (!item[prop.name]) {
-      // no property in new item, set default value
-      if (prop.default) {
-        if (typeof prop.default === 'function') {
-          item[prop.name] = prop.default(item)
-        } else {
-          item[prop.name] = prop.default
-        }
-      }
+
+  const aItem = processDefaults(Model, item)
+  const aKeys = Object.keys(aItem)
+  aKeys.map((key) => {
+    // copy property to proxy object
+    const prop = _.find(Model.props, { name: key })
+    if (!prop) {
+      throw new Error(`${Model.name}.genericCreate: property "${key}" is not defined in model`)
     }
 
-    if (item[prop.name] && prop.beforeSet && (typeof prop.beforeSet === 'function')) {
-      item[prop.name] = prop.beforeSet(item)
+    if (prop.beforeSet && (typeof prop.beforeSet === 'function')) {
+      aItem[key] = prop.beforeSet(aItem)
     }
-
-    // cope property to tep object
-    aItem[prop.name] = item[prop.name]
 
     // replace boolean values with number:
     if (prop.type === 'boolean') {
-      aItem[prop.name] = item[prop.name] ? 1 : 0
+      aItem[key] = item[key] ? 1 : 0
     }
 
     // replace refs array with string representation
     if (prop.type === 'refs') {
-      aItem[prop.name] = item[prop.name].join(',')
+      if (!item[key] || item[key] === []) {
+        aItem[key] = ''
+      } else {
+        aItem[key] = item[key].join(',')
+      }
     }
 
     aNames = aNames + delim + prop.name
@@ -249,26 +250,22 @@ export const genericCreate = (Model) => (item) => {
   // build query:
   const query = SQL`INSERT INTO `.append(Model.name).append(aNames).append(' VALUES (')
   delim = ''
-  Model.props.map((prop) => {
-    query.append(delim).append(SQL`${aItem[prop.name]}`)
+  aKeys.map((key) => {
+    query.append(delim).append(SQL`${aItem[key]}`)
     delim = ','
   })
   query.append(');')
 
-  console.log(query.sql)
-  console.log(query.values)
+  console.log(`\nQuery prepared:\nSQL:${JSON.stringify(query.sql)}\nValues:${JSON.stringify(query.values)}`)
   const getById = genericFindById(Model)
   return Model.app.storage.db.run(query)
-    .then(() => getById(item.id))
+    .then(() => getById(aItem.id))
     .then((res) => {
-      console.log('genericCreate: created item:')
-      console.log(res)
+      console.log(`created item: ${JSON.stringify(res)}`)
       return res
     })
     .catch((err) => {
-      console.log('error')
-      console.log(err)
-      console.log(item.id)
+      console.log(`--\nError: ${JSON.stringify(err)}`)
       throw err
     })
 }
@@ -279,7 +276,7 @@ export const genericUpdate = (Model) => (item) => {
   }
 
   const aKeys = Object.keys(item)
-  const aItem = {}
+  const aItem = processDefaults(Model, item)
   const aId = _.find(Model.props, { type: 'id' })
   // process all item's props
   aKeys.map((key) => {
