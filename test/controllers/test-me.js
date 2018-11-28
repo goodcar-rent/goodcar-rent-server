@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-import { describe, it, beforeEach } from 'mocha'
+import { describe, it, beforeEach, before } from 'mocha'
 import supertest from 'supertest'
 import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
@@ -15,25 +15,38 @@ import {
   createUser,
   me, mePermissions
 } from '../client/client-api'
+import env from 'dotenv-safe'
 
 chai.use(dirtyChai)
 
 // test case:
 describe('(controller) me:', function () {
+  env.config()
   process.env.NODE_ENV = 'test' // just to be sure
-  const app = App()
-  const request = supertest(app)
+  let app = null
 
   const context = {
-    request,
+    request: null,
     apiRoot: '',
     authSchema: 'Bearer',
     adminToken: null,
     userToken: null
   }
 
+  before((done) => {
+    App()
+      .then((a) => {
+        app = a
+        context.request = supertest(app)
+        done()
+      })
+      .catch((err) => {
+        done(err)
+      })
+  })
+
   beforeEach(function (done) {
-    app.models.ClearData()
+    app.models.clearData()
       .then(() => app.models.UserGroup.createSystemData())
       .then(() => createAdminUser(context))
       .then((res) => {
@@ -74,7 +87,7 @@ describe('(controller) me:', function () {
           {
             object: '/auth/invite',
             permission: 'read',
-            kind: app.auth.kindAllow
+            kind: app.consts.kindAllow
           })
       })
       .then(() => done())

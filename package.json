@@ -26,6 +26,8 @@
     "passport-instagram": "^1.0.0",
     "passport-jwt": "^4.0.0",
     "pug": "2.0.0-beta11",
+    "sql-template-strings": "^2.2.2",
+    "sqlite": "^3.0.0",
     "uuid": "^3.3.2"
   },
   "devDependencies": {

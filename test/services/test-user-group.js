@@ -2,35 +2,59 @@ import { describe, it, before, beforeEach } from 'mocha'
 import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
 import App from '../../app'
-import { systemTypeAdmin } from '../../services/user-group'
+import env from 'dotenv-safe'
+import supertest from 'supertest'
 
 chai.use(dirtyChai)
 
 // test case:
 describe('[service] user-group:', () => {
+  env.config()
   process.env.NODE_ENV = 'test' // just to be sure
-  const app = App()
-  const { UserGroup } = app.models
+  let app = null
+  let UserGroup = null
+
+  const context = {
+    request: null,
+    apiRoot: '',
+    authSchema: 'Bearer',
+    adminToken: null,
+    userToken: null
+  }
+
+  before((done) => {
+    App()
+      .then((a) => {
+        app = a
+        context.request = supertest(app)
+        UserGroup = app.models.UserGroup
+        done()
+      })
+      .catch((err) => {
+        done(err)
+      })
+  })
+
   const users = [
-    { id: 1, name: '1' },
-    { id: 2, name: '2' }
+    { id: '1', name: '1' },
+    { id: '2', name: '2' }
   ]
 
   describe('add/remove method', () => {
     beforeEach(function (done) {
-      app.models.ClearData()
+      app.models.clearData()
         .then(() => done())
     })
 
     let userGroup = {}
 
     it('should add items', (done) => {
-      UserGroup.create({ name: 'admin', systemType: systemTypeAdmin })
+      UserGroup.create({ name: 'admin', systemType: app.consts.systemTypeAdmin })
         .then((ug) => {
           userGroup = ug
           expect(userGroup).to.exist('userGroup should exist')
           expect(userGroup.id).to.exist('userGroup.id should exist')
-          expect(userGroup.systemType).is.equal(systemTypeAdmin)
+          expect(userGroup.systemType).is.equal(app.consts.systemTypeAdmin)
           return UserGroup.count()
         })
         .then((cnt) => {
@@ -43,13 +67,13 @@ describe('[service] user-group:', () => {
         })
         .then((user2) => {
           expect(user2).to.exist('user2 should exist')
-          expect(userGroup.users.length).is.equal(2)
+          expect(user2.users.length).is.equal(2)
           done()
         })
         .catch((err) => done(err))
     })
     it('should remove items', (done) => {
-      UserGroup.create({ name: 'admin', systemType: systemTypeAdmin })
+      UserGroup.create({ name: 'admin', systemType: app.consts.systemTypeAdmin })
         .then((ug) => {
           userGroup = ug
           expect(userGroup).to.exist('userGroup should exist')
@@ -88,7 +112,7 @@ describe('[service] user-group:', () => {
   })
   describe('create_x_Data methods', () => {
     before((done) => {
-      app.models.ClearData()
+      app.models.clearData()
         .then(() => done())
     })
     it('should create system data', (done) => {

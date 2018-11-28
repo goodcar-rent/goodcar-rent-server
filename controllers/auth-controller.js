@@ -45,8 +45,8 @@ export default module.exports = (app) => {
           return UserGroup.addUser(UserGroup.systemGroupLoggedIn(), login.userId)
         })
         .catch((error) => {
-          console.log('login: error')
-          console.log(error)
+          // console.log('login: error')
+          // console.log(error)
           if (error instanceof ServerError) {
             throw error
           } else {
@@ -63,9 +63,10 @@ export default module.exports = (app) => {
       const data = matchedData(req)
 
       const isAdmin = data.isAdmin || false
-      if (data.isAdmin) {
-        delete data.isAdmin
-      }
+      // if (data[isAdmin] !== undefined) {
+      // console.log('\nremoving data.isAdmin field\n')
+      delete data.isAdmin
+      // }
 
       // flow for registration of first user:
       if (!data.invite) {
@@ -80,9 +81,14 @@ export default module.exports = (app) => {
             data.invitedBy = null
             data.inviteDate = null
             data.inviteId = null
+
+            // console.log('create user:')
+            // console.log(data)
             return User.create(data)
           })
           .then((newUser) => {
+            // console.log('newUser:')
+            // console.log(newUser)
             res.json(newUser)
             const _adminGroup = UserGroup.systemGroupAdmin()
             return UserGroup.addUser(_adminGroup, newUser.id)
@@ -125,6 +131,7 @@ export default module.exports = (app) => {
             throw new ServerNotAllowed(`Email not matched with invite's email`)
           }
 
+          delete data.invite
           data.invitedBy = foundInvite.invitedBy
           data.inviteDate = foundInvite.date
           data.inviteId = foundInvite.id
@@ -132,6 +139,8 @@ export default module.exports = (app) => {
           aData.invite = foundInvite
 
           assignUserGroups = foundInvite.assignUserGroups
+
+          // console.log(`\npreparing to create user: ${JSON.stringify(data)}`)
           return User.create(data)
         })
         .then((createdUser) => {
@@ -145,7 +154,7 @@ export default module.exports = (app) => {
           // console.log('assignUserGroups:')
           // console.log(assignUserGroups)
 
-          if (assignUserGroups && assignUserGroups.length > 0 ) {
+          if (assignUserGroups && assignUserGroups.length > 0) {
             return UserGroup.addUserGroupsForUser(updatedInvite.registeredUser, assignUserGroups)
           }
         })

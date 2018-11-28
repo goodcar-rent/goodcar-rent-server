@@ -7,7 +7,7 @@ export default module.exports = (app) => {
       res.json.sendStatus(200)
       return app.Promise.resolve(app.auth.AddUserPermission(
         req.params.userId, req.matchedData.object, req.matchedData.permission,
-        req.matchedData.kind || app.auth.kindAllow))
+        req.matchedData.kind || app.consts.kindAllow))
     }
   }
 }

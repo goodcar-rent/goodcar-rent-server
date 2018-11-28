@@ -1,8 +1,8 @@
 import _ from 'lodash'
 import uuid from 'uuid/v4'
 
-import dataUserGroupSystem from '../data/user-group-system'
-import dataUserGroup from '../data/user-group'
+import dataUserGroupSystem from '../../data/user-group-system'
+import dataUserGroup from '../../data/user-group'
 import {
   genericClearData,
   genericCount,
@@ -11,7 +11,7 @@ import {
   genericFindById,
   genericFindOne,
   genericUpdate
-} from './generic-model'
+} from './generic-memory'
 
 /*
 
@@ -31,19 +31,29 @@ import {
 
 */
 
-export const systemTypeNone = null
+const systemTypeNone = null
 
-export const systemTypeAdmin = 'Admin'
-export const systemTypeGuest = 'Guest'
-export const systemTypeLoggedIn = 'LoggedIn'
+const systemTypeAdmin = 'Admin'
+const systemTypeGuest = 'Guest'
+const systemTypeLoggedIn = 'LoggedIn'
 
-export default (app) => {
+export default module.exports = (app) => {
   let _userGroup = []
   let _systemGroupAdmin = null
   let _systemGroupGuest = null
   let _systemGroupLoggedIn = null
 
+  if (!app.consts) {
+    app.consts = {}
+  }
+
+  app.consts.systemTypeNone = systemTypeNone
+  app.consts.systemTypeAdmin = systemTypeAdmin
+  app.consts.systemTypeGuest = systemTypeGuest
+  app.consts.systemTypeLoggedIn = systemTypeLoggedIn
+
   const Model = {
+    initData: () => Promise.resolve(true),
     systemGroupAdmin: () => _systemGroupAdmin,
     systemGroupGuest: () => _systemGroupGuest,
     systemGroupLoggedIn: () => _systemGroupLoggedIn,
@@ -52,7 +62,7 @@ export default (app) => {
     findAll: genericFindAll(_userGroup),
     delete: genericDelete(_userGroup),
     count: genericCount(_userGroup),
-    ClearData: genericClearData(_userGroup),
+    clearData: genericClearData(_userGroup),
     update: genericUpdate(_userGroup),
     findGroupsForUser: (userId) => Promise.resolve(_.filter(_userGroup, (item) => (_.includes(item.users, userId) !== false))),
     findGroupsForUserSync: (userId) => _.filter(_userGroup, (item) => (_.includes(item.users, userId) !== false)),
@@ -134,7 +144,7 @@ export default (app) => {
       return Promise.all(userGroups.map((item) => Model.addUser(item, userId)))
     },
     createSystemData: () => {
-      return Model.ClearData()
+      return Model.clearData()
         .then(() => {
           _systemGroupAdmin = null
           _systemGroupGuest = null

@@ -16,7 +16,7 @@ export default (app) => {
       [
         body('object').isString().isLength({ min: 1 }).withMessage('object should be provided'),
         body('permission').isString().isLength({ min: 1 }).withMessage('permission should be provided'),
-        body('kind').optional().isString().isIn([app.auth.kindAllow, app.auth.kindDeny])
+        body('kind').optional().isString().isIn([app.consts.kindAllow, app.consts.kindDeny])
           .withMessage('kind should be specified with predefined values')
       ], paramCheck,
       app.wrap(controller.create))
@@ -31,7 +31,7 @@ export default (app) => {
       [
         body('object').isString().isLength({ min: 1 }).withMessage('object should be provided'),
         body('permission').isString().isLength({ min: 1 }).withMessage('permission should be provided'),
-        body('kind').optional().isString().isIn([app.auth.kindAllow, app.auth.kindDeny])
+        body('kind').optional().isString().isIn([app.consts.kindAllow, app.consts.kindDeny])
           .withMessage('kind should be specified with predefined values')
       ], paramCheck,
       app.wrap(controller.userGroupCreate))

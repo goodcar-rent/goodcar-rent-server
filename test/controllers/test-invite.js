@@ -14,23 +14,39 @@ import {
   UserAdmin,
   UserFirst, inviteSend
 } from '../client/client-api'
+import env from 'dotenv-safe'
 
 chai.use(dirtyChai)
 
 // test case:
 describe('(controller) invite', function () {
+  env.config()
   process.env.NODE_ENV = 'test' // just to be sure
-  const app = App()
-  const request = supertest(app)
+
+  let app = null
 
   const context = {
-    request,
+    request: null,
     apiRoot: '',
-    authSchema: 'Bearer'
+    authSchema: 'Bearer',
+    adminToken: null,
+    userToken: null
   }
 
+  before((done) => {
+    App()
+      .then((a) => {
+        app = a
+        context.request = supertest(app)
+        done()
+      })
+      .catch((err) => {
+        done(err)
+      })
+  })
+
   beforeEach(function (done) {
-    app.models.ClearData()
+    app.models.clearData()
       .then(() => app.models.UserGroup.createSystemData())
       .then(() => createAdminUser(context))
       .then(() => loginAs(context, UserAdmin))

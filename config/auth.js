@@ -46,11 +46,11 @@ export default module.exports = (app) => {
       })
   })
   passport.use(strategy)
-  app.auth = {
+  let auth = {
     passport,
     initialize: () => passport.initialize(),
     authenticate: () => passport.authenticate('jwt', { session: false })
   }
-  _.merge(app.auth, Acl(app))
-  return passport
+  _.merge(auth, Acl(app))
+  return auth
 }

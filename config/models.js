@@ -1,19 +1,25 @@
-import User from '../services/user'
-import Invite from '../services/invite'
-import UserGroup from '../services/user-group'
-import Login from '../services/login'
+import Storage from './storage'
 
 export default module.exports = (app) => {
+  // init storage via storage service
+  Storage(app)
+
+  const ModelPath = app.storage.modelPath
+  const User = require(`${ModelPath}/user`)
+  const Invite = require(`${ModelPath}/invite`)
+  const UserGroup = require(`${ModelPath}/user-group`)
+  const Login = require(`${ModelPath}/login`)
+
   const models = {
     User: User(app),
     Invite: Invite(app),
     UserGroup: UserGroup(app),
     Login: Login(app),
-    ClearData: () =>
-      app.models.User.ClearData()
-        .then(() => app.models.Invite.ClearData())
-        .then(() => app.models.UserGroup.ClearData())
-        .then(() => app.models.Login.ClearData())
+    clearData: () =>
+      app.models.User.clearData()
+        .then(() => app.models.Invite.clearData())
+        .then(() => app.models.UserGroup.clearData())
+        .then(() => app.models.Login.clearData())
         .catch((err) => { throw err })
   }
   models.User.name = 'User'
@@ -21,15 +27,22 @@ export default module.exports = (app) => {
   models.UserGroup.name = 'UserGroup'
   models.Login.name = 'Login'
 
-  app.asyncInit.push(
-    models.UserGroup.createSystemData()
+  app.modelsInit = () =>
+    app.storage.initStorage(app)
+      .then(() => models.User.initData())
+      .then(() => models.Invite.initData())
+      .then(() => models.Login.initData())
+      .then(() => models.UserGroup.initData())
+      .then(() => models.UserGroup.createSystemData())
       .then(() => {
         app.auth.AddGroupPermission(
           models.UserGroup.systemGroupLoggedIn(),
           'me',
           'read',
-          app.auth.kindAllow)
+          app.consts.kindAllow)
       })
-  )
+      .then(() => { return app })
+      .catch((err) => { throw err })
+
   return models
 }

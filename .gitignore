@@ -50,3 +50,4 @@ node_modules/
 # Crashlytics plugin (for Android Studio and IntelliJ)
 # Editor-based Rest Client
 .idea
+db.sqlite

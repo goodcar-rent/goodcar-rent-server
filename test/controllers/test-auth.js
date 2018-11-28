@@ -15,24 +15,41 @@ import {
   UserFirst, userSave
 } from '../client/client-api'
 import _ from 'lodash'
+import env from 'dotenv-safe'
 
 chai.use(dirtyChai)
 
 // test case:
 describe('(controller) auth:', () => {
+  env.config()
   process.env.NODE_ENV = 'test' // just to be sure
-  const app = App()
-  const request = supertest(app)
-  const User = app.models.User
+
+  let app = null
+  let User = null
 
   const context = {
-    request,
+    request: null,
     apiRoot: '',
-    authSchema: 'Bearer'
+    authSchema: 'Bearer',
+    adminToken: null,
+    userToken: null
   }
 
+  before((done) => {
+    App()
+      .then((a) => {
+        app = a
+        context.request = supertest(app)
+        User = app.models.User
+        done()
+      })
+      .catch((err) => {
+        done(err)
+      })
+  })
+
   beforeEach(function (done) {
-    app.models.ClearData()
+    app.models.clearData()
       .then(() => app.models.UserGroup.createSystemData())
       .then(() => done())
   })
