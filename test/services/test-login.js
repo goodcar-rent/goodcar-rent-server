@@ -132,7 +132,7 @@ describe('[service] login:', () => {
 
   describe('delete method', () => {
     it('should delete items', (done) => {
-      Login.delete(2)
+      Login.delete('2')
         .then(() => Login.count())
         .then((res) => {
           expect(res).to.exist('res should exist')
@@ -170,7 +170,7 @@ describe('[service] login:', () => {
           expect(res).to.be.an('number')
           expect(res).to.be.equal(3)
         })
-        .then(() => Login.findById(1))
+        .then(() => Login.findById('1'))
         .then((res) => {
           expect(res).to.exist('res should exist')
           expect(res).to.be.an('object')
@@ -190,8 +190,8 @@ describe('[service] login:', () => {
       const aTimestamp = Date.now()
 
       new Promise(resolve => setTimeout(resolve, 1100))
-        .then(() => Login.createOrUpdate({ id: 2, userId: '2', ip: '127.0.0.1' }))
-        .then(() => Login.findById(2))
+        .then(() => Login.createOrUpdate({ id: '2', userId: '2', ip: '127.0.0.1' }))
+        .then(() => Login.findById('2'))
         .then((res) => {
           expect(res).to.exist('res should exist')
           expect(res).to.be.an('object')
