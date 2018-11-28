@@ -36,8 +36,8 @@ describe('[service] user-group:', () => {
   })
 
   const users = [
-    { id: 1, name: '1' },
-    { id: 2, name: '2' }
+    { id: '1', name: '1' },
+    { id: '2', name: '2' }
   ]
 
   describe('add/remove method', () => {
@@ -67,7 +67,7 @@ describe('[service] user-group:', () => {
         })
         .then((user2) => {
           expect(user2).to.exist('user2 should exist')
-          expect(userGroup.users.length).is.equal(2)
+          expect(user2.users.length).is.equal(2)
           done()
         })
         .catch((err) => done(err))

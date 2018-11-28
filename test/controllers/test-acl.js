@@ -17,7 +17,7 @@ import {
   aclUserCreate,
   aclUserGroupCreate,
   aclUserGroupList,
-  createUser, userGroupAdd, userGroupUsersAdd, inviteList, expected
+  createUser, userGroupAdd, userGroupUsersAdd, inviteList, expected, userGroupItem
 } from '../client/client-api'
 
 chai.use(dirtyChai)
@@ -130,6 +130,17 @@ describe('(controller) acl:', function () {
 
         // add users to Managers group:
         return userGroupUsersAdd(context, context.groupManagersId, [context.UserAdminId, context.UserFirstId])
+      })
+      .then(() => userGroupItem(context, context.groupManagersId))
+      .then((res) => {
+        console.log('final managers group:')
+        console.log(res.body)
+        expect(res.body).to.exist('res.body should exist')
+        expect(res.body.id).to.exist('res.body.id should exist')
+        expect(res.body.name).to.be.equal(groupManagers)
+        expect(res.body.users).to.exist('res.body.users should exist')
+        expect(res.body.users).to.be.an('array')
+        expect(res.body.users).to.have.lengthOf(2)
       })
       .then(() => done())
       .catch((err) => {

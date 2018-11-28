@@ -15,6 +15,7 @@ import {
 
 /* User:
   * id: user identifier, UUID
+  * name:
   * email: email, that user choose for registering
   * password: hashed password
   * invitedBy: -> User.id: user that created invite
@@ -30,6 +31,11 @@ const Model = {
       name: 'id',
       type: 'id',
       default: () => uuid()
+    },
+    {
+      name: 'name',
+      type: 'text',
+      default: null
     },
     {
       name: 'email',

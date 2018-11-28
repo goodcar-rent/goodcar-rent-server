@@ -1,6 +1,56 @@
 import SQL from 'sql-template-strings'
 import _ from 'lodash'
 
+const processDefaults = ()
+// transform some item using rules from Model:l
+const processGetProps = (Model, item) => {
+  // if item is not defined, return null
+  if (!item) {
+    return item
+  }
+
+  const aItem = {}
+
+  // process all default props if they are not defined in item:
+  Model.props.map((prop) => {
+    if (prop.default && !item[prop.name]) {
+      if (typeof prop.default === 'function') {
+        aItem[prop.name] = prop.default(aItem)
+      } else {
+        aItem[prop.name] = prop.default
+      }
+    }
+  })
+
+  const aKeys = Object.keys(item)
+  aKeys.map((key) => {
+    const prop = _.find(Model.props, { name: key })
+    if (!prop) {
+      throw new Error(`processGetProps: Model "${Model.name}" does not have definition for property "${key}"`)
+    }
+    aItem[key] = item[key]
+    if (item[key] && prop.type === 'boolean') {
+      aItem[key] = (!!item[key])
+    }
+    if (prop.type === 'refs') {
+      // console.log('refs prop')
+      if (item[key].length > 0) {
+        aItem[key] = item[key].split(',')
+        if (!Array.isArray(aItem[key])) {
+          aItem[key] = [aItem[key]]
+        }
+      } else {
+        aItem[key] = []
+      }
+    }
+  })
+  // console.log('processedGetProps for:')
+  // console.log(item)
+  // console.log('aItem:')
+  // console.log(aItem)
+  return aItem
+}
+
 export const genericInit = (Model) => (id) => {
   const query = SQL`CREATE TABLE IF NOT EXISTS `
     .append(Model.name)
@@ -61,15 +111,7 @@ export const genericFindById = (Model) => (id) => {
   return Model.app.storage.db.get(query)
     .then((res) => {
       if (!res) return res
-      Model.props.map((prop) => {
-        if (prop.type === 'boolean') {
-          res[prop.name] = (!!res[prop.name])
-        }
-        if (prop.type === 'refs' && res[prop.name].length > 0) {
-          res[prop.name] = res[prop.name].split(',')
-        }
-      })
-      return res
+      return processGetProps(Model, res)
     })
     .catch((err) => { throw err })
 }
@@ -89,19 +131,7 @@ export const genericFindOne = (Model) => (opt) => {
   query.append(';')
 
   return Model.app.storage.db.get(query)
-    .then((res) => {
-      if (res) {
-        Model.props.map((prop) => {
-          if (prop.type === 'boolean') {
-            res[prop.name] = (!!res[prop.name])
-          }
-          if (prop.type === 'refs' && res[prop.name].length > 0) {
-            res[prop.name] = res[prop.name].split(',')
-          }
-        })
-      }
-      return res
-    })
+    .then((res) => processGetProps(Model, res))
     .catch((err) => { throw err })
 }
 
@@ -129,18 +159,7 @@ export const genericFindAll = (Model) => (opt) => {
     .then((res) => {
       console.log('all:')
       console.log(res)
-      res.map((item) => {
-        Model.props.map((prop) => {
-          if (prop.type === 'boolean') {
-            item[prop.name] = (!!item[prop.name])
-          }
-          if (prop.type === 'refs' && item[prop.name].length > 0) {
-            item[prop.name] = item[prop.name].split(',')
-          }
-        })
-      })
-
-      return res
+      return res.map((item) => processGetProps(Model, item))
     })
     .catch((err) => { throw err })
 }
@@ -242,6 +261,7 @@ export const genericCreate = (Model) => (item) => {
   return Model.app.storage.db.run(query)
     .then(() => getById(item.id))
     .then((res) => {
+      console.log('genericCreate: created item:')
       console.log(res)
       return res
     })
@@ -271,12 +291,12 @@ export const genericUpdate = (Model) => (item) => {
       aItem[key] = aProp.beforeSet(item)
     }
     // process booleans
-    if (aProp.type === 'boolean') {
+    if (item[key] && aProp.type === 'boolean') {
       aItem[key] = item[key] ? 1 : 0
     }
 
     // process refs:
-    if (aProp.type === 'refs') {
+    if (item[key] && aProp.type === 'refs') {
       aItem[key] = item[key].join(',')
     }
   })

@@ -238,6 +238,8 @@ describe('(controller) user-group:', function () {
           return userGroupUsersRemove(context, context.groupManagersId, [context.UserFirstId])
         })
         .then((res) => {
+          console.log('res:')
+          console.log(res.body)
           expect(res.body).to.exist('Body should exist')
           expect(res.body).to.be.an('object')
           expect(res.body.name).to.exist('Name property should exist')

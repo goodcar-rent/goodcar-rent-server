@@ -66,7 +66,6 @@ const Model = {
 }
 
 export default module.exports = (app) => {
-  let _userGroup = []
   let _systemGroupAdmin = null
   let _systemGroupGuest = null
   let _systemGroupLoggedIn = null
@@ -97,8 +96,25 @@ export default module.exports = (app) => {
     systemGroupGuest: () => _systemGroupGuest,
     systemGroupLoggedIn: () => _systemGroupLoggedIn,
 
-    findGroupsForUser: (userId) => Promise.resolve(_.filter(_userGroup, (item) => (_.includes(item.users, userId) !== false))),
+    findGroupsForUser: (userId) => {
+      return aModel.findAll()
+        .then((groups) => {
+          const userGroups = []
+          groups.map((group) => {
+            if (_.includes(group.users, userId)) {
+              userGroups.push(group)
+            }
+          })
+          return userGroups
+        })
+        .catch((err) => { throw err })
+    },
+
     isUserInGroup: (groupId, userId) => {
+      if (!groupId || !userId) {
+        return Promise.resolve(false)
+      }
+
       return aModel.findById(groupId)
         .then((group) => {
           if (!group) {
@@ -167,27 +183,27 @@ export default module.exports = (app) => {
       return Promise.all(userGroups.map((item) => aModel.addUser(item, userId)))
     },
     createSystemData: () => {
-      console.log('createSystemData')
-      console.log(aModel)
-      console.log(aModel.clearData.toString())
+      // console.log('createSystemData')
+      // console.log(aModel)
+      // console.log(aModel.clearData.toString())
       return aModel.clearData()
         .then(() => aModel.findAll())
-        .then((res) => {
-          console.log('findAll:')
-          console.log(res)
-        })
+        // .then((res) => {
+        //   console.log('findAll:')
+        //   console.log(res)
+        // })
         .then(() => {
           _systemGroupAdmin = null
           _systemGroupGuest = null
           _systemGroupLoggedIn = null
           console.log(dataUserGroupSystem)
           const arr = dataUserGroupSystem.map((item) => {
-            console.log('adding item:')
-            console.log(item)
+            // console.log('adding item:')
+            // console.log(item)
             return aModel.create(item)
               .then((newItem) => {
-                console.log('newItem')
-                console.log(newItem)
+                // console.log('newItem')
+                // console.log(newItem)
                 if (!newItem) throw Error('Fail to create new UserGroup')
 
                 if (newItem.systemType && newItem.systemType === systemTypeAdmin) {
@@ -204,10 +220,10 @@ export default module.exports = (app) => {
           })
           return Promise.all(arr)
         })
-        .then((values) => {
-          console.log('all groups:')
-          console.log(values)
-        })
+        // .then((values) => {
+        //   console.log('all groups:')
+        //   console.log(values)
+        // })
         .catch((err) => { throw err })
     },
     createData: () => Promise.all(dataUserGroup.map((item) => aModel.create(item)))

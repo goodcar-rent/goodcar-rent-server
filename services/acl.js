@@ -71,64 +71,69 @@ export default module.exports = (app) => {
 
   const CheckPermission = (userId, object, permission) => {
     let aKind = kindDeny
-    // console.log(`CheckPermission( ${userId}, ${object}, ${permission})`)
-    // console.log('aclObject:')
-    // console.log(aclObject)
-
+    console.log(`CheckPermission( ${userId}, ${object}, ${permission})`)
+    console.log('aclObject:')
+    console.log(aclObject)
     // check if user is admin, and have all permissions:
     const adminGroup = UserGroup.systemGroupAdmin()
-    if (adminGroup && UserGroup.isUserInGroupSync(adminGroup, userId)) {
-      // console.log('user is admin, allow')
-      return kindAllow
-    }
-
-    // check if we have permission for user:
-    const aObject = _.find(aclObject, { id: object.toLowerCase() })
-    if (!aObject) {
-      // console.log('object not defined, DENY')
-      return kindDeny // no object defined, DENY
-    }
-
-    // find specified permission for object:
-    const aPermission = _.find(aObject.permissions, { permission: permission.toLowerCase() })
-    if (!aPermission) {
-      // console.log('no such permission, DENY')
-      return kindDeny // no permission declaration, DENY
-    }
-    // console.log('Permission:')
-    // console.log(aPermission)
-
-    // check if we have some group permission:
-    // console.log('checkGroups:')
     let groupRes = 0
-    const groups = UserGroup.findGroupsForUserSync(userId)
-    // console.log(groups)
-    _.each(groups, (group) => {
-      // console.log(` - group: ${group.id} ${group.name}`)
-      const aGroup = _.find(aPermission.userGroups, { id: group.id })
-      if (aGroup && groupRes !== kindDeny) {
-        // console.log(`set kind === ${aGroup.kind}`)
-        groupRes = aGroup.kind
-      }
-    })
-    // console.log(`groupRes = ${groupRes}`)
+    let aPermission = null
+    return UserGroup.isUserInGroup(adminGroup, userId)
+      .then((isAdmin) => {
+        if (isAdmin) {
+          console.log('user is admin, allow')
+          return Promise.resolve(kindAllow)
+        }
 
-    // check if specified object have exact user permission:
-    let userRes = 0
-    const aUser = _.find(aPermission.users, { id: userId })
-    if (aUser) {
-      userRes = aUser.kind
-    }
+        console.log('check if we have permission for user:')
+        const aObject = _.find(aclObject, { id: object.toLowerCase() })
+        if (!aObject) {
+          console.log('object not defined, DENY')
+          return Promise.resolve(kindDeny) // no object defined, DENY
+        }
 
-    // set resulting permission according proprieties:
-    if (groupRes !== 0) {
-      aKind = groupRes
-    }
-
-    if (userRes !== 0) {
-      aKind = userRes
-    }
-    return aKind
+        console.log('find specified permission for object:')
+        aPermission = _.find(aObject.permissions, { permission: permission.toLowerCase() })
+        if (!aPermission) {
+          console.log('no such permission, DENY')
+          return Promise.resolve(kindDeny) // no permission declaration, DENY
+        }
+        console.log('Permissions found:')
+        console.log(aPermission)
+        // check if we have some group permission:
+        console.log('checkGroups:')
+        return UserGroup.findGroupsForUser(userId)
+          .then((groups) => {
+            console.log(`found groups for user ${userId}:`)
+            console.log(groups)
+            _.each(groups, (group) => {
+              console.log(` - group: ${group.id} ${group.name}`)
+              const aGroup = _.find(aPermission.userGroups, { id: group.id })
+              if (aGroup && groupRes !== kindDeny) {
+                console.log(`set kind === ${aGroup.kind}`)
+                groupRes = aGroup.kind
+              }
+            })
+            console.log(`groupRes = ${groupRes}`)
+            // check if specified object have exact user permission:
+            let userRes = 0
+            const aUser = _.find(aPermission.users, { id: userId })
+            if (aUser) {
+              console.log(`user have specific permission ${aUser.kind}`)
+              userRes = aUser.kind
+            }
+            // set resulting permission according proprieties:
+            if (groupRes !== 0) {
+              aKind = groupRes
+            }
+            if (userRes !== 0) {
+              aKind = userRes
+            }
+            return Promise.resolve(aKind)
+          })
+          .catch((err) => { throw err })
+      })
+      .catch((err) => { throw err })
   }
   return {
     ACL: (object, permission) => {
@@ -147,13 +152,16 @@ export default module.exports = (app) => {
             aUserId = GuestUserId
           }
 
-          if (CheckPermission(aUserId, object, permission) === kindAllow) {
-            // console.log('permission === allow')
-            next() // user have allow kind of permission for this object/permission
-          } else {
-            // console.log('permission === deny')
-            next(new ServerNotAllowed(`Permission deny for user on ${object}.${permission}`))
-          }
+          return CheckPermission(aUserId, object, permission)
+            .then((perm) => {
+              if (perm === kindAllow) {
+                // console.log('permission === allow')
+                next() // user have allow kind of permission for this object/permission
+              } else {
+                // console.log('permission === deny')
+                next(new ServerNotAllowed(`Permission deny for user on ${object}.${permission}`))
+              }
+            })
         })
       }
     },
@@ -179,6 +187,7 @@ export default module.exports = (app) => {
       }
     },
     AddGroupPermission: (groupId, objectId, permission, kind) => {
+      console.log(`AddGroupPermission: ${groupId}, ${objectId}, ${permission}, ${kind}`)
       let aKind = kindAllow
       if (kind) {
         aKind = kind.toUpperCase()
