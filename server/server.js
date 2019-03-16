@@ -17,23 +17,17 @@ const debug = Debug('goodcar-rent-server:server')
  */
 env.config()
 
-const app = App(env)
-const port = normalizePort(process.env.PORT || '3000')
-app.set('port', port)
-app.serverPort = port
-app.serverAddress = `http://localhost:${app.serverPort}`
+let app = {}
 
-/**
- * Create HTTP server.
- */
+App(env)
+  .then(_app => {
+    app = _app
+    const port = normalizePort(process.env.PORT || '3000')
+    app.set('port', port)
+    app.serverPort = port
+    app.serverAddress = `http://localhost:${app.serverPort}`
 
-const server = http.createServer(app)
-
-/**
- * Listen on provided port, on all network interfaces.
- */
-Promise.all(app.modelsInit)
-  .then(() => {
+    const server = app.server = http.createServer(app)
     server.listen(port)
     server.on('error', onError)
     server.on('listening', onListening)
@@ -93,7 +87,7 @@ function onError (error) {
  */
 
 function onListening () {
-  const addr = server.address()
+  const addr = app.server.address()
   const bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port
