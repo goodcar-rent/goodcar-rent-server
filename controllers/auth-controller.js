@@ -55,6 +55,12 @@ export default module.exports = (app) => {
         })
     },
 
+    logout: (reg, res) => {
+      // remove current user from logged-in group
+      // disable current login (delete?)
+      // destroy current session
+    },
+
     signup: (req, res) => {
       const errors = validationResult(req)
       if (!errors.isEmpty()) {

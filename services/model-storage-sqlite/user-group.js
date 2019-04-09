@@ -112,11 +112,14 @@ export default module.exports = (app) => {
 
     isUserInGroup: (groupId, userId) => {
       if (!groupId || !userId) {
-        return Promise.resolve(false)
+        return Promise.resolve(new Error('UserGroup.isUserInGroup: group id and user id should be specified'))
       }
 
+      // console.log(`UserGroup.isUserInGroup(${groupId},${userId})`)
       return aModel.findById(groupId)
         .then((group) => {
+          // console.log(`found group:`)
+          // console.log(group)
           if (!group) {
             throw new Error(`isUserInGroup: group ${groupId} not found`)
           }
@@ -187,7 +190,7 @@ export default module.exports = (app) => {
       // console.log(aModel)
       // console.log(aModel.clearData.toString())
       return aModel.clearData()
-        .then(() => aModel.findAll())
+        // .then(() => aModel.findAll())
         // .then((res) => {
         //   console.log('findAll:')
         //   console.log(res)
@@ -220,6 +223,9 @@ export default module.exports = (app) => {
           })
           return Promise.all(arr)
         })
+        .then(() => app.models.Invite.clearData())
+        .then(() => app.models.Login.clearData())
+        .then(() => app.models.User.clearData())
         // .then((values) => {
         //   console.log('all groups:')
         //   console.log(values)

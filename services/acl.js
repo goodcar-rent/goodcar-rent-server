@@ -76,10 +76,12 @@ export default module.exports = (app) => {
     // console.log(aclObject)
     // check if user is admin, and have all permissions:
     const adminGroup = UserGroup.systemGroupAdmin()
+    // console.log(`Admin group: ${adminGroup}`)
     let groupRes = 0
     let aPermission = null
     return UserGroup.isUserInGroup(adminGroup, userId)
       .then((isAdmin) => {
+        // console.log(`Check isUserInGroup(admin): ${isAdmin}`)
         if (isAdmin) {
           // console.log('user is admin, allow')
           return Promise.resolve(kindAllow)

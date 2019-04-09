@@ -33,6 +33,11 @@ export default (app) => {
     ],
     app.wrap(controller.signupPage))
 
+  router.route('/auth/logout')
+    .all(app.auth.authenticate())
+    // .all(app.auth.ACL('auth', 'read'))
+    .get(app.wrap(controller.logout))
+
   /*
   router.get('/facebook', app.passport.authenticate('facebook'))
   router.get('/facebook/callback',

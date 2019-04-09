@@ -105,6 +105,11 @@ export const genericInit = (Model) => (id) => {
   })
   query.append(');')
   return Model.app.storage.db.run(query)
+  // .then(() => {
+  //   const query = SQL`DELETE FROM `
+  //     .append(Model.name)
+  //   return Model.app.storage.db.run(query)
+  // })
 }
 
 export const genericFindById = (Model) => (id) => {
