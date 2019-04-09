@@ -1,4 +1,5 @@
 import uuid from 'uuid/v4'
+import _ from 'lodash'
 import {
   genericInit,
   genericFindById,
@@ -70,7 +71,9 @@ export default module.exports = (app) => {
           if (!res) {
             return aModel.create(item)
           } else {
+            _.assign(item,res)
             item.createdAt = Date.now()
+            item.id = res.id
             return aModel.update(item)
           }
         })

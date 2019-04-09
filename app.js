@@ -2,10 +2,10 @@ import express from 'express'
 import path from 'path'
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
+import cors from 'cors'
 
 import Auth from './config/auth'
 import Models from './config/models'
-import Storage from './config/storage'
 import indexRouter from './routes/index'
 import UserRouter from './routes/user-router'
 import AuthRouter from './routes/auth-router'
@@ -44,6 +44,7 @@ export default (env) => {
         app.enable('trust proxy')
       }
 
+      app.use(cors())
       app.use(express.json())
       app.use(express.urlencoded({ extended: false }))
       app.use(cookieParser())
