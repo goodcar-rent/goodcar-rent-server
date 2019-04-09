@@ -7,7 +7,7 @@ import cors from 'cors'
 import Auth from './config/auth'
 import Models from './config/models'
 import indexRouter from './routes/index'
-import UserRouter from './routes/user-router'
+import UserRouter from './routes/users-router'
 import AuthRouter from './routes/auth-router'
 import LoginRouter from './routes/login-router'
 import InviteRouter from './routes/invite-router'
@@ -44,7 +44,11 @@ export default (env) => {
         app.enable('trust proxy')
       }
 
-      app.use(cors())
+      app.use(cors({
+        origin: '*',
+        allowedHeaders: 'Content-Type,Authorization,Content-Range',
+        exposedHeaders: 'Content-Type,Authorization,Content-Range'
+      }))
       app.use(express.json())
       app.use(express.urlencoded({ extended: false }))
       app.use(cookieParser())

@@ -1,9 +1,11 @@
 import { ServerError, ServerGenericError, ServerNotFound } from '../config/errors'
 
 export const genericList = (Model) => (req, res) =>
-  Model.findAll()
-    .then((foundData) => {
-      res.json(foundData)
+  Promise.all([Model.findAll(), Model.count()])
+    .then((data) => {
+      const foundData = data[0]
+      const count = data[1]
+      res.set('Content-Range', `${Model.name} 0-${count}/${count}`).json(foundData)
       return foundData
     })
     .catch((error) => {

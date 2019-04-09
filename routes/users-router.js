@@ -9,7 +9,7 @@ export default (app) => {
   const permissionsController = PermissionsController(app)
 
   // noinspection JSCheckFunctionSignatures
-  router.route('/user')
+  router.route('/users')
     // .all(app.auth.authenticate())
     .all(app.auth.ACL('user', 'read'))
     .get(app.wrap(controller.list))
@@ -25,7 +25,7 @@ export default (app) => {
       app.wrap(controller.create))
 
   // noinspection JSCheckFunctionSignatures
-  router.route('/user/:id')
+  router.route('/users/:id')
     // .all(app.auth.authenticate(),
     .all(app.auth.ACL('user', 'read'),
       [
@@ -45,7 +45,7 @@ export default (app) => {
     .delete(app.auth.ACL('user', 'write'), app.wrap(controller.delete))
 
   // User permissions management routes:
-  router.route('/user/:userId/permissions')
+  router.route('/users/:userId/permissions')
     // .all(app.auth.authenticate(),
     .all(app.auth.ACL('user', 'read'),
       [
