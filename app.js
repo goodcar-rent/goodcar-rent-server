@@ -14,6 +14,7 @@ import InviteRouter from './routes/invite-router'
 import UserGroupRouter from './routes/user-group-router'
 import AclRouter from './routes/acl-router'
 import MeRouter from './routes/me-router'
+import AdminRouter from './routes/admin-router'
 import ErrorHandlers from './config/error-handlers'
 import wrap from './services/wrap'
 import mail from './services/mail'
@@ -83,6 +84,7 @@ export default (env) => {
       app.use(LoginRouter(app))
       app.use(UserGroupRouter(app))
       app.use(MeRouter(app))
+      app.use(AdminRouter(app))
       ErrorHandlers(app)
 
       return app
