@@ -10,5 +10,10 @@ export default (app) => {
     .all(app.auth.ACL('admin', 'read'))
     .get(app.wrap(controller.seedUserGroups))
 
+  router.get('/admin/clearData',
+    // .all(app.auth.authenticate())
+    app.auth.ACL('admin', 'read'),
+    app.wrap(controller.seedUserGroups))
+
   return router
 }
