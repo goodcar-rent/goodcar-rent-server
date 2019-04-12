@@ -48,6 +48,7 @@ describe('(controller) me:', function () {
   beforeEach(function (done) {
     app.models.clearData()
       .then(() => app.models.UserGroup.createSystemData())
+      .then(() => app.models.initPermissions())
       .then(() => createAdminUser(context))
       .then((res) => {
         expect(res.body).to.exist('res.body should exist')

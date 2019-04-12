@@ -61,6 +61,13 @@ export const loginAs = (context, user, expectedCode) => context.request.post(`${
     return res
   })
 
+export const logout = (context, expectedCode) => context.request.get(`${context.apiRoot}/auth/logout`)
+  .set('Authorization', `${context.authSchema} ${context.token}`)
+  .type('json')
+  .accept('json')
+  .accept('text')
+  .expect(expectedCode || expected.Ok)
+
 export const inviteCreate = (context, data, expectedCode) => context.request.post(`${context.apiRoot}/auth/invite`)
   .set('Authorization', `${context.authSchema} ${context.token}`)
   .send(data)

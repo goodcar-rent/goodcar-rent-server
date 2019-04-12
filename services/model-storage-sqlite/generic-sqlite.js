@@ -117,6 +117,9 @@ export const genericFindById = (Model) => (id) => {
     .append(Model.name)
     .append(SQL` WHERE id=${id};`)
 
+  if (!Model || !Model.app || !Model.app.storage || !Model.app.storage.db) {
+    return Promise.reject(new Error(`genericFindById: some Model's properties are invalid: Model ${Model}, .app ${Model.app} .storage${Model.app.storage} .db ${Model.app.storage.db}`))
+  }
   return Model.app.storage.db.get(query)
     .then((res) => {
       if (!res) return res
@@ -313,8 +316,7 @@ export const genericUpdate = (Model) => (item) => {
   })
   query.append(SQL` WHERE `.append(aId.name).append(SQL` = ${item.id}`))
 
-  const getItem = genericFindById(Model)
   return Model.app.storage.db.run(query)
-    .then(() => getItem(item.id))
+    .then(() => (genericFindById(Model))(item.id))
     .catch((err) => { throw err })
 }

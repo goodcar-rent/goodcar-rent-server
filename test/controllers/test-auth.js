@@ -9,6 +9,7 @@ import {
   expected,
   createAdminUser,
   loginAs,
+  logout,
   createUser,
   inviteCreate,
   UserAdmin,
@@ -219,6 +220,18 @@ describe('(controller) auth:', () => {
         .catch(err => done(err))
     })
   })
+
+  describe('logout method:', () => {
+    it('should logout ok after proper login', function (done) {
+      createAdminUser(context)
+        .then(() => loginAs(context, UserAdmin, expected.Ok))
+        .then(() => logout(context, expected.Ok))
+        .then(() => done())
+        .catch(err => done(err))
+    })
+
+  })
+
   describe('signup method:', () => {
     it('should fail second sign up if INVITE_ONLY', function (done) {
       // console.log(UserFirst)

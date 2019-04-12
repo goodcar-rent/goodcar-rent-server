@@ -20,7 +20,18 @@ export default module.exports = (app) => {
         .then(() => app.models.Invite.clearData())
         .then(() => app.models.UserGroup.clearData())
         .then(() => app.models.Login.clearData())
-        .catch((err) => { throw err })
+        .catch((err) => { throw err }),
+    initData: () =>
+      models.User.initData()
+        .then(() => models.Invite.initData())
+        .then(() => models.Login.initData())
+        .then(() => models.UserGroup.initData()),
+    initPermissions: () =>
+      Promise.resolve(app.auth.AddGroupPermission(
+        models.UserGroup.systemGroupLoggedIn(),
+        'me',
+        'read',
+        app.consts.kindAllow))
   }
   models.User.name = 'User'
   models.Invite.name = 'Invite'
@@ -29,22 +40,13 @@ export default module.exports = (app) => {
 
   app.modelsInit = () =>
     app.storage.initStorage(app)
-      .then(() => models.User.initData())
-      .then(() => models.Invite.initData())
-      .then(() => models.Login.initData())
-      .then(() => models.UserGroup.initData())
+      .then(() => app.models.initData())
       .then(() => {
         if (process.env.START_FRESH) {
           return models.UserGroup.createSystemData()
         }
       })
-      .then(() => {
-        app.auth.AddGroupPermission(
-          models.UserGroup.systemGroupLoggedIn(),
-          'me',
-          'read',
-          app.consts.kindAllow)
-      })
+      .then(() => app.models.initPermissions())
       .then(() => { return app })
       .catch((err) => { throw err })
 

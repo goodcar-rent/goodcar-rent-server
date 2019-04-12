@@ -78,7 +78,7 @@ export default module.exports = (app) => {
         })
         .then((data) => {
           req.logOut()
-          res.status(204).send()
+          res.status(200).send()
           return Promise.resolve()
         })
         .catch((error) => {

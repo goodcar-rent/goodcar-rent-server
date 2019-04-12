@@ -226,6 +226,7 @@ export default module.exports = (app) => {
         .then(() => app.models.Invite.clearData())
         .then(() => app.models.Login.clearData())
         .then(() => app.models.User.clearData())
+        .then(() => app.models.initPermissions())
         // .then((values) => {
         //   console.log('all groups:')
         //   console.log(values)
