@@ -42,11 +42,6 @@ const Model = {
       name: 'ip',
       type: 'text',
       default: null
-    },
-    {
-      name: 'disabled',
-      type: 'boolean',
-      default: false
     }
   ]
 }

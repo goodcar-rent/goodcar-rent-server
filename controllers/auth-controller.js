@@ -55,10 +55,32 @@ export default module.exports = (app) => {
         })
     },
 
-    logout: (reg, res) => {
-      // remove current user from logged-in group
-      // disable current login (delete?)
-      // destroy current session
+    logout: (req, res) => {
+      const { UserGroup, Login } = app.models
+
+      Login.findById(req.user.loginId)
+        .then((login) => {
+          if (!login) {
+            return Promise.reject(new ServerNotAllowed('Login not found'))
+          }
+
+          // destroy current session
+          // remove current user from logged-in group
+          return Promise.all([
+            Login.delete(login.id),
+            UserGroup.removeUser(UserGroup.systemGroupLoggedIn(), login.userId)
+          ])
+        })
+        .then((data) => res.status(204).send())
+        .catch((error) => {
+          // console.log('login: error')
+          // console.log(error)
+          if (error instanceof ServerError) {
+            throw error
+          } else {
+            throw new ServerGenericError(error)
+          }
+        })
     },
 
     signup: (req, res) => {
