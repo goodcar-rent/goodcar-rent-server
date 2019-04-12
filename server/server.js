@@ -18,11 +18,11 @@ const debug = Debug('goodcar-rent-server:server')
 env.config()
 
 let app = {}
+const port = normalizePort(process.env.PORT || '3000')
 
 App(env)
   .then(_app => {
     app = _app
-    const port = normalizePort(process.env.PORT || '3000')
     app.set('port', port)
     app.serverPort = port
     app.serverAddress = `http://localhost:${app.serverPort}`

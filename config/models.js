@@ -33,7 +33,11 @@ export default module.exports = (app) => {
       .then(() => models.Invite.initData())
       .then(() => models.Login.initData())
       .then(() => models.UserGroup.initData())
-      // .then(() => models.UserGroup.createSystemData())
+      .then(() => {
+        if (process.env.START_FRESH) {
+          return models.UserGroup.createSystemData()
+        }
+      })
       .then(() => {
         app.auth.AddGroupPermission(
           models.UserGroup.systemGroupLoggedIn(),

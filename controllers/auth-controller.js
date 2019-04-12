@@ -56,10 +56,15 @@ export default module.exports = (app) => {
     },
 
     logout: (req, res) => {
-      const { UserGroup, Login } = app.models
+      // console.log('Auth.Logout')
+      if (!req || !req.user || !req.user.loginId) {
+        return Promise.reject(new ServerNotAllowed('User session not found'))
+      }
 
-      Login.findById(req.user.loginId)
+      // console.log(`finding login id=${req.user.loginId}`)
+      return Login.findById(req.user.loginId)
         .then((login) => {
+          // console.log(`Login found: ${login}`)
           if (!login) {
             return Promise.reject(new ServerNotAllowed('Login not found'))
           }
@@ -71,7 +76,11 @@ export default module.exports = (app) => {
             UserGroup.removeUser(UserGroup.systemGroupLoggedIn(), login.userId)
           ])
         })
-        .then((data) => res.status(204).send())
+        .then((data) => {
+          req.logOut()
+          res.status(204).send()
+          return Promise.resolve()
+        })
         .catch((error) => {
           // console.log('login: error')
           // console.log(error)
