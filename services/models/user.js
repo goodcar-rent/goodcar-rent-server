@@ -11,7 +11,7 @@ import {
   genericCreate,
   genericUpdate,
   genericDeleteAll
-} from './generic-knex'
+} from '../model-storage-knex/generic-knex'
 
 /* User:
   * id: user identifier, UUID

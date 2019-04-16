@@ -7,7 +7,7 @@ import {
   genericFindById,
   genericFindOne,
   genericInit, genericUpdate
-} from './generic-knex'
+} from '../model-storage-knex/generic-knex'
 
 /* Invite:
   * id : uuid
