@@ -1,4 +1,5 @@
 import sqlite from 'sqlite'
+import knexSqlite from '../services/storages/storage-knex-sqlite'
 
 /* Storage service:
   Mount point - app.storage
@@ -42,6 +43,9 @@ export default module.exports = (app) => {
           .catch((err) => { throw err })
       }
       break
+    case 'knex-sqlite':
+      app.storage.driver = knexSqlite(app)
+
   }
 
   app.storage.modelPath = ModelPath

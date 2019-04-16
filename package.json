@@ -1,6 +1,6 @@
 {
   "name": "goodcar-rent-server",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
     "start": "cross-env DEBUG='goodcar-rent-server:*' npx babel-node $NODE_DEBUG_OPTION ./server/server.js",
@@ -19,6 +19,7 @@
     "express-validator": "^5.3.1",
     "http-errors": "~1.6.2",
     "jwt-simple": "^0.5.5",
+    "knex": "^0.16.5",
     "lodash": "^4.17.11",
     "marked": "^0.5.2",
     "morgan": "^1.9.1",
