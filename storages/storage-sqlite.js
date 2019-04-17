@@ -8,7 +8,7 @@ export default (app) => {
     name: 'Undefined',
     storageLocation: 'Undefined',
 
-    initStorage: () => {
+    init: () => {
       return Promise.resolve()
         .then(() => sqlite.open(this.storageLocation, { Promise }))
         .then((db) => {

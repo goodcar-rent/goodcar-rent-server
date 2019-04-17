@@ -29,20 +29,19 @@ export default module.exports = (app) => {
         models.UserGroup.systemGroupLoggedIn(),
         'me',
         'read',
-        app.consts.kindAllow))
+        app.consts.kindAllow)),
+    init: () =>
+      app.storage.init()
+        .then(() => app.models.initData())
+        .then(() => {
+          if (process.env.START_FRESH) {
+            return models.UserGroup.createSystemData()
+          }
+        })
+        .then(() => app.models.initPermissions())
+        .then(() => { return app })
+        .catch((err) => { throw err })
   }
-
-  app.modelsInit = () =>
-    app.storage.initStorage()
-      .then(() => app.models.initData())
-      .then(() => {
-        if (process.env.START_FRESH) {
-          return models.UserGroup.createSystemData()
-        }
-      })
-      .then(() => app.models.initPermissions())
-      .then(() => { return app })
-      .catch((err) => { throw err })
 
   return models
 }
