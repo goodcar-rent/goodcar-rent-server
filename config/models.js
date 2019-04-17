@@ -1,14 +1,12 @@
 import Storage from './storage'
+import User from '../models/user'
+import Invite from '../models/invite'
+import UserGroup from '../models/user-group'
+import Login from '../models/login'
 
 export default module.exports = (app) => {
   // init storage via storage service
   Storage(app)
-
-  const ModelPath = app.storage.modelPath
-  const User = require(`${ModelPath}/user`)
-  const Invite = require(`${ModelPath}/invite`)
-  const UserGroup = require(`${ModelPath}/user-group`)
-  const Login = require(`${ModelPath}/login`)
 
   const models = {
     User: User(app),

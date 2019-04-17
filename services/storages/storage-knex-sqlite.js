@@ -1,10 +1,10 @@
 import SQL from 'sql-template-strings/index'
 import _ from 'lodash'
 
-export default (app, Model) => {
-  return {
+export default (app) => {
+  const StorageDriver = {
     // apply defaults to item
-    processDefaults: (item) => {
+    processDefaults: (Model) => (item) => {
       // console.log(`processDefaults(${Model.name}, ${JSON.stringify(item)})\n`)
       const aItem = _.merge({}, item)
 
@@ -23,7 +23,7 @@ export default (app, Model) => {
     },
 
     // transform some item using rules from Model:l
-    processGetProps: (item) => {
+    processGetProps: (Model) => (item) => {
       // console.log(`\nprocessGetProps(${Model.name}, ${JSON.stringify(item)}\n`)
       // if item is not defined, return null
       if (!item) {
@@ -57,7 +57,7 @@ export default (app, Model) => {
       return aItem
     },
 
-    init: (id) => {
+    init: (Model) => (id) => {
       const query = SQL`CREATE TABLE IF NOT EXISTS `
         .append(Model.name)
 
@@ -114,7 +114,7 @@ export default (app, Model) => {
       // })
     },
 
-    findById: (id) => {
+    findById: (Model) => (id) => {
       const query = SQL`SELECT * FROM `
         .append(Model.name)
         .append(SQL` WHERE id=${id};`)
@@ -136,7 +136,7 @@ export default (app, Model) => {
         .catch((err) => { throw err })
     },
 
-    findOne: (opt) => {
+    findOne: (Model) => (opt) => {
       const aKeys = Object.keys(opt.where)
       const aValues = Object.values(opt.where)
 
@@ -153,7 +153,7 @@ export default (app, Model) => {
         .catch((err) => { throw err })
     },
 
-    findAll: (opt) => {
+    findAll: (Model) => (opt) => {
       // console.log('findAll - opt')
       // console.log(opt)
       let aKeys = []
@@ -179,14 +179,14 @@ export default (app, Model) => {
         .catch((err) => { throw err })
     },
 
-    count: () => {
+    count: (Model) => () => {
       const query = SQL`SELECT count(*) FROM `.append(Model.name)
       return Model.app.storage.db.get(query)
         .then((res) => Object.values(res)[0])
         .catch((err) => { throw err })
     },
 
-    removeById: (id) => {
+    removeById: (Model) => (id) => {
       const query = SQL`SELECT * FROM `.append(Model.name).append(SQL` WHERE id=${id}`)
       return Model.app.storage.db.get(query)
         .then((res) => {
@@ -202,7 +202,7 @@ export default (app, Model) => {
         .catch((err) => { throw err })
     },
 
-    removeAll: (opt) => {
+    removeAll: (Model) => (opt) => {
       return this.findAll(opt)
         .then((res) => {
           if (res) {
@@ -213,9 +213,9 @@ export default (app, Model) => {
         .catch((err) => { throw err })
     },
 
-    clearData: () => Model.app.storage.db.run(SQL`DELETE FROM `.append(Model.name)),
+    clearData: (Model) => () => Model.app.storage.db.run(SQL`DELETE FROM `.append(Model.name)),
 
-    create: (item) => {
+    create: (Model) => (item) => {
       // process props with hooks (default value / beforeSet
       // console.log(`--\n${Model.name}.genericCreate(${JSON.stringify(item)})\n`)
       let aNames = ''
@@ -270,7 +270,7 @@ export default (app, Model) => {
         })
     },
 
-    update: (item) => {
+    update: (Model) => (item) => {
       if (!item.id) {
         return Promise.reject(new Error(`${Model.name}.genericUpdate: item.id should have proper value`))
       }
@@ -307,4 +307,5 @@ export default (app, Model) => {
         .catch((err) => { throw err })
     }
   }
+  return StorageDriver
 }
