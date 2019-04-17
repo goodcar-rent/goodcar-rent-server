@@ -1,15 +1,29 @@
 import SQL from 'sql-template-strings/index'
 import _ from 'lodash'
+import sqlite from 'sqlite'
 
 export default (app) => {
-  const StorageDriver = {
-    // apply defaults to item
-    processDefaults: (Model) => (item) => {
+  return {
+    props: {},
+    name: 'Undefined',
+    storageLocation: 'Undefined',
+
+    initStorage: () => {
+      return Promise.resolve()
+        .then(() => sqlite.open(this.storageLocation, { Promise }))
+        .then((db) => {
+          app.storage.db = db
+          return app
+        })
+        .catch((err) => { throw err })
+    },
+
+    processDefaults: (item) => {
       // console.log(`processDefaults(${Model.name}, ${JSON.stringify(item)})\n`)
       const aItem = _.merge({}, item)
 
       // process all default props if they are not defined in item:
-      Model.props.map((prop) => {
+      this.props.map((prop) => {
         if (prop.default && !item[prop.name]) {
           if (typeof prop.default === 'function') {
             aItem[prop.name] = prop.default(aItem)
@@ -23,7 +37,7 @@ export default (app) => {
     },
 
     // transform some item using rules from Model:l
-    processGetProps: (Model) => (item) => {
+    processGetProps: (item) => {
       // console.log(`\nprocessGetProps(${Model.name}, ${JSON.stringify(item)}\n`)
       // if item is not defined, return null
       if (!item) {
@@ -31,11 +45,12 @@ export default (app) => {
       }
 
       const aItem = this.processDefaults(item)
+
       const aKeys = Object.keys(aItem)
       aKeys.map((key) => {
-        const prop = _.find(Model.props, { name: key })
+        const prop = _.find(this.props, { name: key })
         if (!prop) {
-          throw new Error(`${Model.name}.processGetProps: Model "${Model.name}" does not have definition for property "${key}"`)
+          throw new Error(`${this.name}.processGetProps: Model "${this.name}" does not have definition for property "${key}"`)
         }
         aItem[key] = item[key]
         if (item[key] && prop.type === 'boolean') {
@@ -120,18 +135,12 @@ export default (app) => {
         .append(SQL` WHERE id=${id};`)
 
       if (!Model || !Model.app || !Model.app.storage || !Model.app.storage.db) {
-        return Promise.reject(
-          new Error(`${Model.name}.genericFindById: some Model's properties 
-            are invalid: 
-            Model ${Model}, 
-            .app ${Model.app} 
-            .storage${Model.app.storage} 
-            .db ${Model.app.storage.db}`))
+        return Promise.reject(new Error(`${Model.name}.genericFindById: some Model's properties are invalid: Model ${Model}, .app ${Model.app} .storage${Model.app.storage} .db ${Model.app.storage.db}`))
       }
       return Model.app.storage.db.get(query)
         .then((res) => {
           if (!res) return res
-          return this.processGetProps(Model, res)
+          return this.processGetProps(this, res)
         })
         .catch((err) => { throw err })
     },
@@ -141,6 +150,7 @@ export default (app) => {
       const aValues = Object.values(opt.where)
 
       const query = SQL`SELECT * FROM `.append(Model.name)
+
       let delim = ' WHERE '
       aKeys.map((key, ndx) => {
         query.append(delim)
@@ -148,8 +158,9 @@ export default (app) => {
         query.append(key).append(SQL`=${aValues[ndx]}`)
       })
       query.append(';')
+
       return Model.app.storage.db.get(query)
-        .then((res) => this.processGetProps(Model, res))
+        .then((res) => this.processGetProps(this, res))
         .catch((err) => { throw err })
     },
 
@@ -162,7 +173,9 @@ export default (app) => {
         aKeys = Object.keys(opt.where)
         aValues = Object.values(opt.where)
       }
+
       const query = SQL`SELECT * FROM `.append(Model.name)
+
       let delim = ' WHERE '
       aKeys.map((key, ndx) => {
         query.append(delim)
@@ -170,11 +183,12 @@ export default (app) => {
         query.append(key).append(SQL`=${aValues[ndx]}`)
       })
       query.append(';')
+
       return Model.app.storage.db.all(query)
         .then((res) => {
           // console.log('all:')
           // console.log(res)
-          return res.map((item) => this.processGetProps(Model, item))
+          return res.map((item) => this.processGetProps(item))
         })
         .catch((err) => { throw err })
     },
@@ -220,6 +234,7 @@ export default (app) => {
       // console.log(`--\n${Model.name}.genericCreate(${JSON.stringify(item)})\n`)
       let aNames = ''
       let delim = '('
+
       const aItem = this.processDefaults(item)
       const aKeys = Object.keys(aItem)
       aKeys.map((key) => {
@@ -228,13 +243,16 @@ export default (app) => {
         if (!prop) {
           throw new Error(`${Model.name}.genericCreate: property "${key}" is not defined in model`)
         }
+
         if (prop.beforeSet && (typeof prop.beforeSet === 'function')) {
           aItem[key] = prop.beforeSet(aItem)
         }
+
         // replace boolean values with number:
         if (prop.type === 'boolean') {
           aItem[key] = item[key] ? 1 : 0
         }
+
         // replace refs array with string representation
         if (prop.type === 'refs') {
           if (!item[key] || item[key] === []) {
@@ -243,12 +261,14 @@ export default (app) => {
             aItem[key] = item[key].join(',')
           }
         }
+
         aNames = aNames + delim + prop.name
         delim = ','
       })
       if (aNames.length > 0) {
         aNames = aNames + ')'
       }
+
       // build query:
       const query = SQL`INSERT INTO `.append(Model.name).append(aNames).append(' VALUES (')
       delim = ''
@@ -257,6 +277,7 @@ export default (app) => {
         delim = ','
       })
       query.append(');')
+
       // console.log(`\nQuery prepared:\nSQL:${JSON.stringify(query.sql)}\nValues:${JSON.stringify(query.values)}`)
       return Model.app.storage.db.run(query)
         .then(() => this.findById(aItem.id))
@@ -274,12 +295,14 @@ export default (app) => {
       if (!item.id) {
         return Promise.reject(new Error(`${Model.name}.genericUpdate: item.id should have proper value`))
       }
+
       const aKeys = Object.keys(item)
       const aItem = this.processDefaults(item)
       const aId = _.find(Model.props, { type: 'id' })
       // process all item's props
       aKeys.map((key) => {
         aItem[key] = item[key]
+
         // exec beforeSet hook:
         const aProp = _.find(Model.props, { name: key })
         if (aProp && aProp.beforeSet && (typeof aProp.beforeSet === 'function')) {
@@ -289,23 +312,26 @@ export default (app) => {
         if (item[key] && aProp.type === 'boolean') {
           aItem[key] = item[key] ? 1 : 0
         }
+
         // process refs:
         if (item[key] && aProp.type === 'refs') {
           aItem[key] = item[key].join(',')
         }
       })
+
       // process all props in item:
       const query = SQL`UPDATE `.append(Model.name).append(SQL` SET `)
       let delim = ''
+
       aKeys.map((key) => {
         query.append(delim).append(key).append(SQL`=${aItem[key]}`)
         delim = ','
       })
       query.append(SQL` WHERE `.append(aId.name).append(SQL` = ${item.id}`))
+
       return Model.app.storage.db.run(query)
-        .then(() => (this.findById(item.id)))
+        .then(() => (this.findById(Model))(item.id))
         .catch((err) => { throw err })
     }
   }
-  return StorageDriver
 }

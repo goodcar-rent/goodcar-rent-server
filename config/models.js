@@ -6,7 +6,7 @@ import Login from '../models/login'
 
 export default module.exports = (app) => {
   // init storage via storage service
-  Storage(app)
+  app.storage = Storage(app)
 
   const models = {
     User: User(app),
@@ -37,7 +37,7 @@ export default module.exports = (app) => {
   models.Login.name = 'Login'
 
   app.modelsInit = () =>
-    app.storage.initStorage(app)
+    app.storage.initStorage()
       .then(() => app.models.initData())
       .then(() => {
         if (process.env.START_FRESH) {
