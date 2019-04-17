@@ -31,10 +31,6 @@ export default module.exports = (app) => {
         'read',
         app.consts.kindAllow))
   }
-  models.User.name = 'User'
-  models.Invite.name = 'Invite'
-  models.UserGroup.name = 'UserGroup'
-  models.Login.name = 'Login'
 
   app.modelsInit = () =>
     app.storage.initStorage()
