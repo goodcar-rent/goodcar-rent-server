@@ -8,9 +8,9 @@ export default (app) => {
     name: 'Undefined',
     storageLocation: 'Undefined',
 
-    init: () => {
+    initStorage: () => {
       return Promise.resolve()
-        .then(() => sqlite.open(this.storageLocation, { Promise }))
+        .then(() => sqlite.open(app.storage.storageLocation, { Promise }))
         .then((db) => {
           app.storage.db = db
           return app
@@ -18,12 +18,12 @@ export default (app) => {
         .catch((err) => { throw err })
     },
 
-    processDefaults: (item) => {
+    processDefaults: (Model) => (item) => {
       // console.log(`processDefaults(${Model.name}, ${JSON.stringify(item)})\n`)
       const aItem = _.merge({}, item)
 
       // process all default props if they are not defined in item:
-      this.props.map((prop) => {
+      Model.props.map((prop) => {
         if (prop.default && !item[prop.name]) {
           if (typeof prop.default === 'function') {
             aItem[prop.name] = prop.default(aItem)
@@ -37,20 +37,20 @@ export default (app) => {
     },
 
     // transform some item using rules from Model:l
-    processGetProps: (item) => {
+    processGetProps: (Model) => (item) => {
       // console.log(`\nprocessGetProps(${Model.name}, ${JSON.stringify(item)}\n`)
       // if item is not defined, return null
       if (!item) {
         return item
       }
 
-      const aItem = this.processDefaults(item)
+      const aItem = Model.processDefaults(item)
 
       const aKeys = Object.keys(aItem)
       aKeys.map((key) => {
-        const prop = _.find(this.props, { name: key })
+        const prop = _.find(Model.props, { name: key })
         if (!prop) {
-          throw new Error(`${this.name}.processGetProps: Model "${this.name}" does not have definition for property "${key}"`)
+          throw new Error(`${Model.name}.processGetProps: Model "${Model.name}" does not have definition for property "${key}"`)
         }
         aItem[key] = item[key]
         if (item[key] && prop.type === 'boolean') {
@@ -140,7 +140,7 @@ export default (app) => {
       return Model.app.storage.db.get(query)
         .then((res) => {
           if (!res) return res
-          return this.processGetProps(this, res)
+          return Model.processGetProps(res)
         })
         .catch((err) => { throw err })
     },
@@ -160,7 +160,7 @@ export default (app) => {
       query.append(';')
 
       return Model.app.storage.db.get(query)
-        .then((res) => this.processGetProps(this, res))
+        .then((res) => Model.processGetProps(res))
         .catch((err) => { throw err })
     },
 
@@ -188,7 +188,7 @@ export default (app) => {
         .then((res) => {
           // console.log('all:')
           // console.log(res)
-          return res.map((item) => this.processGetProps(item))
+          return res.map((item) => Model.processGetProps(item))
         })
         .catch((err) => { throw err })
     },
@@ -217,10 +217,10 @@ export default (app) => {
     },
 
     removeAll: (Model) => (opt) => {
-      return this.findAll(opt)
+      return Model.findAll(opt)
         .then((res) => {
           if (res) {
-            return Promise.all(res.map((item) => this.removeById(item.id)))
+            return Promise.all(res.map((item) => Model.removeById(item.id)))
           }
           return null
         })
@@ -235,7 +235,7 @@ export default (app) => {
       let aNames = ''
       let delim = '('
 
-      const aItem = this.processDefaults(item)
+      const aItem = Model.processDefaults(item)
       const aKeys = Object.keys(aItem)
       aKeys.map((key) => {
         // copy property to proxy object
@@ -280,7 +280,7 @@ export default (app) => {
 
       // console.log(`\nQuery prepared:\nSQL:${JSON.stringify(query.sql)}\nValues:${JSON.stringify(query.values)}`)
       return Model.app.storage.db.run(query)
-        .then(() => this.findById(aItem.id))
+        .then(() => Model.findById(aItem.id))
         .then((res) => {
           // console.log(`created item: ${JSON.stringify(res)}`)
           return res
@@ -297,7 +297,7 @@ export default (app) => {
       }
 
       const aKeys = Object.keys(item)
-      const aItem = this.processDefaults(item)
+      const aItem = Model.processDefaults(item)
       const aId = _.find(Model.props, { type: 'id' })
       // process all item's props
       aKeys.map((key) => {
@@ -330,7 +330,7 @@ export default (app) => {
       query.append(SQL` WHERE `.append(aId.name).append(SQL` = ${item.id}`))
 
       return Model.app.storage.db.run(query)
-        .then(() => (this.findById(Model))(item.id))
+        .then(() => Model.findById(item.id))
         .catch((err) => { throw err })
     }
   }

@@ -130,9 +130,9 @@ describe('[service] login:', () => {
     })
   })
 
-  describe('delete method', () => {
+  describe('removeById method', () => {
     it('should delete items', (done) => {
-      Login.delete('2')
+      Login.removeById('2')
         .then(() => Login.count())
         .then((res) => {
           expect(res).to.exist('res should exist')
@@ -146,9 +146,9 @@ describe('[service] login:', () => {
     })
   })
 
-  describe('deleteAll method', () => {
+  describe('removeAll method', () => {
     it('should delete all specified items', (done) => {
-      Login.deleteAll({ where: { userId: '2' } })
+      Login.removeAll({ where: { userId: '2' } })
         .then(() => Login.count())
         .then((res) => {
           expect(res).to.exist('res should exist')

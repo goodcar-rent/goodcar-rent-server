@@ -72,7 +72,7 @@ export default module.exports = (app) => {
           // destroy current session
           // remove current user from logged-in group
           return Promise.all([
-            Login.delete(login.id),
+            Login.removeById(login.id),
             UserGroup.removeUser(UserGroup.systemGroupLoggedIn(), login.userId)
           ])
         })

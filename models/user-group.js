@@ -183,7 +183,7 @@ export default module.exports = (app) => {
     },
     addUserGroupsForUser: (userId, userGroups) => {
       // console.log(`addUserGroupsForUser: ( ${userId}, ${userGroups})`)
-      return Promise.all(userGroups.map((item) => aModel.addUser(item, userId)))
+      return Promise.all(userGroups.map((item) => Model.addUser(item, userId)))
     },
     createSystemData: () => {
       // console.log('createSystemData')

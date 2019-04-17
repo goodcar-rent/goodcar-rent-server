@@ -64,7 +64,7 @@ export const genericSave = (Model) => (req, res) => {
 }
 
 export const genericDelete = (Model) => (req, res) =>
-  Model.delete(req.params.id)
+  Model.removeById(req.params.id)
     .then((foundData) => {
       if (foundData) {
         res.json(foundData)

@@ -31,7 +31,7 @@ export default module.exports = (app) => {
         'read',
         app.consts.kindAllow)),
     init: () =>
-      app.storage.init()
+      app.storage.initStorage()
         .then(() => app.models.initData())
         .then(() => {
           if (process.env.START_FRESH) {
