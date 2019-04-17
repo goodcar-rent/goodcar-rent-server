@@ -3,18 +3,6 @@ import uuid from 'uuid/v4'
 
 import dataUserGroupSystem from '../data/user-group-system'
 import dataUserGroup from '../data/user-group'
-import {
-  genericInit,
-  genericFindById,
-  genericFindOne,
-  genericFindAll,
-  genericCount,
-  genericDelete,
-  genericClearData,
-  genericCreate,
-  genericUpdate,
-  genericDeleteAll
-} from '../model-storage-knex/generic-knex'
 
 /*
 
@@ -33,39 +21,38 @@ import {
 * LoggedIn: Authenticated users (any - admin, other users)
 
 */
-const systemTypeNone = null
-
-const systemTypeAdmin = 'Admin'
-const systemTypeGuest = 'Guest'
-const systemTypeLoggedIn = 'LoggedIn'
-
-const Model = {
-  name: 'UserGroup',
-  props: [
-    {
-      name: 'id',
-      type: 'id',
-      default: () => uuid()
-    },
-    {
-      name: 'name',
-      type: 'text',
-      default: null
-    },
-    {
-      name: 'systemType',
-      type: 'text',
-      default: systemTypeNone
-    },
-    {
-      name: 'users',
-      type: 'refs',
-      default: []
-    }
-  ]
-}
 
 export default module.exports = (app) => {
+  const systemTypeNone = null
+  const systemTypeAdmin = 'Admin'
+  const systemTypeGuest = 'Guest'
+  const systemTypeLoggedIn = 'LoggedIn'
+
+  const Model = {
+    name: 'UserGroup',
+    props: [
+      {
+        name: 'id',
+        type: 'id',
+        default: () => uuid()
+      },
+      {
+        name: 'name',
+        type: 'text',
+        default: null
+      },
+      {
+        name: 'systemType',
+        type: 'text',
+        default: systemTypeNone
+      },
+      {
+        name: 'users',
+        type: 'refs',
+        default: []
+      }
+    ]
+  }
   let _systemGroupAdmin = null
   let _systemGroupGuest = null
   let _systemGroupLoggedIn = null
@@ -80,24 +67,26 @@ export default module.exports = (app) => {
   app.consts.systemTypeLoggedIn = systemTypeLoggedIn
 
   Model.app = app
-  const aModel = {
-    initData: genericInit(Model),
-    clearData: genericClearData(Model),
-    findById: genericFindById(Model),
-    findOne: genericFindOne(Model),
-    findAll: genericFindAll(Model),
-    count: genericCount(Model),
-    delete: genericDelete(Model),
-    deleteAll: genericDeleteAll(Model),
-    create: genericCreate(Model),
-    update: genericUpdate(Model),
+  return _.merge(Model, {
+    processDefaults: app.storage.processDefaults(Model),
+    processGetProps: app.storage.processGetProps(Model),
+    initData: app.storage.init(Model),
+    clearData: app.storage.clearData(Model),
+    findById: app.storage.findById(Model),
+    findOne: app.storage.findOne(Model),
+    findAll: app.storage.findAll(Model),
+    count: app.storage.count(Model),
+    removeById: app.storage.removeById(Model),
+    removeAll: app.storage.removeAll(Model),
+    create: app.storage.create(Model),
+    update: app.storage.update(Model),
 
     systemGroupAdmin: () => _systemGroupAdmin,
     systemGroupGuest: () => _systemGroupGuest,
     systemGroupLoggedIn: () => _systemGroupLoggedIn,
 
     findGroupsForUser: (userId) => {
-      return aModel.findAll()
+      return Model.findAll()
         .then((groups) => {
           const userGroups = []
           groups.map((group) => {
@@ -116,7 +105,7 @@ export default module.exports = (app) => {
       }
 
       // console.log(`UserGroup.isUserInGroup(${groupId},${userId})`)
-      return aModel.findById(groupId)
+      return Model.findById(groupId)
         .then((group) => {
           // console.log(`found group:`)
           // console.log(group)
@@ -128,51 +117,51 @@ export default module.exports = (app) => {
         .catch((err) => { throw err })
     },
     addUser: (groupId, userId) => {
-      return aModel.findById(groupId)
+      return Model.findById(groupId)
         .then((group) => {
           if (!group) {
             throw new Error(`addUser: group ${groupId} not found`)
           }
           group.users = _.union(group.users, [userId])
-          return aModel.update(group)
+          return Model.update(group)
         })
         .catch((err) => { throw err })
     },
     removeUser: (groupId, userId) => {
-      return aModel.findById(groupId)
+      return Model.findById(groupId)
         .then((group) => {
           if (!group) {
             throw new Error(`removeUser: group ${groupId} not found`)
           }
           _.pull(group.users, userId)
-          return aModel.update(group)
+          return Model.update(group)
         })
         .catch((err) => { throw err })
     },
     usersAdd: (groupId, users) => {
-      return aModel.findById(groupId)
+      return Model.findById(groupId)
         .then((group) => {
           if (!group) {
             throw new Error(`usersAdd: group ${groupId} not found`)
           }
           group.users = _.union(group.users, users)
-          return aModel.update(group)
+          return Model.update(group)
         })
         .catch((err) => { throw err })
     },
     usersRemove: (groupId, users) => {
-      return aModel.findById(groupId)
+      return Model.findById(groupId)
         .then((group) => {
           if (!group) {
             throw new Error(`usersRemove: group ${groupId} not found`)
           }
           _.pullAll(group.users, users)
-          return aModel.update(group)
+          return Model.update(group)
         })
         .catch((err) => { throw err })
     },
     usersList: (groupId) => {
-      return aModel.findById(groupId)
+      return Model.findById(groupId)
         .then((group) => {
           if (!group) {
             throw new Error(`usersList: group ${groupId} not found`)
@@ -189,7 +178,7 @@ export default module.exports = (app) => {
       // console.log('createSystemData')
       // console.log(aModel)
       // console.log(aModel.clearData.toString())
-      return aModel.clearData()
+      return Model.clearData()
         // .then(() => aModel.findAll())
         // .then((res) => {
         //   console.log('findAll:')
@@ -203,7 +192,7 @@ export default module.exports = (app) => {
           const arr = dataUserGroupSystem.map((item) => {
             // console.log('adding item:')
             // console.log(item)
-            return aModel.create(item)
+            return Model.create(item)
               .then((newItem) => {
                 // console.log('newItem')
                 // console.log(newItem)
@@ -233,7 +222,6 @@ export default module.exports = (app) => {
         // })
         .catch((err) => { throw err })
     },
-    createData: () => Promise.all(dataUserGroup.map((item) => aModel.create(item)))
-  }
-  return aModel
+    createData: () => Promise.all(dataUserGroup.map((item) => Model.create(item)))
+  })
 }

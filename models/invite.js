@@ -1,13 +1,5 @@
 import _ from 'lodash'
 import uuid from 'uuid/v4'
-import {
-  genericClearData,
-  genericCount, genericCreate, genericDelete, genericDeleteAll,
-  genericFindAll,
-  genericFindById,
-  genericFindOne,
-  genericInit, genericUpdate
-} from '../model-storage-knex/generic-knex'
 
 /* Invite:
   * id : uuid
@@ -17,60 +9,61 @@ import {
   * email: invited to this email
   * assignUserGroups: [] array of user group Ids to assign for user created via this invite
 */
-const Model = {
-  name: 'Invite',
-  props: [
-    {
-      name: 'id',
-      type: 'id',
-      default: () => uuid()
-    },
-    {
-      name: 'expireAt',
-      type: 'datetime',
-      default: () => Date.now()
-    },
-    {
-      name: 'registeredUser',
-      type: 'ref',
-      default: null
-    },
-    {
-      name: 'createdBy',
-      type: 'ref',
-      default: null
-    },
-    {
-      name: 'disabled',
-      type: 'boolean',
-      default: false
-    },
-    {
-      name: 'email',
-      type: 'text',
-      default: null
-    },
-    {
-      name: 'assignUserGroups',
-      type: 'refs',
-      default: []
-    }
-  ]
-}
 
 export default module.exports = (app) => {
-  Model.app = app
-  const aModel = {
-    initData: genericInit(Model),
-    clearData: genericClearData(Model),
-    findById: genericFindById(Model),
-    findOne: genericFindOne(Model),
-    findAll: genericFindAll(Model),
-    count: genericCount(Model),
-    delete: genericDelete(Model),
-    deleteAll: genericDeleteAll(Model),
-    create: genericCreate(Model),
-    update: genericUpdate(Model)
+  const Model = {
+    name: 'Invite',
+    props: [
+      {
+        name: 'id',
+        type: 'id',
+        default: () => uuid()
+      },
+      {
+        name: 'expireAt',
+        type: 'datetime',
+        default: () => Date.now()
+      },
+      {
+        name: 'registeredUser',
+        type: 'ref',
+        default: null
+      },
+      {
+        name: 'createdBy',
+        type: 'ref',
+        default: null
+      },
+      {
+        name: 'disabled',
+        type: 'boolean',
+        default: false
+      },
+      {
+        name: 'email',
+        type: 'text',
+        default: null
+      },
+      {
+        name: 'assignUserGroups',
+        type: 'refs',
+        default: []
+      }
+    ]
   }
-  return aModel
+  Model.app = app
+  return _.merge(Model, {
+    processDefaults: app.storage.processDefaults(Model),
+    processGetProps: app.storage.processGetProps(Model),
+    initData: app.storage.init(Model),
+    clearData: app.storage.clearData(Model),
+    findById: app.storage.findById(Model),
+    findOne: app.storage.findOne(Model),
+    findAll: app.storage.findAll(Model),
+    count: app.storage.count(Model),
+    removeById: app.storage.removeById(Model),
+    removeAll: app.storage.removeAll(Model),
+    create: app.storage.create(Model),
+    update: app.storage.update(Model),
+  })
 }
