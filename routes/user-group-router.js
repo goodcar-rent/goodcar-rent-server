@@ -1,7 +1,6 @@
 import { body, param } from 'express-validator/check'
 import Controller from '../controllers/user-group-controller'
 import paramCheck from '../services/param-check'
-import { systemTypeAdmin, systemTypeGuest, systemTypeLoggedIn, systemTypeNone } from '../services/model-storage-memory/user-group'
 
 export default (app) => {
   const router = app.express.Router()
@@ -15,7 +14,11 @@ export default (app) => {
     .post(app.auth.ACL('user-group', 'write'),
       [
         body('name').isString().isLength({ min: 1 }).withMessage('Name property should be provided for group'),
-        body('systemType').optional().isIn([systemTypeAdmin, systemTypeGuest, systemTypeLoggedIn, systemTypeNone])
+        body('systemType').optional().isIn([
+          app.models.UserGroup.systemTypeAdmin,
+          app.models.UserGroup.systemTypeGuest,
+          app.models.UserGroup.systemTypeLoggedIn,
+          app.models.UserGroup.systemTypeNone])
           .withMessage('systemType should be specified with predefined values'),
         body('users').optional().isArray().withMessage('Users should be array of iDs')
       ], paramCheck,

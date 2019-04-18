@@ -31,6 +31,7 @@ App(env)
     server.listen(port)
     server.on('error', onError)
     server.on('listening', onListening)
+    server.on('close', onClose)
   })
   .catch((err) => { throw err })
 
@@ -95,4 +96,12 @@ function onListening () {
   const hostname = require('os').hostname()
   debug(`http://${hostname}:${addr.port.toString()}/`)
   app.serverAddress = `http://${hostname}:${addr.port.toString()}/`
+}
+
+function onClose () {
+  if (app.env.APP_STORAGE === 'knex-sqlite') {
+    app.storage.db.migrate.latest({})
+      .then(() => app.storage.db.destroy())
+      .catch(() => process.exit(1))
+  }
 }

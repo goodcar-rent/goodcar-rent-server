@@ -55,24 +55,20 @@ export default (env) => {
       app.use(cookieParser())
       app.use(express.static(path.join(__dirname, 'public')))
 
-      // configure models
-      if (!app.env.APP_STORAGE) {
-        app.env.APP_STORAGE = 'memory'
-      }
-
       app.wrap = wrap
       app.mail = mail
 
-      return app
-    })
-    .then((app) => {
+      // configure models
+      if (!app.env.APP_STORAGE) {
+        app.env.APP_STORAGE = 'sqlite'
+      }
       app.models = Models(app)
 
       // configure auth via passport
       app.auth = Auth(app)
       app.use(app.auth.initialize())
 
-      return app.modelsInit()
+      return app.models.init()
     })
     .then((app) => {
       // configure routes

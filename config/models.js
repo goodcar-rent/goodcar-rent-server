@@ -1,14 +1,12 @@
 import Storage from './storage'
+import User from '../models/user'
+import Invite from '../models/invite'
+import UserGroup from '../models/user-group'
+import Login from '../models/login'
 
 export default module.exports = (app) => {
   // init storage via storage service
-  Storage(app)
-
-  const ModelPath = app.storage.modelPath
-  const User = require(`${ModelPath}/user`)
-  const Invite = require(`${ModelPath}/invite`)
-  const UserGroup = require(`${ModelPath}/user-group`)
-  const Login = require(`${ModelPath}/login`)
+  app.storage = Storage(app)
 
   const models = {
     User: User(app),
@@ -31,24 +29,19 @@ export default module.exports = (app) => {
         models.UserGroup.systemGroupLoggedIn(),
         'me',
         'read',
-        app.consts.kindAllow))
+        app.consts.kindAllow)),
+    init: () =>
+      app.storage.initStorage()
+        .then(() => app.models.initData())
+        .then(() => {
+          if (process.env.START_FRESH) {
+            return models.UserGroup.createSystemData()
+          }
+        })
+        .then(() => app.models.initPermissions())
+        .then(() => { return app })
+        .catch((err) => { throw err })
   }
-  models.User.name = 'User'
-  models.Invite.name = 'Invite'
-  models.UserGroup.name = 'UserGroup'
-  models.Login.name = 'Login'
-
-  app.modelsInit = () =>
-    app.storage.initStorage(app)
-      .then(() => app.models.initData())
-      .then(() => {
-        if (process.env.START_FRESH) {
-          return models.UserGroup.createSystemData()
-        }
-      })
-      .then(() => app.models.initPermissions())
-      .then(() => { return app })
-      .catch((err) => { throw err })
 
   return models
 }

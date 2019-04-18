@@ -1,39 +1,24 @@
-import sqlite from 'sqlite'
+// import StorageKnexSqlite from '../storages/storage-Knex-sqlite'
+import StorageSqlite from '../storages/storage-sqlite'
+import KnexSqlite from '../storages/storage-knex-sqlite'
 
 export default module.exports = (app) => {
-  let ModelPath = '../services/model-storage-memory'
-
-  if (!app.storage) {
-    app.storage = {}
+  let storage = {}
+  console.log(`\nStorage engine : ${app.env.APP_STORAGE}\n`)
+  switch (app.env.APP_STORAGE) {
+    case 'sqlite':
+      storage = StorageSqlite(app)
+      storage.storageLocation = 'server/db.sqlite'
+      break
+    case 'sqlite-memory':
+      storage = StorageSqlite(app)
+      storage.storageLocation = ':memory:'
+      break
+    case 'knex-sqlite':
+      storage = KnexSqlite(app)
+      storage.storageLocation = 'server/db.sqlite'
+      break
   }
 
-  if (app.env.APP_STORAGE === 'memory') {
-    ModelPath = '../services/model-storage-memory'
-    app.storage.initStorage = (app) => Promise.resolve(true)
-  } else if (app.env.APP_STORAGE === 'sqlite') {
-    ModelPath = '../services/model-storage-sqlite'
-    app.storage.initStorage = (app) => {
-      return Promise.resolve()
-        .then(() => sqlite.open('server/db.sqlite', { Promise }))
-        .then((db) => {
-          app.storage.db = db
-          return app
-        })
-        .catch((err) => { throw err })
-    }
-  } else if (app.env.APP_STORAGE === 'sqlite-memory') {
-    ModelPath = '../services/model-storage-sqlite'
-    app.storage.initStorage = (app) => {
-      return Promise.resolve()
-        .then(() => sqlite.open(':memory:', { Promise }))
-        .then((db) => {
-          app.storage.db = db
-          return app
-        })
-        .catch((err) => { throw err })
-    }
-  }
-  app.storage.modelPath = ModelPath
-
-  return app
+  return storage
 }

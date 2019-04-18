@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-import { describe, it, beforeEach } from 'mocha'
+import { describe, it, beforeEach, before, after } from 'mocha'
 import supertest from 'supertest'
 import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
@@ -47,6 +47,12 @@ describe('(controller) auth:', () => {
       .catch((err) => {
         done(err)
       })
+  })
+
+  after((done) => {
+    app.storage.closeStorage()
+      .then(() => done())
+      .catch(done)
   })
 
   beforeEach(function (done) {
