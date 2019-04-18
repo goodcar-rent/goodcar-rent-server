@@ -17,6 +17,9 @@ export const processDefaults = (Model) => (item) => {
         aItem[prop.name] = prop.default
       }
     }
+    if (prop.type === 'id') {
+      Model.key = prop.name
+    }
   })
   // console.log(`processDefaults result:\n${JSON.stringify(aItem)}`)
   return aItem

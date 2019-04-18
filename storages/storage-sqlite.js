@@ -107,7 +107,7 @@ export default (app) => {
         delim = ' AND '
         query.append(key).append(SQL`=${aValues[ndx]}`)
       })
-      query.append(';')
+      query.append(' LIMIT 1;')
 
       return Model.app.storage.db.get(query)
         .then((res) => Model.processGetProps(res))
