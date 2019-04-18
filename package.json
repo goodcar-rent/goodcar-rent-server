@@ -5,6 +5,8 @@
   "scripts": {
     "start": "cross-env DEBUG='goodcar-rent-server:*' npx babel-node $NODE_DEBUG_OPTION ./server/server.js",
     "start-fresh": "rm server/db.sqlite && cross-env DEBUG='goodcar-rent-server:*' START_FRESH='yes' npx babel-node $NODE_DEBUG_OPTION ./server/server.js",
+    "start-knex": "cross-env DEBUG='goodcar-rent-server:*' APP_STORAGE='knex-sqlite' npx babel-node $NODE_DEBUG_OPTION ./server/server.js",
+    "start-fresh-knex": "rm server/db.sqlite && cross-env DEBUG='goodcar-rent-server:*' START_FRESH='yes' APP_STORAGE='knex-sqlite' npx babel-node $NODE_DEBUG_OPTION ./server/server.js",
     "test": "cross-env DEBUG='' NODE_ENV=test mocha $NODE_DEBUG_OPTION test/**/*.js"
   },
   "dependencies": {

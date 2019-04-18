@@ -22,6 +22,14 @@ export default (app) => {
         .catch((err) => { throw err })
     },
 
+    closeStorage: () => {
+      return app.storage.db.close()
+        .then(() => {
+          app.storage.db = null
+        })
+        .catch((err) => { throw err })
+    },
+
     init: (Model) => (id) => {
       const query = SQL`CREATE TABLE IF NOT EXISTS `
         .append(Model.name)

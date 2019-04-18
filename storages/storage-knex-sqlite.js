@@ -13,13 +13,18 @@ export default (app) => {
     processGetProps,
 
     initStorage: () => {
+      // console.log('KNEX driver')
+      let debug = false
+      if (process.env.NODE_ENV === 'test' || process.env.DEBUG) debug = false
       return Promise.resolve()
         .then(() => Knex(
           {
             client: 'sqlite3',
             connection: {
               filename: app.storage.storageLocation
-            }
+            },
+            useNullAsDefault: true,
+            debug
           }
         ))
         .then((db) => {
@@ -29,7 +34,18 @@ export default (app) => {
         .catch((err) => { throw err })
     },
 
+    closeStorage: () => {
+      console.log('KNEX - close')
+      return Promise.resolve()
+        .then(() => app.storage.db.migrate.latest())
+        .then(() => {
+          app.storage.db.destroy()
+          app.storage.db = null
+        })
+    },
+
     init: (Model) => (id) => {
+      // console.log(`${Model.name}.init`)
       if (!Model || !Model.app || !Model.app.storage || !Model.app.storage.db) {
         return Promise.reject(new Error(`${Model.name}.init: some Model's properties are invalid: 
           Model ${Model}, 
@@ -43,11 +59,11 @@ export default (app) => {
         .then((exists) => {
           if (exists) return
 
-          knex.schema.createTable(Model.name, (table) => {
+          return knex.schema.createTable(Model.name, (table) => {
             Model.props.map((prop) => {
               switch (prop.type) {
                 case 'id':
-                  table.increments(prop.name)
+                  table.string(prop.name, 36)
                   break
                 case 'email':
                   table.string(prop.name)
@@ -59,7 +75,7 @@ export default (app) => {
                   table.string(prop.name)
                   break
                 case 'ref':
-                  table.uuid(prop.name)
+                  table.string(prop.name, 36)
                   break
                 case 'refs':
                   table.string(prop.name,255)
@@ -88,10 +104,10 @@ export default (app) => {
       }
       const knex = app.storage.db
 
-      knex.select()
+      return knex.select()
         .from(Model.name)
         .where(Model.key, id)
-        .then((res) => Model.processGetProps(res))
+        .then((res) => Model.processGetProps(res[0]))
         .catch((err) => { throw err })
     },
 
@@ -105,11 +121,11 @@ export default (app) => {
       }
       const knex = app.storage.db
 
-      knex.select()
+      return knex.select()
         .from(Model.name)
         .where(opt ? opt.where : {})
         .limit(1)
-        .then((res) => Model.processGetProps(res))
+        .then((res) => Model.processGetProps(res[0]))
         .catch((err) => { throw err })
     },
 
@@ -123,10 +139,10 @@ export default (app) => {
       }
       const knex = app.storage.db
 
-      knex.select()
+      return knex.select()
         .from(Model.name)
         .where(opt ? opt.where : {})
-        .then((res) => Model.processGetProps(res))
+        .then((res) => res.map((item) => Model.processGetProps(item)))
         .catch((err) => { throw err })
     },
 
@@ -141,7 +157,11 @@ export default (app) => {
       const knex = app.storage.db
       return knex(Model.name)
         .count()
-        .then((res) => Object.values(res)[0])
+        .then((res) => {
+          if (!res) return 0
+          const count = res[0]
+          return ((Object.values(count))[0])
+        })
         .catch((err) => { throw err })
     },
 
@@ -154,17 +174,15 @@ export default (app) => {
           .db ${Model.app.storage.db}`))
       }
       const knex = app.storage.db
-      return knex(Model.name)
-        .select()
-        .where(Model.key, id)
+      return Model.findById(id)
         .then((res) => {
           if (!res) {
             throw new Error(`${Model.name}.removeById: record with id ${id} not found`)
           }
           return Promise.all([res, knex(Model.name).del().where(Model.key, id)])
         })
-        .then((values) => {
-          return values[0] // res
+        .then((res) => {
+          return res[0] // res
         })
         .catch((err) => { throw err })
     },
@@ -280,7 +298,7 @@ export default (app) => {
       })
 
       // process all props in item:
-      knex(Model.name)
+      return knex(Model.name)
         .where(Model.key, item.id)
         .update(aItem)
         .then(() => Model.findById(item.id))

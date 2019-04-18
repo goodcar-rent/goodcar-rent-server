@@ -44,6 +44,12 @@ describe('(controller) login:', function () {
       })
   })
 
+  after((done) => {
+    app.storage.closeStorage()
+      .then(() => done())
+      .catch(done)
+  })
+
   beforeEach(function (done) {
     app.models.clearData()
       .then(() => app.models.UserGroup.createSystemData())

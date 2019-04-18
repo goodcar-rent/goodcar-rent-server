@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, before } from 'mocha'
+import { describe, it, beforeEach, before, after } from 'mocha'
 import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
 import App from '../../app'
@@ -46,6 +46,12 @@ describe('[service] login:', () => {
       .catch((err) => {
         done(err)
       })
+  })
+
+  after((done) => {
+    app.storage.closeStorage()
+      .then(() => done())
+      .catch(done)
   })
 
   const data = [
