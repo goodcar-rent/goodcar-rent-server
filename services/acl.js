@@ -20,6 +20,7 @@ Check if any object permission is DENY: groups/user
 
 import _ from 'lodash'
 import { ServerNotAllowed } from '../config/errors'
+import AclStorage from './acl-storage-memory'
 
 const kindAllow = 'ALLOW'
 
@@ -40,7 +41,7 @@ ACL.Object:
 */
 
 export default module.exports = (app) => {
-  const aclObject = []
+  const aclStorage = AclStorage(app)
   const { UserGroup } = app.models
 
   if (!app.consts) {
@@ -51,11 +52,11 @@ export default module.exports = (app) => {
   app.consts.kindDeny = kindDeny
   app.consts.GuestUserId = GuestUserId
 
-  const FindOrAddObject = (objectId) => {
-    let aObject = _.find(aclObject, { id: objectId.toLowerCase() })
+  const FindOrAddObject = (id) => {
+    let aObject = aclStorage.findById(id)
     if (!aObject) {
-      aObject = { id: objectId.toLowerCase(), permissions: [] }
-      aclObject.push(aObject)
+      aObject = { id: id.toLowerCase(), permissions: [] }
+      aclStorage.add(aObject)
     }
     return aObject
   }
@@ -72,8 +73,8 @@ export default module.exports = (app) => {
   const CheckPermission = (userId, object, permission) => {
     let aKind = kindDeny
     // console.log(`CheckPermission( ${userId}, ${object}, ${permission})`)
-    // console.log('aclObject:')
-    // console.log(aclObject)
+    // console.log('aclStorage:')
+    // console.log(aclStorage)
     // check if user is admin, and have all permissions:
     const adminGroup = UserGroup.systemGroupAdmin()
     // console.log(`Admin group: ${adminGroup}`)
@@ -88,7 +89,7 @@ export default module.exports = (app) => {
         }
 
         // console.log('check if we have permission for user:')
-        const aObject = _.find(aclObject, { id: object.toLowerCase() })
+        const aObject = aclStorage.findById(object)
         if (!aObject) {
           // console.log('object not defined, DENY')
           return Promise.resolve(kindDeny) // no object defined, DENY
@@ -211,11 +212,11 @@ export default module.exports = (app) => {
       }
     },
     ListACL: () => {
-      return aclObject
+      return aclStorage.findAll()
     },
     ListACLForUserSync: (userId) => {
       const arr = []
-      _.forEach(aclObject, (item) => {
+      _.forEach(aclStorage.findAll(), (item) => {
         _.forEach(item.permissions, (perm) => {
           const aUser = _.find(perm.users, { id: userId })
           if (aUser) {
@@ -228,7 +229,7 @@ export default module.exports = (app) => {
     },
     ListACLForUserGroupSync: (groupId) => {
       const arr = []
-      _.forEach(aclObject, (item) => {
+      _.forEach(aclStorage.findAll(), (item) => {
         _.forEach(item.permissions, (perm) => {
           const aItem = _.find(perm.userGroups, { id: groupId })
           if (aItem) {
