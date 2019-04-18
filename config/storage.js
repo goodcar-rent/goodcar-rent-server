@@ -1,4 +1,4 @@
-// import StorageKnexSqlite from '../storages/storage-knex-sqlite'
+// import StorageKnexSqlite from '../storages/storage-Knex-sqlite'
 import StorageSqlite from '../storages/storage-sqlite'
 
 export default module.exports = (app) => {

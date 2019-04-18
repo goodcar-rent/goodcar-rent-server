@@ -1,12 +1,16 @@
 import SQL from 'sql-template-strings/index'
 import _ from 'lodash'
 import sqlite from 'sqlite'
+import { processDefaults, processGetProps } from './process-props'
 
 export default (app) => {
   return {
     props: {},
     name: 'Undefined',
     storageLocation: 'Undefined',
+
+    processDefaults,
+    processGetProps,
 
     initStorage: () => {
       return Promise.resolve()
@@ -16,60 +20,6 @@ export default (app) => {
           return app
         })
         .catch((err) => { throw err })
-    },
-
-    processDefaults: (Model) => (item) => {
-      // console.log(`processDefaults(${Model.name}, ${JSON.stringify(item)})\n`)
-      const aItem = _.merge({}, item)
-
-      // process all default props if they are not defined in item:
-      Model.props.map((prop) => {
-        if (prop.default && !item[prop.name]) {
-          if (typeof prop.default === 'function') {
-            aItem[prop.name] = prop.default(aItem)
-          } else {
-            aItem[prop.name] = prop.default
-          }
-        }
-      })
-      // console.log(`processDefaults result:\n${JSON.stringify(aItem)}`)
-      return aItem
-    },
-
-    // transform some item using rules from Model:l
-    processGetProps: (Model) => (item) => {
-      // console.log(`\nprocessGetProps(${Model.name}, ${JSON.stringify(item)}\n`)
-      // if item is not defined, return null
-      if (!item) {
-        return item
-      }
-
-      const aItem = Model.processDefaults(item)
-
-      const aKeys = Object.keys(aItem)
-      aKeys.map((key) => {
-        const prop = _.find(Model.props, { name: key })
-        if (!prop) {
-          throw new Error(`${Model.name}.processGetProps: Model "${Model.name}" does not have definition for property "${key}"`)
-        }
-        aItem[key] = item[key]
-        if (item[key] && prop.type === 'boolean') {
-          aItem[key] = (!!item[key])
-        }
-        if (prop.type === 'refs') {
-          // console.log('refs prop')
-          if (item[key].length > 0) {
-            aItem[key] = item[key].split(',')
-            if (!Array.isArray(aItem[key])) {
-              aItem[key] = [aItem[key]]
-            }
-          } else {
-            aItem[key] = []
-          }
-        }
-      })
-      // console.log(`processGetProps result:\n${JSON.stringify(aItem)}`)
-      return aItem
     },
 
     init: (Model) => (id) => {
