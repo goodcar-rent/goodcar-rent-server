@@ -11,7 +11,7 @@ export default module.exports = (app) => {
     create: (req, res) => {
       // fill optional field - expireAt
       if (!req.matchedData.expireAt) {
-        req.matchedData.expireAt = Date.now() + 60000000
+        req.matchedData.expireAt = new Date(Date.now() + 60000000)
       }
 
       // fill optional field - createdBy

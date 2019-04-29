@@ -18,9 +18,13 @@ export default (app) => {
       return Promise.resolve()
         .then(() => Knex(
           {
-            client: 'sqlite3',
+            client: 'mysql',
             connection: {
-              filename: app.storage.storageLocation
+              host: process.env.APP_DB_PATH,
+              port: process.env.APP_DB_PORT,
+              user: process.env.APP_DB_USER,
+              password: process.env.APP_DB_USER_PASSWORD,
+              database: process.env.APP_DB
             },
             useNullAsDefault: true,
             debug
@@ -34,7 +38,7 @@ export default (app) => {
     },
 
     closeStorage: () => {
-      console.log('KNEX - close')
+      // console.log('KNEX - close')
       return Promise.resolve()
         .then(() => app.storage.db.migrate.latest())
         .then(() => {
