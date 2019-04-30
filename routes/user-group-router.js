@@ -7,7 +7,7 @@ export default (app) => {
   const controller = Controller(app)
 
   // noinspection JSCheckFunctionSignatures
-  router.route('/user-group')
+  router.route('/user-groups')
     // .all(app.auth.authenticate())
     .all(app.auth.ACL('user-group', 'read'))
     .get(app.wrap(controller.list))
@@ -25,7 +25,7 @@ export default (app) => {
       app.wrap(controller.create))
 
   // noinspection JSCheckFunctionSignatures
-  router.route('/user-group/:id')
+  router.route('/user-groups/:id')
     // .all(app.auth.authenticate(),
     .all(app.auth.ACL('user-group', 'read'),
       [
@@ -36,7 +36,7 @@ export default (app) => {
     .delete(app.auth.ACL('user-group', 'write'), app.wrap(controller.delete))
 
   // noinspection JSCheckFunctionSignatures
-  router.route('/user-group/:id/users')
+  router.route('/user-groups/:id/users')
     // .all(app.auth.authenticate(),
     .all(app.auth.ACL('user-group', 'read'),
       [
