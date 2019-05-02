@@ -13,12 +13,15 @@ export default (app) => {
   }
 
   return _.merge(Storage, {
-    findById: (id) => _.find(Storage.aclStorage, { id: id.toLowerCase() }),
-    findOne: (opt) => _.find(Storage.aclStorage, opt),
-    findAll: () => Storage.aclStorage,
+    findById: (id) => {
+      const res = _.find(Storage.aclStorage, { id: id.toLowerCase() })
+      return Promise.resolve(res)
+    },
+    findOne: (opt) => Promise.resolve(_.find(Storage.aclStorage, opt)),
+    findAll: () => Promise.resolve(Storage.aclStorage),
     add: (item) => {
       Storage.aclStorage.push(item)
-      return Storage.aclStorage.length
+      return Promise.resolve(item)
     },
     aclObjectsList: () => Promise.resolve(Storage.aclObjects),
     aclObjectsSet: (data) => {

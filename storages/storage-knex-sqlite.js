@@ -28,13 +28,14 @@ export default (app) => {
         ))
         .then((db) => {
           app.storage.db = db
+          app.storage.name = 'KNEX-SQLite'
           return app
         })
         .catch((err) => { throw err })
     },
 
     closeStorage: () => {
-      console.log('KNEX - close')
+      // console.log('KNEX - close')
       return Promise.resolve()
         .then(() => app.storage.db.migrate.latest())
         .then(() => {

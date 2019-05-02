@@ -17,6 +17,7 @@ export default (app) => {
         .then(() => sqlite.open(app.storage.storageLocation, { Promise }))
         .then((db) => {
           app.storage.db = db
+          app.storage.name = 'SQLite'
           return app
         })
         .catch((err) => { throw err })

@@ -32,6 +32,7 @@ export default (app) => {
         ))
         .then((db) => {
           app.storage.db = db
+          app.storage.name = 'KNEX-MySQL'
           return app
         })
         .catch((err) => { throw err })

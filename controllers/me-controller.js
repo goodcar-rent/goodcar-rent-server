@@ -24,10 +24,12 @@ export default module.exports = (app) => {
           }
         })
     },
-    permissions: (req, res) => {
-      const ret = app.auth.ListACLForUserSync(req.user.id)
-      res.json(ret)
-      return app.Promise.resolve(ret)
-    }
+    permissions: (req, res) =>
+      app.auth.ListACLForUser(req.user.id)
+        .then((resp) => {
+          res.json(resp)
+          return Promise.resolve(resp)
+        })
+        .catch((err) => Promise.reject(err))
   }
 }

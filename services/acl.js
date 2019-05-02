@@ -53,15 +53,26 @@ export default module.exports = (app) => {
   app.consts.GuestUserId = GuestUserId
 
   const FindOrAddObject = (id) => {
-    let aObject = aclStorage.findById(id)
-    if (!aObject) {
-      aObject = { id: id.toLowerCase(), permissions: [] }
-      aclStorage.add(aObject)
+    if (!id) {
+      throw new Error('FindOrAddObject: id param should be specified')
     }
-    return aObject
+
+    return aclStorage.findById(id)
+      .then((aObject) => {
+        if (!aObject) {
+          aObject = { id: id.toLowerCase(), permissions: [] }
+          return aclStorage.add(aObject)
+        }
+        return aObject
+      })
+      .catch((err) => Promise.reject(err))
   }
 
-  const FindOrAddPermission = (aObject, permission) => {
+  const FindOrAddPermissionSync = (aObject, permission) => {
+    if (!aObject) {
+      throw new Error('FindOrAddPermissionSync: aObject param should be specified')
+    }
+
     let aPermission = _.find(aObject.permissions, { permission: permission.toLowerCase() })
     if (!aPermission) {
       aPermission = { permission: permission.toLowerCase(), users: [], userGroups: [] }
@@ -89,55 +100,58 @@ export default module.exports = (app) => {
         }
 
         // console.log('check if we have permission for user:')
-        const aObject = aclStorage.findById(object)
-        if (!aObject) {
-          // console.log('object not defined, DENY')
-          return Promise.resolve(kindDeny) // no object defined, DENY
-        }
+        return aclStorage.findById(object)
+          .then((aObject) => {
+            if (!aObject) {
+              // console.log('object not defined, DENY')
+              return Promise.resolve(kindDeny) // no object defined, DENY
+            }
 
-        // console.log('find specified permission for object:')
-        aPermission = _.find(aObject.permissions, { permission: permission.toLowerCase() })
-        if (!aPermission) {
-          // console.log('no such permission, DENY')
-          return Promise.resolve(kindDeny) // no permission declaration, DENY
-        }
-        // console.log('Permissions found:')
-        // console.log(aPermission)
-        // check if we have some group permission:
-        // console.log('checkGroups:')
-        return UserGroup.findGroupsForUser(userId)
-          .then((groups) => {
-            // console.log(`found groups for user ${userId}:`)
-            // console.log(groups)
-            _.each(groups, (group) => {
-              // console.log(` - group: ${group.id} ${group.name}`)
-              const aGroup = _.find(aPermission.userGroups, { id: group.id })
-              if (aGroup && groupRes !== kindDeny) {
-                // console.log(`set kind === ${aGroup.kind}`)
-                groupRes = aGroup.kind
-              }
-            })
-            // console.log(`groupRes = ${groupRes}`)
-            // check if specified object have exact user permission:
-            let userRes = 0
-            const aUser = _.find(aPermission.users, { id: userId })
-            if (aUser) {
-              // console.log(`user have specific permission ${aUser.kind}`)
-              userRes = aUser.kind
+            // console.log('find specified permission for object:')
+            aPermission = _.find(aObject.permissions, { permission: permission.toLowerCase() })
+            if (!aPermission) {
+              // console.log('no such permission, DENY')
+              return Promise.resolve(kindDeny) // no permission declaration, DENY
             }
-            // set resulting permission according proprieties:
-            if (groupRes !== 0) {
-              aKind = groupRes
-            }
-            if (userRes !== 0) {
-              aKind = userRes
-            }
-            return Promise.resolve(aKind)
+            // console.log('Permissions found:')
+            // console.log(aPermission)
+            // check if we have some group permission:
+            // console.log('checkGroups:')
+            return UserGroup.findGroupsForUser(userId)
+              .then((groups) => {
+                // console.log(`found groups for user ${userId}:`)
+                // console.log(groups)
+                _.each(groups, (group) => {
+                  // console.log(` - group: ${group.id} ${group.name}`)
+                  const aGroup = _.find(aPermission.userGroups, { id: group.id })
+                  if (aGroup && groupRes !== kindDeny) {
+                    // console.log(`set kind === ${aGroup.kind}`)
+                    groupRes = aGroup.kind
+                  }
+                })
+                // console.log(`groupRes = ${groupRes}`)
+                // check if specified object have exact user permission:
+                let userRes = 0
+                const aUser = _.find(aPermission.users, { id: userId })
+                if (aUser) {
+                  // console.log(`user have specific permission ${aUser.kind}`)
+                  userRes = aUser.kind
+                }
+                // set resulting permission according proprieties:
+                if (groupRes !== 0) {
+                  aKind = groupRes
+                }
+                if (userRes !== 0) {
+                  aKind = userRes
+                }
+                return Promise.resolve(aKind)
+              })
           })
           .catch((err) => { throw err })
       })
       .catch((err) => { throw err })
   }
+
   return {
     ACL: (object, permission) => {
       return (req, res, next) => {
@@ -174,20 +188,23 @@ export default module.exports = (app) => {
         aKind = kind.toUpperCase()
       }
 
-      const aObject = FindOrAddObject(objectId)
-      const aPermission = FindOrAddPermission(aObject, permission)
-      let aUser = _.find(aPermission.users, { id: userId })
-      if (!aUser) {
-        aPermission.users.push({ id: userId, kind: aKind })
-      } else {
-        aUser.kind = aKind
-      }
-      return {
-        userId,
-        object: objectId.toLowerCase(),
-        permission: permission.toLowerCase(),
-        kind: kind.toUpperCase()
-      }
+      return FindOrAddObject(objectId)
+        .then((aObject) => {
+          const aPermission = FindOrAddPermissionSync(aObject, permission)
+          let aUser = _.find(aPermission.users, { id: userId })
+          if (!aUser) {
+            aPermission.users.push({ id: userId, kind: aKind })
+          } else {
+            aUser.kind = aKind
+          }
+          return {
+            userId,
+            object: objectId.toLowerCase(),
+            permission: permission.toLowerCase(),
+            kind: kind.toUpperCase()
+          }
+        })
+        .catch((err) => Promise.reject(err))
     },
     AddGroupPermission: (groupId, objectId, permission, kind) => {
       // console.log(`AddGroupPermission: ${groupId}, ${objectId}, ${permission}, ${kind}`)
@@ -196,49 +213,67 @@ export default module.exports = (app) => {
         aKind = kind.toUpperCase()
       }
 
-      const aObject = FindOrAddObject(objectId)
-      const aPermission = FindOrAddPermission(aObject, permission)
-      let aGroup = _.find(aPermission.userGroups, { id: groupId })
-      if (!aGroup) {
-        aPermission.userGroups.push({ id: groupId, kind: aKind })
-      } else {
-        aGroup.kind = aKind
-      }
-      return {
-        groupId,
-        object: objectId.toLowerCase(),
-        permission: permission.toLowerCase(),
-        kind: kind.toUpperCase()
-      }
+      return FindOrAddObject(objectId)
+        .then((aObject) => {
+          const aPermission = FindOrAddPermissionSync(aObject, permission)
+          let aGroup = _.find(aPermission.userGroups, { id: groupId })
+          if (!aGroup) {
+            aPermission.userGroups.push({ id: groupId, kind: aKind })
+          } else {
+            aGroup.kind = aKind
+          }
+          return {
+            groupId,
+            object: objectId.toLowerCase(),
+            permission: permission.toLowerCase(),
+            kind: kind.toUpperCase()
+          }
+        })
+        .catch((err) => Promise.reject(err))
     },
     ListACL: () => {
       return aclStorage.findAll()
+        .catch((err) => Promise.reject(err))
     },
-    ListACLForUserSync: (userId) => {
-      const arr = []
-      _.forEach(aclStorage.findAll(), (item) => {
-        _.forEach(item.permissions, (perm) => {
-          const aUser = _.find(perm.users, { id: userId })
-          if (aUser) {
-            const ret = { object: item.id, permission: perm.permission, kind: aUser.kind || kindAllow }
-            arr.push(ret)
+    ListACLForUser: (userId) => {
+      return aclStorage.findAll()
+        .then((aclObjects) => {
+          if (!aclObjects) {
+            return Promise.resolve([])
           }
+          const arr = []
+          _.forEach(aclObjects, (item) => {
+            _.forEach(item.permissions, (perm) => {
+              const aUser = _.find(perm.users, { id: userId })
+              if (aUser) {
+                const ret = { object: item.id, permission: perm.permission, kind: aUser.kind || kindAllow }
+                arr.push(ret)
+              }
+            })
+          })
+          return arr
         })
-      })
-      return arr
+        .catch((err) => Promise.reject(err))
     },
-    ListACLForUserGroupSync: (groupId) => {
-      const arr = []
-      _.forEach(aclStorage.findAll(), (item) => {
-        _.forEach(item.permissions, (perm) => {
-          const aItem = _.find(perm.userGroups, { id: groupId })
-          if (aItem) {
-            const ret = { object: item.id, permission: perm.permission, kind: aItem.kind || kindAllow }
-            arr.push(ret)
+    ListACLForUserGroup: (groupId) => {
+      return aclStorage.findAll()
+        .then((aclObjects) => {
+          if (!aclObjects) {
+            return Promise.resolve([])
           }
+          const arr = []
+          _.forEach(aclObjects, (item) => {
+            _.forEach(item.permissions, (perm) => {
+              const aItem = _.find(perm.userGroups, { id: groupId })
+              if (aItem) {
+                const ret = { object: item.id, permission: perm.permission, kind: aItem.kind || kindAllow }
+                arr.push(ret)
+              }
+            })
+          })
+          return arr
         })
-      })
-      return arr
+        .catch((err) => Promise.reject(err))
     }
   }
 }

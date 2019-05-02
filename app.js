@@ -60,7 +60,7 @@ export default (env) => {
 
       // configure models
       if (!app.env.APP_STORAGE) {
-        app.env.APP_STORAGE = 'sqlite'
+        app.env.APP_STORAGE = 'knex-sqlite'
       }
       app.models = Models(app)
 

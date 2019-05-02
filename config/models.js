@@ -24,12 +24,11 @@ export default module.exports = (app) => {
         .then(() => models.Invite.initData())
         .then(() => models.Login.initData())
         .then(() => models.UserGroup.initData()),
-    initPermissions: () =>
-      Promise.resolve(app.auth.AddGroupPermission(
-        models.UserGroup.systemGroupLoggedIn(),
-        'me',
-        'read',
-        app.consts.kindAllow)),
+    initPermissions: () => app.auth.AddGroupPermission(
+      models.UserGroup.systemGroupLoggedIn(),
+      'me',
+      'read',
+      app.consts.kindAllow),
     init: () =>
       app.storage.initStorage()
         .then(() => app.models.initData())
