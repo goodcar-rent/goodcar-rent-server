@@ -3,10 +3,10 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "cross-env DEBUG='goodcar-rent-server:*' npx babel-node $NODE_DEBUG_OPTION ./server/server.js",
-    "start-fresh": "rm server/db.sqlite && cross-env DEBUG='goodcar-rent-server:*' START_FRESH='yes' npx babel-node $NODE_DEBUG_OPTION ./server/server.js",
-    "start-knex": "cross-env DEBUG='goodcar-rent-server:*' APP_STORAGE='knex-sqlite' npx babel-node $NODE_DEBUG_OPTION ./server/server.js",
-    "start-fresh-knex": "rm server/db.sqlite && cross-env DEBUG='goodcar-rent-server:*' START_FRESH='yes' APP_STORAGE='knex-sqlite' npx babel-node $NODE_DEBUG_OPTION ./server/server.js",
+    "start": "cross-env DEBUG='goodcar-rent-server:*' npx babel-node ./server/server.js",
+    "start-fresh": "rm server/db.sqlite && cross-env DEBUG='goodcar-rent-server:*' START_FRESH='yes' npx babel-node ./server/server.js",
+    "start-knex": "cross-env DEBUG='goodcar-rent-server:*' APP_STORAGE='knex-sqlite' npx babel-node ./server/server.js",
+    "start-fresh-knex": "rm server/db.sqlite && cross-env DEBUG='goodcar-rent-server:*' START_FRESH='yes' APP_STORAGE='knex-sqlite' npx babel-node ./server/server.js",
     "test": "cross-env DEBUG='' NODE_ENV=test mocha $NODE_DEBUG_OPTION test/**/*.js"
   },
   "dependencies": {
@@ -23,7 +23,7 @@
     "jwt-simple": "^0.5.5",
     "knex": "^0.16.5",
     "lodash": "^4.17.11",
-    "marked": "^0.5.2",
+    "marked": "^0.6.2",
     "morgan": "^1.9.1",
     "mysql": "^2.17.1",
     "passport": "^0.4.0",
@@ -31,7 +31,7 @@
     "passport-google-oauth20": "^1.0.0",
     "passport-instagram": "^1.0.0",
     "passport-jwt": "^4.0.0",
-    "pug": "2.0.0-beta11",
+    "pug": "^2.0.3",
     "sql-template-strings": "^2.2.2",
     "sqlite": "^3.0.2",
     "uuid": "^3.3.2"

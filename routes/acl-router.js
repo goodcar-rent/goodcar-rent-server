@@ -22,12 +22,12 @@ export default (app) => {
       app.wrap(controller.create))
 
   // noinspection JSCheckFunctionSignatures
-  router.route('/acl/user-group/:groupId')
+  router.route('/acl/user-groups/:groupId')
     .all(
       [param('groupId').isUUID().isLength({ min: 1 }).withMessage('groupId should be provided in URL')],
       app.auth.ACL('acl/user-group', 'read'))
     .get(app.wrap(controller.userGroupListACL))
-    .post(app.auth.ACL('acl/user-group', 'write'),
+    .post(app.auth.ACL('acl/user-groups', 'write'),
       [
         body('object').isString().isLength({ min: 1 }).withMessage('object should be provided'),
         body('permission').isString().isLength({ min: 1 }).withMessage('permission should be provided'),

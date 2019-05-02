@@ -182,7 +182,7 @@ describe('[service] login:', () => {
           expect(res).to.be.an('object')
           expect(res.createdAt).to.exist('res should exist')
           // expect(res.createdAt).to.be.an('number')
-          expect(res.createdAt).to.be.lessThan(new Date())
+          expect(new Date(res.createdAt) < Date.now()).to.be.true()
         })
         .then(() => {
           done()
@@ -202,8 +202,8 @@ describe('[service] login:', () => {
           expect(res).to.exist('res should exist')
           expect(res).to.be.an('object')
           expect(res.createdAt).to.exist('res.createdAt should exist')
-          expect(res.createdAt).to.be.lessThan(new Date(Date.now() + 1000))
-          expect(res.createdAt).to.be.greaterThan(aTimestamp)
+          expect(new Date(res.createdAt) < (Date.now() + 1000)).to.be.true()
+          expect(new Date(res.createdAt) > aTimestamp).to.be.true()
         })
         .then(() => {
           done()

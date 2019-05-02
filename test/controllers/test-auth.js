@@ -200,9 +200,10 @@ describe('(controller) auth:', () => {
 
           // disable UserFirst:
           context.token = context.adminToken
-          return userSave(context, context.UserFirstId, { disabled: true })
+          return userSave(context, context.UserFirstId, _.merge({}, UserFirst, { disabled: true }))
         })
         .then((res) => {
+          console.log(res.body)
           expect(res.body).to.exist('res.body should exist')
           expect(res.body.email).to.exist('res.body.email should exist')
           expect(res.body.id).to.exist('res.body.id should exist')
