@@ -1,4 +1,3 @@
-import SQL from 'sql-template-strings/index'
 import _ from 'lodash'
 import Knex from 'knex'
 import { processDefaults, processGetProps } from './process-props'
@@ -85,6 +84,15 @@ export default (app) => {
                   break
                 case 'boolean':
                   table.boolean(prop.name)
+                  break
+                case 'enum':
+                  table.integer(prop.name, 1)
+                  break
+                case 'decimal':
+                  table.decimal(prop.name, prop.precision || 8, prop.scale || 2)
+                  break
+                case 'float':
+                  table.float(prop.name, prop.precision || 8, prop.scale || 2)
                   break
                 default:
                   throw new Error(`${Model.name}.init: invalid prop.type ${prop.type} for ${prop.name}`)
