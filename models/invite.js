@@ -22,7 +22,7 @@ export default module.exports = (app) => {
       {
         name: 'expireAt',
         type: 'datetime',
-        default: () => Date.now()
+        default: () => new Date()
       },
       {
         name: 'registeredUser',

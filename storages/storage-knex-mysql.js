@@ -18,9 +18,13 @@ export default (app) => {
       return Promise.resolve()
         .then(() => Knex(
           {
-            client: 'sqlite3',
+            client: 'mysql',
             connection: {
-              filename: app.storage.storageLocation
+              host: process.env.APP_DB_PATH,
+              port: process.env.APP_DB_PORT,
+              user: process.env.APP_DB_USER,
+              password: process.env.APP_DB_USER_PASSWORD,
+              database: process.env.APP_DB
             },
             useNullAsDefault: true,
             debug
@@ -28,7 +32,7 @@ export default (app) => {
         ))
         .then((db) => {
           app.storage.db = db
-          app.storage.name = 'KNEX-SQLite'
+          app.storage.name = 'KNEX-MySQL'
           return app
         })
         .catch((err) => { throw err })
@@ -85,15 +89,6 @@ export default (app) => {
                   break
                 case 'boolean':
                   table.boolean(prop.name)
-                  break
-                case 'enum':
-                  table.integer(prop.name, 1)
-                  break
-                case 'decimal':
-                  table.decimal(prop.name, prop.precision || 8, prop.scale || 2)
-                  break
-                case 'float':
-                  table.float(prop.name, prop.precision || 8, prop.scale || 2)
                   break
                 default:
                   throw new Error(`${Model.name}.init: invalid prop.type ${prop.type} for ${prop.name}`)

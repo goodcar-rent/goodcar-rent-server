@@ -25,7 +25,7 @@ export default module.exports = (app) => {
       {
         name: 'createdAt',
         type: 'datetime',
-        default: () => Date.now()
+        default: () => new Date()
       },
       {
         name: 'ip',
@@ -56,7 +56,7 @@ export default module.exports = (app) => {
             return Model.create(item)
           } else {
             _.assign(item, res)
-            item.createdAt = Date.now()
+            item.createdAt = new Date()
             item.id = res.id
             return Model.update(item)
           }

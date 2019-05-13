@@ -1,0 +1,4 @@
+[
+  { "object": "acl/user",         "permissions": [ "read", "write" ] },
+  { "object": "acl/user-group",   "permissions": [ "read", "write" ] }
+]

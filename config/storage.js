@@ -1,6 +1,7 @@
 // import StorageKnexSqlite from '../storages/storage-Knex-sqlite'
 import StorageSqlite from '../storages/storage-sqlite'
 import KnexSqlite from '../storages/storage-knex-sqlite'
+import KnexMysql from '../storages/storage-knex-mysql'
 
 export default module.exports = (app) => {
   let storage = {}
@@ -17,6 +18,10 @@ export default module.exports = (app) => {
     case 'knex-sqlite':
       storage = KnexSqlite(app)
       storage.storageLocation = 'server/db.sqlite'
+      break
+    case 'knex-mysql':
+      storage = KnexMysql(app)
+      storage.storageLocation = app.env.APP_DB_PATH
       break
   }
 

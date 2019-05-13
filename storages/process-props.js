@@ -10,7 +10,8 @@ export const processDefaults = (Model) => (item) => {
 
   // process all default props if they are not defined in item:
   Model.props.map((prop) => {
-    if (prop.default && !item[prop.name]) {
+    if ((prop.default || prop.default !== undefined || prop.default !== null) &&
+      (!item[prop.name] || item[prop.name] === null || item[prop.name] === undefined)) {
       if (typeof prop.default === 'function') {
         aItem[prop.name] = prop.default(aItem)
       } else {

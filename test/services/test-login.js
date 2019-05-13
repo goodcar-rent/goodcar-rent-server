@@ -181,8 +181,8 @@ describe('[service] login:', () => {
           expect(res).to.exist('res should exist')
           expect(res).to.be.an('object')
           expect(res.createdAt).to.exist('res should exist')
-          //expect(res.createdAt).to.be.an('number')
-          expect(res.createdAt).to.be.lessThan(Date.now())
+          // expect(res.createdAt).to.be.an('number')
+          expect(new Date(res.createdAt) < Date.now()).to.be.true()
         })
         .then(() => {
           done()
@@ -193,7 +193,7 @@ describe('[service] login:', () => {
 
   describe('createOrUpdate method', () => {
     it('should delete all specified items', (done) => {
-      const aTimestamp = Date.now()
+      const aTimestamp = new Date()
 
       new Promise(resolve => setTimeout(resolve, 1100))
         .then(() => Login.createOrUpdate({ id: '2', userId: '2', ip: '127.0.0.1' }))
@@ -202,8 +202,8 @@ describe('[service] login:', () => {
           expect(res).to.exist('res should exist')
           expect(res).to.be.an('object')
           expect(res.createdAt).to.exist('res.createdAt should exist')
-          expect(res.createdAt).to.be.lessThan(Date.now() + 1)
-          expect(res.createdAt).to.be.greaterThan(aTimestamp)
+          expect(new Date(res.createdAt) < (Date.now() + 1000)).to.be.true()
+          expect(new Date(res.createdAt) > aTimestamp).to.be.true()
         })
         .then(() => {
           done()
