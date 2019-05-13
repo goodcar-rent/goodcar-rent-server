@@ -90,6 +90,15 @@ export default (app) => {
                 case 'boolean':
                   table.boolean(prop.name)
                   break
+                case 'enum':
+                  table.integer(prop.name, 1)
+                  break
+                case 'decimal':
+                  table.decimal(prop.name, prop.precision || 8, prop.scale || 2)
+                  break
+                case 'float':
+                  table.float(prop.name, prop.precision || 8, prop.scale || 2)
+                  break
                 default:
                   throw new Error(`${Model.name}.init: invalid prop.type ${prop.type} for ${prop.name}`)
               }
