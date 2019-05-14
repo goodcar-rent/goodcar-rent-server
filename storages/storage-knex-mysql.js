@@ -61,9 +61,13 @@ export default (app) => {
 
       return knex.schema.hasTable(Model.name)
         .then((exists) => {
-          if (exists) return
-
-          return knex.schema.createTable(Model.name, (table) => {
+          if (exists && process.env.START_FRESH) {
+            return knex.schema.dropTable(Model.name)
+          }
+          return Promise.resolve(exists)
+        })
+        .then(() =>
+          knex.schema.createTable(Model.name, (table) => {
             Model.props.map((prop) => {
               switch (prop.type) {
                 case 'id':
@@ -104,7 +108,7 @@ export default (app) => {
               }
             })
           })
-        })
+        )
     },
 
     findById: (Model) => (id) => {

@@ -7,6 +7,8 @@
     "start-fresh": "rm server/db.sqlite && cross-env DEBUG='goodcar-rent-server:*' START_FRESH='yes' npx babel-node ./server/server.js",
     "start-knex": "cross-env DEBUG='goodcar-rent-server:*' APP_STORAGE='knex-sqlite' npx babel-node ./server/server.js",
     "start-fresh-knex": "rm server/db.sqlite && cross-env DEBUG='goodcar-rent-server:*' START_FRESH='yes' APP_STORAGE='knex-sqlite' npx babel-node ./server/server.js",
+    "start-knex-MySQL": "cross-env DEBUG='goodcar-rent-server:*' APP_STORAGE='knex-mysql' npx babel-node ./server/server.js",
+    "start-fresh-knex-MySQL": "cross-env DEBUG='goodcar-rent-server:*' START_FRESH='yes' APP_STORAGE='knex-mysql' npx babel-node ./server/server.js",
     "test": "cross-env DEBUG='' NODE_ENV=test mocha test/**/*.js"
   },
   "dependencies": {
