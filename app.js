@@ -47,8 +47,8 @@ export default (env) => {
 
       app.use(cors({
         origin: '*',
-        allowedHeaders: 'Content-Type,Authorization,Content-Range',
-        exposedHeaders: 'Content-Type,Authorization,Content-Range'
+        allowedHeaders: 'Content-Type,Authorization,Content-Range,Accept,Accept-Encoding,Accept-Language',
+        exposedHeaders: 'Content-Type,Authorization,Content-Range,Accept,Accept-Encoding,Accept-Language'
       }))
       app.use(express.json())
       app.use(express.urlencoded({ extended: false }))

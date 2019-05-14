@@ -126,7 +126,19 @@ export default module.exports = (app) => {
           .then((newUser) => {
             // console.log('newUser:')
             // console.log(newUser)
-            res.json(newUser)
+            const ctype = req.accepts(['html', 'json'])
+            console.log('CType:')
+            console.log(ctype)
+            if (ctype === 'json') {
+              res.json(newUser)
+            } else if (ctype === 'html') {
+              const params = {}
+              params.user = {
+                name: newUser.name,
+                email: newUser.email
+              }
+              res.render('auth/signup-completed', params)
+            }
             const _adminGroup = UserGroup.systemGroupAdmin()
             return UserGroup.addUser(_adminGroup, newUser.id)
           })
@@ -181,7 +193,19 @@ export default module.exports = (app) => {
           return User.create(data)
         })
         .then((createdUser) => {
-          res.json(createdUser)
+          const ctype = req.accepts(['html', 'json'])
+          console.log('CType:')
+          console.log(ctype)
+          if (ctype === 'json') {
+            res.json(createdUser)
+          } else if (ctype === 'html') {
+            const params = {}
+            params.user = {
+              name: createdUser.name,
+              email: createdUser.email
+            }
+            res.render('auth/signup-completed', params)
+          }
           aData.invite.registeredUser = createdUser.id
           return Invite.update(aData.invite)
         })
@@ -212,6 +236,7 @@ export default module.exports = (app) => {
         params.invite = req.query.invite
       }
       res.render('auth/signup', params)
+      return Promise.resolve()
     }
   }
 }
