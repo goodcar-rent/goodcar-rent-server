@@ -5,13 +5,25 @@ export const genericList = (Model) => (req, res) =>
     .then((data) => {
       const foundData = data[0]
       const count = data[1]
-      res.set('Content-Range', `${Model.name} 0-${count}/${count}`).json(foundData)
+      // if (!foundData) {
+      //   console.log('Data not found')
+      //   console.log(foundData)
+      // }
+      // if (!count) {
+      //   console.log('Count failed:')
+      //   console.log(count)
+      // }
+      // console.log('res:')
+      // console.log(res)
+      res.set('Content-Range', `${Model.name} 0-${count}/${count}`)
+      res.json(foundData)
       return foundData
     })
     .catch((error) => {
       if (error instanceof ServerError) {
         throw error
       } else {
+        console.log(error)
         throw new ServerGenericError(error)
       }
     })

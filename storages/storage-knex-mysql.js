@@ -156,6 +156,7 @@ export default (app) => {
     },
 
     findAll: (Model) => (opt) => {
+      // console.log('storage.findAll:')
       if (!Model || !Model.app || !Model.app.storage || !Model.app.storage.db) {
         return Promise.reject(new Error(`${Model.name}.findAll: some Model's properties are invalid: 
           Model ${Model},
@@ -169,10 +170,20 @@ export default (app) => {
         .from(Model.name)
         .where(opt ? opt.where : {})
         .then((res) => res.map((item) => Model.processGetProps(item)))
-        .catch((err) => { throw err })
+        .then((res) => {
+          // console.log('res:')
+          // console.log(res)
+          return Promise.resolve(res)
+        })
+        .catch((err) => {
+          console.log('error:')
+          console.log(err)
+          throw err
+        })
     },
 
     count: (Model) => () => {
+      // console.log('storage.count')
       if (!Model || !Model.app || !Model.app.storage || !Model.app.storage.db) {
         return Promise.reject(new Error(`${Model.name}.count: some Model's properties are invalid: 
           Model ${Model},
@@ -188,7 +199,16 @@ export default (app) => {
           const count = res[0]
           return ((Object.values(count))[0])
         })
-        .catch((err) => { throw err })
+        .then((res) => {
+          // console.log('res:')
+          // console.log(res)
+          return Promise.resolve(res)
+        })
+        .catch((err) => {
+          console.log('error:')
+          console.log(err)
+          throw err
+        })
     },
 
     removeById: (Model) => (id) => {
