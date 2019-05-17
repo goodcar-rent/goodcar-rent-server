@@ -65,9 +65,15 @@ export default (app) => {
             return knex.schema.dropTable(Model.name)
               .then(() => Promise.resolve(false))
           }
+
           return Promise.resolve(exists)
         })
         .then((exists) => {
+          Model.props.map((prop) => {
+            if (prop.type === 'id') {
+              Model.key = prop.name
+            }
+          })
           if (!exists) {
             return knex.schema.createTable(Model.name, (table) => {
               Model.props.map((prop) => {
@@ -295,8 +301,12 @@ export default (app) => {
       }
       const knex = app.storage.db
 
+      // console.log('item:')
+      // console.log(item)
       const aKeys = Object.keys(item)
       const aItem = Model.processDefaults(item)
+      // console.log('aItem:')
+      // console.log(aItem)
       // process all item's props
       aKeys.map((key) => {
         aItem[key] = item[key]
@@ -317,6 +327,8 @@ export default (app) => {
         }
       })
 
+      // console.log('processed aItem:')
+      // console.log(aItem)
       // process all props in item:
       return knex(Model.name)
         .where(Model.key, item.id)

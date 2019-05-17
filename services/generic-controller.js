@@ -48,6 +48,10 @@ export const genericItem = (Model) => (req, res) =>
     })
 
 export const genericSave = (Model) => (req, res) => {
+  // console.log('body:')
+  // console.log(req.body)
+  // console.log('matchedData:')
+  // console.log(req.matchedData)
   req.matchedData.id = req.params.id
   return Model.update(req.matchedData)
     .then((foundData) => {

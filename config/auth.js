@@ -15,6 +15,8 @@ export default module.exports = (app) => {
   }
   const strategy = new Strategy(params, (payload, done) => {
     let loginId = null
+    // console.log(payload)
+    // console.log(Login)
     Login.findById(payload.id)
       .then((login) => {
         if (!login) {

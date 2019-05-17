@@ -30,10 +30,22 @@ export default (app) => {
     // .all(app.auth.authenticate(),
     .all(app.auth.ACL(ACL_USER_GROUPS, ACL_READ),
       [
-        param('id').isString().withMessage('id of group should be specified in URL')
+        param('id').isString().withMessage('id of group should be specified in URL'),
       ], paramCheck)
     .get(app.wrap(controller.item))
-    .put(app.auth.ACL(ACL_USER_GROUPS, ACL_WRITE), app.wrap(controller.save))
+    .put(app.auth.ACL(ACL_USER_GROUPS, ACL_WRITE),
+      [
+        body('id').optional().isString().withMessage('id of group should be specified in URL'),
+        body('name').optional().isString().isLength({ min: 1 }).withMessage('Name property should be provided for group'),
+        body('systemType').optional().isIn([
+          app.models.UserGroup.systemTypeAdmin,
+          app.models.UserGroup.systemTypeGuest,
+          app.models.UserGroup.systemTypeLoggedIn,
+          app.models.UserGroup.systemTypeNone])
+          .withMessage('systemType should be specified with predefined values'),
+        body('users').optional().isArray().withMessage('Users should be array of iDs')
+      ], paramCheck,
+      app.wrap(controller.save))
     .delete(app.auth.ACL(ACL_USER_GROUPS, ACL_WRITE), app.wrap(controller.delete))
 
   // noinspection JSCheckFunctionSignatures

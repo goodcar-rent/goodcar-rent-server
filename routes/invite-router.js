@@ -31,7 +31,15 @@ export default (app) => {
         param('id').isString().withMessage('Invite id should be specified')
       ], paramCheck)
     .get(app.wrap(controller.item))
-    .put(app.auth.ACL(ACL_INVITE, ACL_WRITE), app.wrap(controller.save))
+    .put(app.auth.ACL(ACL_INVITE, ACL_WRITE),
+      [
+        body('email').optional().isEmail().isLength({ min: 5 }).withMessage('Email should be provided'),
+        body('expireAt').optional().isAfter().withMessage('ExpireAt should be greater than now'),
+        body('disabled').optional().isBoolean().withMessage('Invite disabled state should be boolean value'),
+        body('createdBy').optional().isString(),
+        body('assignUserGroups').optional().isArray()
+      ], paramCheck,
+      app.wrap(controller.save))
     .delete(app.auth.ACL(ACL_INVITE, ACL_WRITE), app.wrap(controller.delete))
 
   router.route(`${mountPath}/:id/send`)
