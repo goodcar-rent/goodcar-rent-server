@@ -63,52 +63,55 @@ export default (app) => {
         .then((exists) => {
           if (exists && process.env.START_FRESH) {
             return knex.schema.dropTable(Model.name)
+              .then(() => Promise.resolve(false))
           }
           return Promise.resolve(exists)
         })
-        .then(() =>
-          knex.schema.createTable(Model.name, (table) => {
-            Model.props.map((prop) => {
-              switch (prop.type) {
-                case 'id':
-                  table.string(prop.name, 36)
-                  break
-                case 'email':
-                  table.string(prop.name)
-                  break
-                case 'text':
-                  table.string(prop.name)
-                  break
-                case 'password':
-                  table.string(prop.name)
-                  break
-                case 'ref':
-                  table.string(prop.name, 36)
-                  break
-                case 'refs':
-                  table.string(prop.name,255)
-                  break
-                case 'datetime':
-                  table.dateTime(prop.name)
-                  break
-                case 'boolean':
-                  table.boolean(prop.name)
-                  break
-                case 'enum':
-                  table.integer(prop.name, 1)
-                  break
-                case 'decimal':
-                  table.decimal(prop.name, prop.precision || 8, prop.scale || 2)
-                  break
-                case 'float':
-                  table.float(prop.name, prop.precision || 8, prop.scale || 2)
-                  break
-                default:
-                  throw new Error(`${Model.name}.init: invalid prop.type ${prop.type} for ${prop.name}`)
-              }
+        .then((exists) => {
+          if (!exists) {
+            return knex.schema.createTable(Model.name, (table) => {
+              Model.props.map((prop) => {
+                switch (prop.type) {
+                  case 'id':
+                    table.string(prop.name, 36)
+                    break
+                  case 'email':
+                    table.string(prop.name)
+                    break
+                  case 'text':
+                    table.string(prop.name)
+                    break
+                  case 'password':
+                    table.string(prop.name)
+                    break
+                  case 'ref':
+                    table.string(prop.name, 36)
+                    break
+                  case 'refs':
+                    table.string(prop.name, 255)
+                    break
+                  case 'datetime':
+                    table.dateTime(prop.name)
+                    break
+                  case 'boolean':
+                    table.boolean(prop.name)
+                    break
+                  case 'enum':
+                    table.integer(prop.name, 1)
+                    break
+                  case 'decimal':
+                    table.decimal(prop.name, prop.precision || 8, prop.scale || 2)
+                    break
+                  case 'float':
+                    table.float(prop.name, prop.precision || 8, prop.scale || 2)
+                    break
+                  default:
+                    throw new Error(`${Model.name}.init: invalid prop.type ${prop.type} for ${prop.name}`)
+                }
+              })
             })
-          })
-        )
+          }
+        })
     },
 
     findById: (Model) => (id) => {
