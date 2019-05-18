@@ -57,49 +57,62 @@ export default (app) => {
 
       return knex.schema.hasTable(Model.name)
         .then((exists) => {
-          if (exists) return
+          if (exists && process.env.START_FRESH) {
+            return knex.schema.dropTable(Model.name)
+              .then(() => Promise.resolve(false))
+          }
 
-          return knex.schema.createTable(Model.name, (table) => {
-            Model.props.map((prop) => {
-              switch (prop.type) {
-                case 'id':
-                  table.string(prop.name, 36)
-                  break
-                case 'email':
-                  table.string(prop.name)
-                  break
-                case 'text':
-                  table.string(prop.name)
-                  break
-                case 'password':
-                  table.string(prop.name)
-                  break
-                case 'ref':
-                  table.string(prop.name, 36)
-                  break
-                case 'refs':
-                  table.string(prop.name,255)
-                  break
-                case 'datetime':
-                  table.dateTime(prop.name)
-                  break
-                case 'boolean':
-                  table.boolean(prop.name)
-                  break
-                case 'enum':
-                  table.integer(prop.name, 1)
-                  break
-                case 'decimal':
-                  table.decimal(prop.name, prop.precision || 8, prop.scale || 2)
-                  break
-                case 'float':
-                  table.float(prop.name, prop.precision || 8, prop.scale || 2)
-                  break
-                default:
-                  throw new Error(`${Model.name}.init: invalid prop.type ${prop.type} for ${prop.name}`)
-              }
-            })
+          return Promise.resolve(exists)
+        })
+        .then((exists) => {
+          Model.props.map((prop) => {
+            if (prop.type === 'id') {
+              Model.key = prop.name
+            }
           })
+          if (!exists) {
+            return knex.schema.createTable(Model.name, (table) => {
+              Model.props.map((prop) => {
+                switch (prop.type) {
+                  case 'id':
+                    table.string(prop.name, 36)
+                    break
+                  case 'email':
+                    table.string(prop.name)
+                    break
+                  case 'text':
+                    table.string(prop.name)
+                    break
+                  case 'password':
+                    table.string(prop.name)
+                    break
+                  case 'ref':
+                    table.string(prop.name, 36)
+                    break
+                  case 'refs':
+                    table.string(prop.name, 255)
+                    break
+                  case 'datetime':
+                    table.dateTime(prop.name)
+                    break
+                  case 'boolean':
+                    table.boolean(prop.name)
+                    break
+                  case 'enum':
+                    table.integer(prop.name, 1)
+                    break
+                  case 'decimal':
+                    table.decimal(prop.name, prop.precision || 8, prop.scale || 2)
+                    break
+                  case 'float':
+                    table.float(prop.name, prop.precision || 8, prop.scale || 2)
+                    break
+                  default:
+                    throw new Error(`${Model.name}.init: invalid prop.type ${prop.type} for ${prop.name}`)
+                }
+              })
+            })
+          }
         })
     },
 
@@ -139,6 +152,7 @@ export default (app) => {
     },
 
     findAll: (Model) => (opt) => {
+      // console.log('storage.findAll:')
       if (!Model || !Model.app || !Model.app.storage || !Model.app.storage.db) {
         return Promise.reject(new Error(`${Model.name}.findAll: some Model's properties are invalid: 
           Model ${Model},
@@ -152,10 +166,20 @@ export default (app) => {
         .from(Model.name)
         .where(opt ? opt.where : {})
         .then((res) => res.map((item) => Model.processGetProps(item)))
-        .catch((err) => { throw err })
+        .then((res) => {
+          // console.log('res:')
+          // console.log(res)
+          return Promise.resolve(res)
+        })
+        .catch((err) => {
+          console.log('error:')
+          console.log(err)
+          throw err
+        })
     },
 
     count: (Model) => () => {
+      // console.log('storage.count')
       if (!Model || !Model.app || !Model.app.storage || !Model.app.storage.db) {
         return Promise.reject(new Error(`${Model.name}.count: some Model's properties are invalid: 
           Model ${Model},
@@ -171,7 +195,16 @@ export default (app) => {
           const count = res[0]
           return ((Object.values(count))[0])
         })
-        .catch((err) => { throw err })
+        .then((res) => {
+          // console.log('res:')
+          // console.log(res)
+          return Promise.resolve(res)
+        })
+        .catch((err) => {
+          console.log('error:')
+          console.log(err)
+          throw err
+        })
     },
 
     removeById: (Model) => (id) => {
@@ -284,8 +317,12 @@ export default (app) => {
       }
       const knex = app.storage.db
 
+      // console.log('item:')
+      // console.log(item)
       const aKeys = Object.keys(item)
       const aItem = Model.processDefaults(item)
+      // console.log('aItem:')
+      // console.log(aItem)
       // process all item's props
       aKeys.map((key) => {
         aItem[key] = item[key]
@@ -306,6 +343,8 @@ export default (app) => {
         }
       })
 
+      // console.log('processed aItem:')
+      // console.log(aItem)
       // process all props in item:
       return knex(Model.name)
         .where(Model.key, item.id)

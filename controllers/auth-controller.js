@@ -126,7 +126,10 @@ export default module.exports = (app) => {
           .then((newUser) => {
             // console.log('newUser:')
             // console.log(newUser)
-            const ctype = req.accepts(['html', 'json'])
+            let ctype = req.accepts(['html', 'json'])
+            if (ctype === false) {
+              ctype = 'json'
+            }
             if (ctype === 'json') {
               res.json(newUser)
             } else if (ctype === 'html') {
