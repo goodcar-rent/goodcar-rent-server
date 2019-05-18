@@ -6,7 +6,7 @@ import { ACL_INVITE, ACL_READ, ACL_WRITE } from '../config/acl-consts'
 export default (app) => {
   const router = app.express.Router()
   const controller = InviteController(app)
-  const mountPath = '/auth/invite'
+  const mountPath = '/auth/invites'
 
   // noinspection JSCheckFunctionSignatures
   router.route(mountPath)
