@@ -1,5 +1,5 @@
 import { ServerError, ServerGenericError, ServerNotFound } from '../config/errors'
-import { genericCreate, genericDelete, genericItem, genericList, genericSave } from '../services/generic-controller'
+import { genericCreate, genericDelete, genericDeleteAll, genericItem, genericList, genericSave } from '../services/generic-controller'
 
 export default module.exports = (app) => {
   const Model = app.models.Invite
@@ -10,9 +10,9 @@ export default module.exports = (app) => {
 
     create: (req, res) => {
       // fill optional field - expireAt
-      if (!req.matchedData.expireAt) {
-        req.matchedData.expireAt = new Date(Date.now() + 60000000)
-      }
+      // if (!req.matchedData.expireAt) {
+      //   req.matchedData.expireAt = new Date(Date.now() + 60000000)
+      // }
 
       // fill optional field - createdBy
       if (!req.matchedData.createdBy) {
@@ -33,6 +33,7 @@ export default module.exports = (app) => {
     item: genericItem(Model),
     save: genericSave(Model),
     delete: genericDelete(Model),
+    deleteAll: genericDeleteAll(Model),
 
     send: (req, res) => {
       return Model.findById(req.params.id)

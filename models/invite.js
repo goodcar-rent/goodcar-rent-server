@@ -22,7 +22,12 @@ export default module.exports = (app) => {
       {
         name: 'expireAt',
         type: 'datetime',
-        default: () => new Date()
+        default: () => {
+          const defTTL = 3 * 1000 * 60 * 60 * 24 // TTL = 3 * 24h
+          const aDate = (Date.now() + defTTL)
+          console.log(`Date.now = ${Date.now()}, value = ${aDate}`)
+          return aDate
+        }
       },
       {
         name: 'registeredUser',

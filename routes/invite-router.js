@@ -1,4 +1,4 @@
-import { body, param } from 'express-validator/check'
+import { body, param, query } from 'express-validator/check'
 import InviteController from '../controllers/invite-controller'
 import paramCheck from '../services/param-check'
 import { ACL_INVITE, ACL_READ, ACL_WRITE } from '../config/acl-consts'
@@ -16,12 +16,17 @@ export default (app) => {
     .post(app.auth.ACL(ACL_INVITE, ACL_WRITE),
       [
         body('email').isEmail().isLength({ min: 5 }).withMessage('Email should be provided'),
-        body('expireAt').optional().isAfter().withMessage('ExpireAt should be greater than now'),
+        body('expireAt').optional().isAfter((Date.now() - 1000)).withMessage('ExpireAt should be greater than now'),
         body('disabled').optional().isBoolean().withMessage('Invite disabled state should be boolean value'),
         body('createdBy').optional().isString(),
         body('assignUserGroups').optional().isArray()
       ], paramCheck,
       app.wrap(controller.create))
+    .delete(app.auth.ACL(ACL_INVITE, ACL_WRITE),
+      [
+        query('filter').isJSON().withMessage('filter should be valid JSON object')
+      ], paramCheck,
+      app.wrap(controller.deleteAll))
 
   // noinspection JSCheckFunctionSignatures
   router.route(`${mountPath}/:id`)
@@ -34,7 +39,7 @@ export default (app) => {
     .put(app.auth.ACL(ACL_INVITE, ACL_WRITE),
       [
         body('email').optional().isEmail().isLength({ min: 5 }).withMessage('Email should be provided'),
-        body('expireAt').optional().isAfter().withMessage('ExpireAt should be greater than now'),
+        body('expireAt').optional().isNumeric(),
         body('disabled').optional().isBoolean().withMessage('Invite disabled state should be boolean value'),
         body('createdBy').optional().isString(),
         body('assignUserGroups').optional().isArray()

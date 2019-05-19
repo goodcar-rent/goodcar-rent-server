@@ -2,6 +2,12 @@ import _ from 'lodash'
 import Knex from 'knex'
 import { processDefaults, processGetProps } from './process-props'
 
+const withWhereIn = (queryBuilder, opt) => {
+  if (opt && opt.whereIn && opt.whereIn.column && opt.whereIn.ids) {
+    queryBuilder.whereIn(opt.whereIn.column, opt.whereIn.ids)
+  }
+}
+
 export default (app) => {
   return {
     props: {},
@@ -153,6 +159,7 @@ export default (app) => {
 
     findAll: (Model) => (opt) => {
       // console.log('storage.findAll:')
+      // console.log(opt)
       if (!Model || !Model.app || !Model.app.storage || !Model.app.storage.db) {
         return Promise.reject(new Error(`${Model.name}.findAll: some Model's properties are invalid: 
           Model ${Model},
@@ -164,7 +171,8 @@ export default (app) => {
 
       return knex.select()
         .from(Model.name)
-        .where(opt ? opt.where : {})
+        .where((opt && opt.where) ? opt.where : {})
+        .modify(withWhereIn, opt)
         .then((res) => res.map((item) => Model.processGetProps(item)))
         .then((res) => {
           // console.log('res:')
@@ -230,10 +238,20 @@ export default (app) => {
     },
 
     removeAll: (Model) => (opt) => {
+      // console.log(`${Model.name}.removeAll: opt:`)
+      // console.log(opt)
       return Model.findAll(opt)
         .then((res) => {
+          // console.log('.findAll res:')
+          // console.log(res)
           if (res) {
-            return Promise.all(res.map((item) => Model.removeById(item.id)))
+            return Promise.all(res.map((item) => {
+              // console.log('item:')
+              // console.log(item)
+              return Model.removeById(item.id)
+                .then((removedItem) => removedItem.id)
+                .catch((err) => { throw err })
+            }))
           }
           return null
         })
