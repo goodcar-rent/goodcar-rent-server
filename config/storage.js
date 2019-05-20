@@ -1,5 +1,5 @@
 // import StorageKnexSqlite from '../storages/storage-Knex-sqlite'
-import StorageSqlite from '../storages/storage-sqlite'
+// import StorageSqlite from '../storages/storage-sqlite'
 import KnexSqlite from '../storages/storage-knex-sqlite'
 import KnexMysql from '../storages/storage-knex-mysql'
 
