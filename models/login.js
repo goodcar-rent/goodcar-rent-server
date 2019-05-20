@@ -1,5 +1,6 @@
 import uuid from 'uuid/v4'
 import _ from 'lodash'
+import moment from 'moment'
 
 /* Login:
   * id: login identifier, UUID
@@ -25,7 +26,7 @@ export default module.exports = (app) => {
       {
         name: 'createdAt',
         type: 'datetime',
-        default: () => new Date()
+        default: () => moment().toDate()
       },
       {
         name: 'ip',
@@ -36,8 +37,8 @@ export default module.exports = (app) => {
   }
   Model.app = app
   return _.merge(Model, {
-    processDefaults: app.storage.processDefaults(Model),
-    processGetProps: app.storage.processGetProps(Model),
+    processBeforeSaveToStorage: app.storage.processBeforeSaveToStorage(Model),
+    processAfterLoadFromStorage: app.storage.processAfterLoadFromStorage(Model),
     initData: app.storage.init(Model),
     clearData: app.storage.clearData(Model),
     findById: app.storage.findById(Model),

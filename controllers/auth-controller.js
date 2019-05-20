@@ -146,8 +146,8 @@ export default module.exports = (app) => {
           })
           .then(() => UserGroup.findAll())
           .catch((error) => {
-            console.log('signup: error')
-            console.log(error)
+            // console.log('signup: error')
+            // console.log(error)
             if (error instanceof ServerError) {
               throw error
             } else {
@@ -220,8 +220,8 @@ export default module.exports = (app) => {
           }
         })
         .catch((error) => {
-          console.log('signup: error')
-          console.log(error)
+          // console.log('signup: error')
+          // console.log(error)
           if (error instanceof ServerError) {
             throw error
           } else {

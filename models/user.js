@@ -36,7 +36,7 @@ export default module.exports = (app) => {
         name: 'password',
         type: 'password',
         default: null,
-        beforeSet: (item) => bcrypt.hashSync(item.password, bcrypt.genSaltSync())
+        beforeSave: (item) => bcrypt.hashSync(item.password, bcrypt.genSaltSync())
       },
       {
         name: 'invitedBy',
@@ -63,8 +63,8 @@ export default module.exports = (app) => {
 
   Model.app = app
   return _.merge(Model, {
-    processDefaults: app.storage.processDefaults(Model),
-    processGetProps: app.storage.processGetProps(Model),
+    processBeforeSaveToStorage: app.storage.processBeforeSaveToStorage(Model),
+    processAfterLoadFromStorage: app.storage.processAfterLoadFromStorage(Model),
     initData: app.storage.init(Model),
     clearData: app.storage.clearData(Model),
     findById: app.storage.findById(Model),

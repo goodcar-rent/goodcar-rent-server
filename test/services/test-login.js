@@ -4,6 +4,7 @@ import dirtyChai from 'dirty-chai'
 import App from '../../app'
 import env from 'dotenv-safe'
 import supertest from 'supertest'
+import moment from 'moment'
 
 chai.use(dirtyChai)
 
@@ -177,12 +178,16 @@ describe('[service] login:', () => {
           expect(res).to.be.equal(3)
         })
         .then(() => Login.findById('1'))
+        .delay(1000)
         .then((res) => {
           expect(res).to.exist('res should exist')
           expect(res).to.be.an('object')
           expect(res.createdAt).to.exist('res should exist')
           // expect(res.createdAt).to.be.an('number')
-          expect(new Date(res.createdAt) < Date.now()).to.be.true()
+          const a = moment(res.createdAt)
+          const b = moment()
+          // console.log(a.format(), b.format())
+          expect(a.isSameOrBefore(b)).to.be.true()
         })
         .then(() => {
           done()

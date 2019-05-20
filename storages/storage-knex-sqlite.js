@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import Knex from 'knex'
-import { processDefaults, processGetProps } from './process-props'
+import { processBeforeSaveToStorage, processAfterLoadFromStorage } from './process-props'
 
 const withWhereIn = (queryBuilder, opt) => {
   if (opt && opt.whereIn && opt.whereIn.column && opt.whereIn.ids) {
@@ -11,11 +11,11 @@ const withWhereIn = (queryBuilder, opt) => {
 export default (app) => {
   return {
     props: {},
-    name: 'Undefined',
-    storageLocation: 'Undefined',
+    name: 'KNEX-SQLITE',
+    storageLocation: '',
 
-    processDefaults,
-    processGetProps,
+    processBeforeSaveToStorage: processBeforeSaveToStorage,
+    processAfterLoadFromStorage: processAfterLoadFromStorage,
 
     initStorage: () => {
       // console.log('KNEX driver')
@@ -99,7 +99,7 @@ export default (app) => {
                     table.string(prop.name, 255)
                     break
                   case 'datetime':
-                    table.dateTime(prop.name)
+                    table.datetime(prop.name)
                     break
                   case 'boolean':
                     table.boolean(prop.name)
@@ -135,7 +135,7 @@ export default (app) => {
       return knex.select()
         .from(Model.name)
         .where(Model.key, id)
-        .then((res) => Model.processGetProps(res[0]))
+        .then((res) => Model.processAfterLoadFromStorage(res[0]))
         .catch((err) => { throw err })
     },
 
@@ -153,7 +153,7 @@ export default (app) => {
         .from(Model.name)
         .where(opt ? opt.where : {})
         .limit(1)
-        .then((res) => Model.processGetProps(res[0]))
+        .then((res) => Model.processAfterLoadFromStorage(res[0]))
         .catch((err) => { throw err })
     },
 
@@ -173,15 +173,15 @@ export default (app) => {
         .from(Model.name)
         .where((opt && opt.where) ? opt.where : {})
         .modify(withWhereIn, opt)
-        .then((res) => res.map((item) => Model.processGetProps(item)))
+        .then((res) => res.map((item) => Model.processAfterLoadFromStorage(item)))
         .then((res) => {
           // console.log('res:')
           // console.log(res)
           return Promise.resolve(res)
         })
         .catch((err) => {
-          console.log('error:')
-          console.log(err)
+          // console.log('error:')
+          // console.log(err)
           throw err
         })
     },
@@ -209,8 +209,8 @@ export default (app) => {
           return Promise.resolve(res)
         })
         .catch((err) => {
-          console.log('error:')
-          console.log(err)
+          // console.log('error:')
+          // console.log(err)
           throw err
         })
     },
@@ -280,37 +280,7 @@ export default (app) => {
           .db ${Model.app.storage.db}`))
       }
       const knex = app.storage.db
-      const aItem = Model.processDefaults(item)
-
-      // console.log(`--\n${Model.name}.genericCreate(${JSON.stringify(item)})\n`)
-
-      // process props with hooks (default value / beforeSet
-      const aKeys = Object.keys(aItem)
-      aKeys.map((key) => {
-        // copy property to proxy object
-        const prop = _.find(Model.props, { name: key })
-        if (!prop) {
-          throw new Error(`${Model.name}.genericCreate: property "${key}" is not defined in model`)
-        }
-
-        if (prop.beforeSet && (typeof prop.beforeSet === 'function')) {
-          aItem[key] = prop.beforeSet(aItem)
-        }
-
-        // replace boolean values with number:
-        if (prop.type === 'boolean') {
-          aItem[key] = item[key] ? 1 : 0
-        }
-
-        // replace refs array with string representation
-        if (prop.type === 'refs') {
-          if (!item[key] || item[key] === []) {
-            aItem[key] = ''
-          } else {
-            aItem[key] = item[key].join(',')
-          }
-        }
-      })
+      const aItem = Model.processBeforeSaveToStorage(item)
 
       // build query:
       return knex(Model.name)
@@ -338,7 +308,7 @@ export default (app) => {
       // console.log('item:')
       // console.log(item)
       const aKeys = Object.keys(item)
-      const aItem = Model.processDefaults(item)
+      const aItem = Model.processBeforeSaveToStorage(item)
       // console.log('aItem:')
       // console.log(aItem)
       // process all item's props
