@@ -16,7 +16,7 @@ export default (app) => {
     .post(app.auth.ACL(ACL_INVITE, ACL_WRITE),
       [
         body('email').isEmail().isLength({ min: 5 }).withMessage('Email should be provided'),
-        body('expireAt').optional().isAfter((Date.now() - 1000)).withMessage('ExpireAt should be greater than now'),
+        body('expireAt').optional().isISO8601().withMessage('ExpireAt should be valid date/time'),
         body('disabled').optional().isBoolean().withMessage('Invite disabled state should be boolean value'),
         body('createdBy').optional().isString(),
         body('assignUserGroups').optional().isArray()
@@ -39,7 +39,7 @@ export default (app) => {
     .put(app.auth.ACL(ACL_INVITE, ACL_WRITE),
       [
         body('email').optional().isEmail().isLength({ min: 5 }).withMessage('Email should be provided'),
-        body('expireAt').optional().isNumeric(),
+        body('expireAt').optional().isISO8601().withMessage('ExpireAt should be valid date/time'),
         body('disabled').optional().isBoolean().withMessage('Invite disabled state should be boolean value'),
         body('createdBy').optional().isString(),
         body('assignUserGroups').optional().isArray()

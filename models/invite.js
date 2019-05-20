@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import uuid from 'uuid/v4'
+import moment from 'moment'
 
 /* Invite:
   * id : uuid
@@ -22,12 +23,7 @@ export default module.exports = (app) => {
       {
         name: 'expireAt',
         type: 'datetime',
-        default: () => {
-          const defTTL = 3 * 1000 * 60 * 60 * 24 // TTL = 3 * 24h
-          const aDate = (Date.now() + defTTL)
-          console.log(`Date.now = ${Date.now()}, value = ${aDate}`)
-          return aDate
-        }
+        default: () => (moment().add(3, 'd')) // default TTL = 3d from now()
       },
       {
         name: 'registeredUser',

@@ -157,12 +157,12 @@ export default module.exports = (app) => {
       return (req, res, next) => {
         // console.log(`ACL`)
         const auth = app.auth.passport.authenticate('jwt', { session: false })
-        auth(req, res, () => {
-          // console.log(`ACL.auth: req.user=${req.user.id} ${req.user.email}`)
+        return auth(req, res, () => {
+          // console.log(`ACL.auth:`)
           let aUserId = null
 
           if (req.user) {
-            // console.log('req.user authed')
+            // console.log(`req.user authed - req.user=${req.user.id} ${req.user.email}`)
             aUserId = req.user.id
           } else {
             // console.log('user not authed, guest user')

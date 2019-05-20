@@ -1,6 +1,7 @@
 import { validationResult } from 'express-validator/check'
 import { matchedData } from 'express-validator/filter'
 import jwt from 'jwt-simple'
+import moment from 'moment'
 import {
   ServerError,
   ServerGenericError,
@@ -165,7 +166,7 @@ export default module.exports = (app) => {
             throw new ServerNotFound('Invite', data.invite, 'This invite not found at all! Please ask for another invite')
           }
 
-          if (foundInvite.expireAt < Date.now()) {
+          if (moment(foundInvite.expireAt).isBefore(moment())) {
             throw new ServerNotAllowed('Invite expired')
           }
 

@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import moment from 'moment'
 
 /*
 * Common utility functions for all storage engines
@@ -56,6 +57,9 @@ export const processGetProps = (Model) => (item) => {
       } else {
         aItem[key] = []
       }
+    }
+    if (item[key] && prop.type === 'datetime') {
+      aItem[key] = moment(item[key])
     }
   })
   // console.log(`processGetProps result:\n${JSON.stringify(aItem)}`)

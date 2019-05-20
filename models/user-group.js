@@ -67,10 +67,33 @@ export default module.exports = (app) => {
   app.consts.systemTypeLoggedIn = systemTypeLoggedIn
 
   Model.app = app
+  const _init = app.storage.init(Model)
+
   return _.merge(Model, {
     processDefaults: app.storage.processDefaults(Model),
     processGetProps: app.storage.processGetProps(Model),
-    initData: app.storage.init(Model),
+    initData: () => {
+      return _init()
+        .then(() => Model.findOne({ where: { systemType: systemTypeAdmin } }))
+        .then((group) => {
+          if (group) {
+            _systemGroupAdmin = group.id
+          }
+          return Model.findOne({ where: { systemType: systemTypeGuest } })
+        })
+        .then((group) => {
+          if (group) {
+            _systemGroupGuest = group.id
+          }
+          return Model.findOne({ where: { systemType: systemTypeLoggedIn } })
+        })
+        .then((group) => {
+          if (group) {
+            _systemGroupLoggedIn = group.id
+          }
+        })
+        .catch((err) => { throw err })
+    },
     clearData: app.storage.clearData(Model),
     findById: app.storage.findById(Model),
     findOne: app.storage.findOne(Model),
