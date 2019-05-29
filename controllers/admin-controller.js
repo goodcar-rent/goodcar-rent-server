@@ -6,7 +6,7 @@ export default module.exports = (app) => {
     seedUserGroups: (req, res) => {
       const Model = app.models.UserGroup
 
-      if (!req.user) {
+      if (!req.users) {
         throw new ServerNotAllowed('User is not authenticated')
       }
       return Model.createSystemData()
@@ -21,7 +21,7 @@ export default module.exports = (app) => {
     },
 
     clearData: (req, res) => {
-      if (!req.user) {
+      if (!req.users) {
         throw new ServerNotAllowed('User is not authenticated')
       }
 

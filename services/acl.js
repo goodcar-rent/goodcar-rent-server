@@ -161,9 +161,9 @@ export default module.exports = (app) => {
           // console.log(`ACL.auth:`)
           let aUserId = null
 
-          if (req.user) {
+          if (req.users) {
             // console.log(`req.user authed - req.user=${req.user.id} ${req.user.email}`)
-            aUserId = req.user.id
+            aUserId = req.users.id
           } else {
             // console.log('user not authed, guest user')
             aUserId = GuestUserId

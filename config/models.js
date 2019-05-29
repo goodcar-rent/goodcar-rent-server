@@ -1,8 +1,8 @@
 import Storage from './storage'
-import User from '../models/user'
-import Invite from '../models/invite'
-import UserGroup from '../models/user-group'
-import Login from '../models/login'
+import User from '../models/users'
+import Invite from '../models/invites'
+import UserGroup from '../models/user-groups'
+import Login from '../models/logins'
 import Cars from '../models/cars'
 
 export default module.exports = (app) => {
