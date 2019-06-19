@@ -19,6 +19,7 @@ import {
   aclUserGroupList,
   createUser, userGroupAdd, userGroupUsersAdd, inviteList, expected, userGroupItem
 } from '../client/client-api'
+import { ACL_INVITE, ACL_READ } from '../../config/acl-consts'
 
 chai.use(dirtyChai)
 
@@ -63,6 +64,7 @@ describe('(controller) acl:', function () {
       .then(() => app.models.UserGroup.createSystemData())
       .then(() => createAdminUser(context))
       .then((res) => {
+        console.log('1')
         expect(res.body).to.exist('res.body should exist')
         expect(res.body.email).to.exist('res.body.email should exist')
         expect(res.body.id).to.exist('res.body.id should exist')
@@ -70,18 +72,23 @@ describe('(controller) acl:', function () {
         return loginAs(context, UserAdmin)
       })
       .then((res) => {
+        console.log('2')
+        context.adminToken = context.token
+        console.log('adminToken:')
+        console.log(context.token)
         expect(res.body).to.exist('res.body should exist')
         expect(res.body.token).to.exist('res.body.token should exist')
-        context.adminToken = context.token
         return inviteCreate(context, { email: UserFirst.email })
       })
       .then((res) => {
+        console.log('3')
         expect(res.body).to.exist('res.body should exist')
         expect(res.body.id).to.exist('res.body.id should exist')
         context.userInvite = res.body.id
         return createUser(context, _.merge({}, UserFirst, { invite: context.userInvite }))
       })
       .then((res) => {
+        console.log('4')
         expect(res.body).to.exist('res.body should exist')
         expect(res.body.email).to.exist('res.body.email should exist')
         expect(res.body.id).to.exist('res.body.id should exist')
@@ -158,9 +165,11 @@ describe('(controller) acl:', function () {
     it('should list active ACLs for User:', function (done) {
       context.token = context.adminToken
 
+      console.log('admin token:')
+      console.log(context.adminToken)
       const aData = {
-        object: '/auth/invite',
-        permission: 'read',
+        object: ACL_INVITE,
+        permission: ACL_READ,
         'kind': app.consts.kindAllow
       }
 

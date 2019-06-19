@@ -17,8 +17,8 @@ export default module.exports = (app) => {
       // fill optional field - createdBy
       if (!req.matchedData.createdBy) {
         req.matchedData.createdBy = null
-        if (req.users) {
-          req.matchedData.createdBy = req.users.id
+        if (req.user) {
+          req.matchedData.createdBy = req.user.id
         }
       }
 

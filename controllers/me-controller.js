@@ -5,13 +5,13 @@ export default module.exports = (app) => {
 
   return {
     me: (req, res) => {
-      if (!req.users) {
+      if (!req.user) {
         throw new ServerNotAllowed('User is not authenticated')
       }
-      return Model.findById(req.users.id)
+      return Model.findById(req.user.id)
         .then((foundData) => {
           if (!foundData) {
-            throw new ServerNotFound(Model.name, req.users.id, `${Model.name} with id ${req.params.id} not found`)
+            throw new ServerNotFound(Model.name, req.user.id, `${Model.name} with id ${req.params.id} not found`)
           }
           res.json(foundData)
           return foundData
@@ -25,7 +25,7 @@ export default module.exports = (app) => {
         })
     },
     permissions: (req, res) =>
-      app.auth.ListACLForUser(req.users.id)
+      app.auth.ListACLForUser(req.user.id)
         .then((resp) => {
           res.json(resp)
           return Promise.resolve(resp)

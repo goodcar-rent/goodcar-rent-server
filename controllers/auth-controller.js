@@ -58,12 +58,12 @@ export default module.exports = (app) => {
 
     logout: (req, res) => {
       // console.log('Auth.Logout')
-      if (!req || !req.users || !req.users.loginId) {
+      if (!req || !req.user || !req.user.loginId) {
         return Promise.reject(new ServerNotAllowed('User session not found'))
       }
 
       // console.log(`finding login id=${req.user.loginId}`)
-      return Login.findById(req.users.loginId)
+      return Login.findById(req.user.loginId)
         .then((login) => {
           // console.log(`Login found: ${login}`)
           if (!login) {

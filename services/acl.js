@@ -83,19 +83,19 @@ export default module.exports = (app) => {
 
   const CheckPermission = (userId, object, permission) => {
     let aKind = kindDeny
-    // console.log(`CheckPermission( ${userId}, ${object}, ${permission})`)
-    // console.log('aclStorage:')
-    // console.log(aclStorage)
+    console.log(`CheckPermission( ${userId}, ${object}, ${permission})`)
+    console.log('aclStorage:')
+    console.log(aclStorage)
     // check if user is admin, and have all permissions:
     const adminGroup = UserGroup.systemGroupAdmin()
-    // console.log(`Admin group: ${adminGroup}`)
+    console.log(`Admin group: ${adminGroup}`)
     let groupRes = 0
     let aPermission = null
     return UserGroup.isUserInGroup(adminGroup, userId)
       .then((isAdmin) => {
-        // console.log(`Check isUserInGroup(admin): ${isAdmin}`)
+        console.log(`Check isUserInGroup(admin): ${isAdmin}`)
         if (isAdmin) {
-          // console.log('user is admin, allow')
+          console.log('user is admin, allow')
           return Promise.resolve(kindAllow)
         }
 
@@ -103,7 +103,7 @@ export default module.exports = (app) => {
         return aclStorage.findById(object)
           .then((aObject) => {
             if (!aObject) {
-              // console.log('object not defined, DENY')
+              console.log('object not defined, DENY')
               return Promise.resolve(kindDeny) // no object defined, DENY
             }
 
@@ -113,28 +113,28 @@ export default module.exports = (app) => {
               // console.log('no such permission, DENY')
               return Promise.resolve(kindDeny) // no permission declaration, DENY
             }
-            // console.log('Permissions found:')
-            // console.log(aPermission)
+            console.log('Permissions found:')
+            console.log(aPermission)
             // check if we have some group permission:
-            // console.log('checkGroups:')
+            console.log('checkGroups:')
             return UserGroup.findGroupsForUser(userId)
               .then((groups) => {
                 // console.log(`found groups for user ${userId}:`)
                 // console.log(groups)
                 _.each(groups, (group) => {
-                  // console.log(` - group: ${group.id} ${group.name}`)
+                  console.log(` - group: ${group.id} ${group.name}`)
                   const aGroup = _.find(aPermission.userGroups, { id: group.id })
                   if (aGroup && groupRes !== kindDeny) {
-                    // console.log(`set kind === ${aGroup.kind}`)
+                    console.log(`set kind === ${aGroup.kind}`)
                     groupRes = aGroup.kind
                   }
                 })
-                // console.log(`groupRes = ${groupRes}`)
+                console.log(`groupRes = ${groupRes}`)
                 // check if specified object have exact user permission:
                 let userRes = 0
                 const aUser = _.find(aPermission.users, { id: userId })
                 if (aUser) {
-                  // console.log(`user have specific permission ${aUser.kind}`)
+                  console.log(`user have specific permission ${aUser.kind}`)
                   userRes = aUser.kind
                 }
                 // set resulting permission according proprieties:
@@ -161,9 +161,9 @@ export default module.exports = (app) => {
           // console.log(`ACL.auth:`)
           let aUserId = null
 
-          if (req.users) {
+          if (req.user) {
             // console.log(`req.user authed - req.user=${req.user.id} ${req.user.email}`)
-            aUserId = req.users.id
+            aUserId = req.user.id
           } else {
             // console.log('user not authed, guest user')
             aUserId = GuestUserId
