@@ -31,7 +31,7 @@ export default module.exports = (app) => {
         res.status(500).json({ message: 'Other server error', error })
       }
     } else {
-      res.json({ message: 'Error', error }).status(500)
+      res.status(500).json({ message: 'Error', error })
     }
     next(error)
   })
