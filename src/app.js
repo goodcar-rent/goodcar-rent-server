@@ -40,17 +40,24 @@ webhookHandler.on('push', function (repo, data) {
       branch = 'beta'
     }
     console.log(`== Branch ${branch}`)
-    const proc = exec(`${process.env.SCRIPT_PATH} ${branch}`, { env: process.env }, (err, stdout, stderr) => {
-      console.log('== exec')
-      if (err) {
-        console.log('== ERROR on exec:')
-        console.log(err)
-        console.error(err)
+    const proc = exec(
+      `${process.env.SCRIPT_PATH} ${branch}`,
+      {
+        env: process.env,
+        timeout: 90 * 1000
+      },
+      (err, stdout, stderr) => {
+        console.log('== exec')
+        if (err) {
+          console.log('== ERROR on exec:')
+          console.log(err)
+          console.error(err)
+        }
+        console.log('== Std streams:')
+        console.log(stdout)
+        console.log(stderr)
       }
-      console.log('== Std streams:')
-      console.log(stdout)
-      console.log(stderr)
-    })
+    )
     console.log('== Proc details: ')
     console.log(proc)
   }
