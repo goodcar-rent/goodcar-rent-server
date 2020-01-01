@@ -25,17 +25,22 @@ app.use(bodyParser.json()) // must use bodyParser in express
 app.use(webhookHandler) // use our middleware
 
 // Now could handle following events
-webhookHandler.on('*', function (event, repo, data) {
-  console.log(event)
-  console.log(repo)
-  console.log(data)
-})
+// webhookHandler.on('*', function (event, repo, data) {
+//   console.log(event)
+//   console.log(repo)
+//   console.log(data)
+// })
 
 webhookHandler.on('push', function (repo, data) {
   console.log('== PUSH EVENT')
-  if (repo === 'cloud-deploy') {
-    console.log('== Cloud-deploy repo')
-    exec(process.env.SCRIPT_PATH, { env: process.env }, (err, stdout, stderr) => {
+  if (repo === 'goodcar-rent-site') {
+    console.log('== goodcar-rent-site repo')
+    let branch = 'master'
+    if (data.ref === 'refs/heads/beta') {
+      branch = 'beta'
+    }
+    console.log(`== Branch ${branch}`)
+    exec(`${process.env.SCRIPT_PATH} ${branch}`, { env: process.env }, (err, stdout, stderr) => {
       console.log('== exec')
       if (err) {
         console.error(err)
@@ -47,12 +52,8 @@ webhookHandler.on('push', function (repo, data) {
   }
 })
 
-webhookHandler.on('reponame', function (event, data) {
-  console.log(event)
-  console.log(data)
-})
-
 webhookHandler.on('error', function (err, req, res) {
+  console.log('== ERROR:')
   console.log(err)
   console.log(req)
   console.log(res)
