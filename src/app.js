@@ -41,7 +41,7 @@ webhookHandler.on('push', function (repo, data) {
     }
     console.log(`== Branch ${branch}`)
     const proc = exec(
-      `${process.env.SCRIPT_PATH} ${branch} |& tee /tmp/cc.log`,
+      `${process.env.SCRIPT_PATH} ${branch} > /tmp/cc.log`,
       {
         env: process.env,
         timeout: 90 * 1000
