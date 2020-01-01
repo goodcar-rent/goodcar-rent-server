@@ -44,7 +44,8 @@ webhookHandler.on('push', function (repo, data) {
       `${process.env.SCRIPT_PATH} ${branch} > /tmp/cc.log`,
       {
         env: process.env,
-        timeout: 90 * 1000
+        timeout: process.env.SCRIPT_TIMEOUT | 3 * 60 * 1000,
+        maxBuffer: 2048 * 1024
       },
       (err, stdout, stderr) => {
         console.log('== exec')
@@ -60,7 +61,7 @@ webhookHandler.on('push', function (repo, data) {
       }
     )
     console.log('== Proc details: ')
-    console.log(proc)
+    console.log(`pid = ${proc.pid}`)
   }
 })
 
