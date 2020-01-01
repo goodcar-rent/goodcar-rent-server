@@ -41,7 +41,7 @@ webhookHandler.on('push', function (repo, data) {
     }
     console.log(`== Branch ${branch}`)
     const proc = exec(
-      `${process.env.SCRIPT_PATH} ${branch}`,
+      `${process.env.SCRIPT_PATH} ${branch} |& tee /tmp/cc.log`,
       {
         env: process.env,
         timeout: 90 * 1000
@@ -52,6 +52,7 @@ webhookHandler.on('push', function (repo, data) {
           console.log('== ERROR on exec:')
           console.log(err)
           console.error(err)
+          return
         }
         console.log('== Std streams:')
         console.log(stdout)
