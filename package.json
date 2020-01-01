@@ -7,10 +7,30 @@
   "license": "MIT",
   "dependencies": {
     "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.4",
+    "debug": "^4.1.1",
     "express": "^4.17.1",
-    "express-github-webhook": "^1.0.6"
+    "express-github-webhook": "^1.0.6",
+    "http-errors": "^1.7.3",
+    "morgan": "^1.9.1",
+    "pug": "^2.0.4"
   },
   "devDependencies": {
+    "@babel/cli": "^7.7.7",
+    "@babel/core": "^7.7.7",
+    "@babel/node": "^7.7.7",
+    "@babel/preset-env": "^7.7.7",
+    "babel-plugin-add-module-exports": "^1.0.2",
+    "cross-env": "^6.0.3",
     "standard": "^14.3.1"
+  },
+  "scripts": {
+    "develop": "cross-env DEBUG='cloud-deploy:*' babel-node src/server/server.js",
+    "start": "yarn run build && cross-env DEBUG='cloud-deploy:*' node ./bin/server/server.js",
+    "clean": "rimraf bin",
+    "test": "mocha ./test/**/*.js",
+    "cover": "nyc npm run test",
+    "lint": "eslint",
+    "build": "rsync -avu --delete ./src/public ./bin && rsync -avu --delete ./src/views ./bin && cross-env BABEL_ENV=production babel src --out-dir bin"
   }
 }
