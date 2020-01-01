@@ -32,3 +32,8 @@ webhookHandler.on('error', function (err, req, res) {
   console.log(req)
   console.log(res)
 })
+
+// test route:
+app.get('/', (req, res) => {
+  res.send('Cloud Deploy 0.0.1')
+})
