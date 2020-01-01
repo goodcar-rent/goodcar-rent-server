@@ -43,9 +43,11 @@ webhookHandler.on('push', function (repo, data) {
     exec(`${process.env.SCRIPT_PATH} ${branch}`, { env: process.env }, (err, stdout, stderr) => {
       console.log('== exec')
       if (err) {
+        console.log('== ERROR on exec:')
+        console.log(err)
         console.error(err)
-        return 1
       }
+      console.log('== Std streams:')
       console.log(stdout)
       console.log(stderr)
     })
