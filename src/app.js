@@ -5,6 +5,10 @@ import cookieParser from 'cookie-parser'
 import createError from 'http-errors'
 import logger from 'morgan'
 import GithubWebHook from 'express-github-webhook'
+import dotenv from 'dotenv-safe'
+import { exec } from 'child_process'
+
+dotenv.config()
 
 // import indexRouter from './routes/index'
 
@@ -27,9 +31,20 @@ webhookHandler.on('*', function (event, repo, data) {
   console.log(data)
 })
 
-webhookHandler.on('event', function (repo, data) {
-  console.log(repo)
-  console.log(data)
+webhookHandler.on('push', function (repo, data) {
+  console.log('== PUSH EVENT')
+  if (repo === 'cloud-deploy') {
+    console.log('== Cloud-deploy repo')
+    exec(process.env.SCRIPT_PATH, { env: process.env }, (err, stdout, stderr) => {
+      console.log('== exec')
+      if (err) {
+        console.error(err)
+        return 1
+      }
+      console.log(stdout)
+      console.log(stderr)
+    })
+  }
 })
 
 webhookHandler.on('reponame', function (event, data) {
