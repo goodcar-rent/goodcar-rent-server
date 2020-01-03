@@ -81,6 +81,11 @@ app.get('/test-webhook', (req, res) => {
   res.status(200).send('Webhook simulated!')
 })
 
+app.post('/test-webhook', (req, res) => {
+  webhookHandler.emit('push', 'goodcar-rent-site', { ref: 'refs/heads/master' })
+  res.status(200).send({ message: 'event emitted' })
+})
+
 app.use(logger('dev'))
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
