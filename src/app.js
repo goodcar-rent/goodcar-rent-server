@@ -6,7 +6,7 @@ import createError from 'http-errors'
 import logger from 'morgan'
 import GithubWebHook from 'express-github-webhook'
 import dotenv from 'dotenv-safe'
-import { exec } from 'child_process'
+import { spawn } from 'child_process'
 
 dotenv.config()
 
@@ -40,28 +40,26 @@ webhookHandler.on('push', function (repo, data) {
       branch = 'beta'
     }
     console.log(`== Branch ${branch}`)
-    const proc = exec(
-      `${process.env.SCRIPT_PATH} ${branch} > /tmp/cc.log`,
+    const proc = spawn(
+      process.env.SCRIPT_PATH,
+      [branch],
       {
         env: process.env,
         timeout: process.env.SCRIPT_TIMEOUT | 3 * 60 * 1000,
         maxBuffer: 2048 * 1024
-      },
-      (err, stdout, stderr) => {
-        console.log('== exec')
-        if (err) {
-          console.log('== ERROR on exec:')
-          console.log(err)
-          console.error(err)
-          return
-        }
-        console.log('== Std streams:')
-        console.log(stdout)
-        console.log(stderr)
       }
     )
-    console.log('== Proc details: ')
-    console.log(`pid = ${proc.pid}`)
+    proc.stdout.on('data', (data) => {
+      process.stdout.write(data)
+      // console.log(data.toString())
+    })
+    proc.stderr.on('data', (data) => {
+      process.stderr.write(data)
+      // console.log(data.toString())
+    })
+    proc.on('exit', (data) => {
+      console.log(`Process exited with code ${data.toString()}`)
+    })
   }
 })
 
@@ -75,6 +73,12 @@ webhookHandler.on('error', function (err, req, res) {
 // test route:
 app.get('/', (req, res) => {
   res.send('Cloud Deploy 0.0.1')
+})
+
+// test webhook event:
+app.get('/test-webhook', (req, res) => {
+  webhookHandler.emit('push', 'goodcar-rent-site', { ref: 'refs/heads/master' })
+  res.status(200).send('Webhook simulated!')
 })
 
 app.use(logger('dev'))
