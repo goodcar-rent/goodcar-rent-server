@@ -127,20 +127,34 @@ export const RouteBuilder = (app) => {
     ]
   })
 
-  const routesForModel = (model) => {
-    if (model && model.generateRoutes) {
-      app.exModular.routes.Add(model.generateRoutes.map((routeName) => {
-        switch (routeName) {
-          case listRouteName: return routeList(app, model)
-          case createRouteName: return routeCreate(app, model)
-          case itemRouteName: return routeItem(app, model)
-          case saveRouteName: return routeSave(app, model)
-          case removeRouteName: return routeRemove(app, model)
-          case removeAllRouteName: return routeRemoveAll(app, model)
-        }
-        throw new Error(`generateRoute: invalid routeName ${routeName}`)
-      }))
+  const routesForModel = (model, opt) => {
+    // if no opt specified - generate all crud routes
+    if (!opt) {
+      opt = crudRoutes
     }
+
+    // if only one route name specified - make it array with single item
+    if (!Array.isArray(opt)) {
+      opt = [opt]
+    }
+
+    // model should be provided
+    if (!model) {
+      throw new Error('generateRoute: invalid model param')
+    }
+
+    // generate routes and regiter them
+    app.exModular.routes.Add(opt.map((routeName) => {
+      switch (routeName) {
+        case listRouteName: return routeList(app, model)
+        case createRouteName: return routeCreate(app, model)
+        case itemRouteName: return routeItem(app, model)
+        case saveRouteName: return routeSave(app, model)
+        case removeRouteName: return routeRemove(app, model)
+        case removeAllRouteName: return routeRemoveAll(app, model)
+      }
+      throw new Error(`generateRoute: invalid routeName ${routeName}`)
+    }))
   }
 
   const routesForAllModels = () => {

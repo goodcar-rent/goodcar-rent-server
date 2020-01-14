@@ -1,6 +1,5 @@
 import uuid from 'uuid/v4'
 import _ from 'lodash'
-import { crudRoutes } from './route-builder'
 
 export const Session = (app, options) => {
   if (!options) {
@@ -11,7 +10,6 @@ export const Session = (app, options) => {
   const Model = {
     name: 'Session',
     priority: 0,
-    generateRoutes: crudRoutes,
     props: [
       {
         name: 'id',

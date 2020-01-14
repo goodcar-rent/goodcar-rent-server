@@ -1,6 +1,5 @@
 import uuid from 'uuid/v4'
 import bcrypt from 'bcrypt'
-import { crudRoutes } from './route-builder'
 
 export const User = (app, options) => {
   if (!options) {
@@ -59,8 +58,7 @@ export const User = (app, options) => {
         default: false
       }
     ],
-    isPassword: (encodedPassword, password) => bcrypt.compareSync(password, encodedPassword),
-    generateRoutes: crudRoutes
+    isPassword: (encodedPassword, password) => bcrypt.compareSync(password, encodedPassword)
   }
   return Schema
 }

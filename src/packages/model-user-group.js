@@ -1,5 +1,4 @@
 import uuid from 'uuid/v4'
-import { crudRoutes } from './route-builder'
 
 export const UserGroup = (app, options) => {
   if (!options) {
@@ -31,7 +30,6 @@ export const UserGroup = (app, options) => {
         type: 'refs',
         default: []
       }
-    ],
-    generateRoutes: crudRoutes
+    ]
   }
 }
