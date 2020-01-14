@@ -54,7 +54,7 @@ export const exModular = (app) => {
       throw new Error('.storages should be initialized before initializing model')
     }
     return Promise.all(Object.keys(ex.models).map((modelName) => ex.models[modelName].dataClear()))
-      .then(() => app.exModular.access.initData())
+      .then(() => app.exModular.initAll())
       .catch((e) => { throw e })
   }
 

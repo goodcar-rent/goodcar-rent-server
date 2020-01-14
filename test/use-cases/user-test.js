@@ -51,6 +51,15 @@ describe('ex-modular tests', function () {
     App()
       .then((a) => {
         app = a
+      })
+      .then(() => app.exModular.storages.Init()) // init storages
+      .then(() => app.exModular.modelsInit())
+      .then(() => {
+        app.exModular.routes.builder.forAllModels()
+        return app.exModular.routes.builder.generateRoutes()
+      })
+      .then(() => app.exModular.initAll())
+      .then(() => {
         context.request = supertest(app)
         done()
       })
