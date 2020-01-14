@@ -138,7 +138,7 @@ export const AuthPassword = (app) => {
     {
       method: 'GET',
       name: 'Auth.Logout',
-      path: 'auth/logout',
+      path: '/auth/logout',
       handler: logout,
       validate: app.exModular.auth.check,
       type: 'Auth',

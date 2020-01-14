@@ -11,6 +11,7 @@ export const exModular = (app) => {
   ex.storages.default = null
   ex.access = {}
   ex.session = {}
+  ex.init = []
 
   ex.storages.byName = (name) => {
     if (name === 'default') {
@@ -86,7 +87,7 @@ export const exModular = (app) => {
     }
     return Promise.all(Object.keys(ex.models).map((modelName) => {
       const model = ex.models[modelName]
-      if (model.storage === 'default') {
+      if (!model.storage || model.storage === 'default') {
         model.storage = ex.storages.default
       }
       // ex.routesAdd(generateRoutesForModel(app, model))
@@ -104,6 +105,13 @@ export const exModular = (app) => {
     }
     ex.models[model.name] = model.storage.modelFromSchema(model)
   }
+  ex.initAdd = (item) => {
+    ex.init.push(item)
+  }
+
+  ex.initAll = () =>
+    Promise.all(ex.init.map((item) => item()))
+      .catch((e) => { throw e })
 
   ex.routes.Add = (routes) => {
     if (!routes) return

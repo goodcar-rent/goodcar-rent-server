@@ -385,10 +385,10 @@ export default (app) => {
     count: (Model) => () => {
       // console.log('storage.count')
       if (!Model || !Model.storage || !Model.storage.db) {
-        return Promise.reject(new Error(`${Model.name}.count: some Model's properties are invalid:
+        throw Error(`${Model.name}.count: some Model's properties are invalid:
           Model ${Model},
           .storage ${Model.storage}
-          .db ${Model.storage.db}`))
+          .db ${Model.storage.db}`)
       }
       const knex = Model.storage.db
       return knex(Model.name)

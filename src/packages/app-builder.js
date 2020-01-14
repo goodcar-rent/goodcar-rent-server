@@ -16,7 +16,7 @@ import { User } from './model-user'
 import { Session } from './model-session'
 import { AuthJwt as Auth } from './auth-jwt'
 import { AccessSimple as Access } from './access-simple'
-import { initData as AccessSystemInitData } from './access-system'
+import { InitAccess } from './init-access'
 import { UserGroup } from './model-user-group'
 import { SignupOpen } from './signup-open'
 import { AuthPassword } from './auth-password'
@@ -90,7 +90,7 @@ export const appBuilder = (express, options) => {
       AuthPassword(app)
 
       // configure system data init:
-      app.exModular.access.initData = AccessSystemInitData(app)
+      app.exModular.initAdd(InitAccess(app))
 
       // check dependings among installed modules (plugins):
       app.exModular.checkDeps()
@@ -109,11 +109,6 @@ export const appBuilder = (express, options) => {
 
       return app
     })
-    .then((app) => app.exModular.storages.Init()) // init storages
-    .then(() => app.exModular.modelsInit())
-    .then(() => app.exModular.routes.builder.forAllModels())
-    .then(() => app.exModular.routes.builder.generateRoutes())
-    .then(() => app.exModular.access.initData())
     .then(() => app)
     .catch((err) => { throw err })
 }

@@ -1,4 +1,4 @@
-import { accessLoggedIn, accessAdmin } from './access-system'
+import { accessLoggedIn, accessAdmin } from './init-access'
 
 const packageName = 'Access-simple'
 
