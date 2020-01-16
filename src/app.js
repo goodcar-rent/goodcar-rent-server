@@ -1,7 +1,7 @@
 import express from 'express'
 import appBuilder from './packages/app-builder'
 import serverBuilder from './packages/server-builder'
-import Webhook from './ext/webhook'
+// import Webhook from './ext/webhook'
 import { Deploy } from './ext/deploy'
 import env from 'dotenv-safe'
 
@@ -15,7 +15,7 @@ let app = null
 appBuilder(express, {})
   .then((_app) => {
     app = _app
-    Webhook(app)
+    // Webhook(app)
     Deploy(app)
   })
   .then(() => app.exModular.storages.Init()) // init storages

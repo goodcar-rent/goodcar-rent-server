@@ -39,6 +39,12 @@ export const processBeforeSaveToStorage = (Model, item) => {
     if (item[prop.name] && prop.type === 'datetime') {
       aItem[prop.name] = moment(item[prop.name]).toDate()
     }
+    if (prop.type === 'enum') {
+      // ensure enum values are in range:
+      if (!_.find(prop.format, { value: item[prop.name] })) {
+        throw Error(`${Model.name}.${prop.name} enum value invalid: not found in enum format definition`)
+      }
+    }
 
     // replace refs array with string representation
     if (prop.type === 'refs') {
@@ -85,6 +91,15 @@ export const processAfterLoadFromStorage = (Model, item) => {
 
     if (item[key] && prop.type === 'boolean') {
       aItem[key] = (!!item[key])
+    }
+    if (item[key] && prop.type === 'enum') {
+      // check loaded value for enum field:
+      const format = _.find(prop.format, { value: item[key] })
+      if (!format) {
+        throw Error(`${Model.name}.${prop.name} enum value invalid: not found in enum format definition; value = ${item[key]}`)
+      }
+      // set enum caption for field
+      // aItem[`${key}_caption`] = format.caption
     }
     if (prop.type === 'refs') {
       // console.log('refs prop')

@@ -21,7 +21,7 @@ export default (app) => {
           table.string(prop.name)
           break
         case 'text':
-          table.string(prop.name)
+          table.string(prop.name, prop.size || 256)
           break
         case 'password':
           table.string(prop.name)
