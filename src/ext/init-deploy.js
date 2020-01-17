@@ -8,7 +8,9 @@ export const InitDeploy = (app) => () => {
         return app.exModular.models.DeployProject.create({
           id: deployGoodCarRent,
           name: 'goodcar-rent-site',
-          fullName: 'goodcar-rent/goodcar-rent-site'
+          fullName: 'goodcar-rent/goodcar-rent-site',
+          script: '/home/deksden/_apps/goodcar_rent.sh',
+          scriptTimeout: 180000
         })
       }
     })

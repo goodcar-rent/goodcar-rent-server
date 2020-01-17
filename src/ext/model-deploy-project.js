@@ -22,6 +22,20 @@ export const DeployProject = () => {
         type: 'text',
         format: 'email',
         default: null
+      },
+      {
+        name: 'script',
+        type: 'text',
+        format: 'text',
+        size: 64,
+        default: ''
+      },
+      {
+        name: 'scriptTimeout',
+        type: 'text',
+        format: 'text',
+        size: 64,
+        default: ''
       }
     ]
   }

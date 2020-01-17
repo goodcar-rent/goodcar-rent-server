@@ -68,11 +68,11 @@ export const Deploy = (app, opt) => {
       .then((_event) => {
         event = _event
         proc = spawn(
-          process.env.SCRIPT_PATH,
+          project.script,
           [event.branch],
           {
             env: process.env,
-            timeout: process.env.SCRIPT_TIMEOUT | 3 * 60 * 1000,
+            timeout: project.scriptTimeout | 3 * 60 * 1000,
             maxBuffer: 2048 * 1024
           }
         )
