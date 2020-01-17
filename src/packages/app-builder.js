@@ -65,7 +65,9 @@ export const appBuilder = (express, options) => {
       app.use(cookieParser())
 
       // init cors:
-      app.use(options.cors(options.corsOptions))
+      const _cors = options.cors(options.corsOptions)
+      app.use(_cors)
+      app.options('*', _cors)
 
       // define services & other stuff:
       app.exModular.services.wrap = Wrap(app)
