@@ -9,7 +9,7 @@ const packageName = 'Deploy'
 
 const extractBranchName = (str) => {
   const prefix = 'refs/heads/'
-  if (!str || !_.startsWith(str,prefix)) {
+  if (!str || !_.startsWith(str, prefix)) {
     return ''
   }
   return str.substr(prefix.length)

@@ -27,7 +27,7 @@ export const DeployProject = () => {
         name: 'script',
         type: 'text',
         format: 'text',
-        size: 64,
+        size: 127,
         default: ''
       },
       {
@@ -35,6 +35,27 @@ export const DeployProject = () => {
         type: 'text',
         format: 'text',
         size: 64,
+        default: ''
+      },
+      {
+        name: 'branch',
+        type: 'text',
+        format: 'text',
+        size: 64,
+        default: ''
+      },
+      {
+        name: 'site',
+        type: 'text',
+        format: 'text',
+        size: 127,
+        default: ''
+      },
+      {
+        name: 'siteConfig',
+        type: 'text',
+        format: 'text',
+        size: 127,
         default: ''
       }
     ]
