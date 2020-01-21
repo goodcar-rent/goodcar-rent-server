@@ -45,6 +45,9 @@ export const processBeforeSaveToStorage = (Model, item) => {
         throw Error(`${Model.name}.${prop.name} enum value invalid: not found in enum format definition`)
       }
     }
+    if (prop.type === 'calculated') {
+      delete aItem[prop.name]
+    }
 
     // replace refs array with string representation
     if (prop.type === 'refs') {
@@ -70,6 +73,7 @@ export const processAfterLoadFromStorage = (Model, item) => {
   const aItem = _.merge({}, item)
 
   const aKeys = Object.keys(aItem)
+  const getters = []
   aKeys.map((key) => {
     const prop = _.find(Model.props, { name: key })
     if (!prop) {
@@ -117,7 +121,16 @@ export const processAfterLoadFromStorage = (Model, item) => {
     if (item[key] && prop.type === 'datetime') {
       aItem[key] = moment(item[key]).toDate()
     }
+    if (prop.type === 'calculated') {
+      if (prop.getter && (typeof prop.getter === 'function')) {
+        getters.push({ name: prop.name, getter: prop.getter })
+      }
+    }
   })
+
+  // after processing all props process getters on final property values:
+  getters.map((getter) => { aItem[getter.name] = getter.getter(aItem) })
+
   // console.log(`processAfterLoadFromStorage result:\n${JSON.stringify(aItem)}`)
   return aItem
 }

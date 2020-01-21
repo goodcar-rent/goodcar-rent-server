@@ -47,6 +47,8 @@ export default (app) => {
         case 'float':
           table.float(prop.name, prop.precision || 8, prop.scale || 2)
           break
+        case 'calculated':
+          break
         default:
           throw new Error(`invalid prop.type ${prop.type} for ${prop.name}`)
       }

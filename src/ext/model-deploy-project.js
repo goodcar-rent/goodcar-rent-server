@@ -1,4 +1,5 @@
 import uuid from 'uuid/v4'
+import fs from 'fs'
 
 export const DeployProject = () => {
   return {
@@ -52,11 +53,21 @@ export const DeployProject = () => {
         default: ''
       },
       {
-        name: 'siteConfig',
+        name: 'siteConfigPath',
         type: 'text',
         format: 'text',
         size: 127,
         default: ''
+      },
+      {
+        name: 'siteConfig',
+        type: 'calculated',
+        getter: (item) => {
+          if (item && item.siteConfigPath && fs.existsSync(item.siteConfigPath)) {
+            return fs.readFileSync(item.siteConfigPath).toString()
+          }
+          return ''
+        }
       }
     ]
   }

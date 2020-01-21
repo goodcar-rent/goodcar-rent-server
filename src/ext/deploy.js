@@ -4,6 +4,7 @@ import { DeployEvent, DeployEventType } from './model-deloy-event'
 import { InitDeploy } from './init-deploy'
 import GithubWebHook from 'express-github-webhook'
 import { spawn } from 'child_process'
+import { InitUsers } from './init-users'
 
 const packageName = 'Deploy'
 
@@ -32,6 +33,7 @@ export const Deploy = (app, opt) => {
   app.exModular.modelAdd(DeployProject(app))
   app.exModular.modelAdd(DeployEvent(app))
 
+  app.exModular.initAdd(InitUsers(app))
   app.exModular.initAdd(InitDeploy(app))
 
   const webhookHandler = GithubWebHook({ path: opt.webhook, secret: opt.secret })

@@ -14,7 +14,7 @@ export const InitDeploy = (app) => () => {
           scriptTimeout: 180000,
           branch: 'master',
           site: 'goodcar.rent',
-          siteConfig: '/etc/nginx/'
+          siteConfigPath: '/etc/nginx/sites-available/goodcar.rent'
         })
           .then(() => app.exModular.models.DeployProject.create({
             id: deployBetaGoodCarRent,
@@ -24,7 +24,7 @@ export const InitDeploy = (app) => () => {
             scriptTimeout: 180000,
             branch: 'beta',
             site: 'beta.goodcar.rent',
-            siteConfig: '/etc/nginx/'
+            siteConfigPath: '/etc/nginx/sites-available/beta.goodcar.rent'
           }))
       }
     })
