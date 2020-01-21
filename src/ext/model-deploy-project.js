@@ -63,9 +63,14 @@ export const DeployProject = () => {
         name: 'siteConfig',
         type: 'calculated',
         getter: (item) => {
+          console.log('== getter')
           if (item && item.siteConfigPath && fs.existsSync(item.siteConfigPath)) {
-            return fs.readFileSync(item.siteConfigPath).toString()
+            const config = fs.readFileSync(item.siteConfigPath).toString()
+            console.log('== config here:')
+            console.log(config)
+            return config
           }
+          console.log('== empty')
           return ''
         }
       }

@@ -73,8 +73,14 @@ export const processAfterLoadFromStorage = (Model, item) => {
   const aItem = _.merge({}, item)
 
   const aKeys = Object.keys(aItem)
+  const propKeys = Model.props.map((prop) => prop.name)
+  if ((_.difference(aKeys, propKeys)).length > 0) {
+    console.log('arrays are not same:')
+    console.log(aKeys)
+    console.log(propKeys)
+  }
   const getters = []
-  aKeys.map((key) => {
+  propKeys.map((key) => {
     const prop = _.find(Model.props, { name: key })
     if (!prop) {
       throw new Error(`${Model.name}.processAfterLoadFromStorage: Model "${Model.name}" does not have definition for property "${key}"`)
