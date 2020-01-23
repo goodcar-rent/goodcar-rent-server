@@ -64,7 +64,8 @@ export const Deploy = (app, opt) => {
           branch: extractBranchName(data.ref),
           commit: data.head_commit.id || '',
           projectId: project.id,
-          createdAt: Date.now()
+          createdAt: Date.now(),
+          status: 'started'
         })
       })
       .then((_event) => {
@@ -93,6 +94,7 @@ export const Deploy = (app, opt) => {
             .then((ev) => {
               ev.stdout = stdout
               ev.stderr = stderr
+              ev.status = `error - ${err.toString()}`
               return DeployEvent.update(ev)
             })
             .catch((e) => { throw e })
@@ -103,6 +105,7 @@ export const Deploy = (app, opt) => {
             .then((ev) => {
               ev.stdout = stdout
               ev.stderr = stderr
+              ev.status = 'finished ok'
               return DeployEvent.update(ev)
             })
             .catch((e) => { throw e })

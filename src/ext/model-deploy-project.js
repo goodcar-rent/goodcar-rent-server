@@ -73,6 +73,12 @@ export const DeployProject = () => {
           console.log('== empty')
           return ''
         }
+      },
+      {
+        name: 'caption',
+        type: 'calculated',
+        format: 'text',
+        getter: r => r.name + '(' + r.branch + ')'
       }
     ]
   }

@@ -81,6 +81,12 @@ export const DeployEvent = () => {
         type: 'datetime',
         format: 'YYYY/MM/DD',
         default: ''
+      },
+      {
+        name: 'status',
+        type: 'text',
+        format: 'text',
+        default: ''
       }
     ]
   }
