@@ -86,6 +86,13 @@ export const DeployEvent = () => {
         name: 'status',
         type: 'text',
         format: 'text',
+        size: 64,
+        default: ''
+      },
+      {
+        name: 'statusMessage',
+        type: 'text',
+        format: 'text',
         default: ''
       }
     ]
