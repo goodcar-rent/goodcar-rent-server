@@ -50,6 +50,8 @@ export const Deploy = (app, opt) => {
     let proc = null
     let stdout = ''
     let stderr = ''
+    const startMoment = Date.now()
+
     DeployProject.findOne({ where: { name: repo } })
       .then((_project) => {
         if (!_project) {
@@ -65,7 +67,7 @@ export const Deploy = (app, opt) => {
           commit: data.head_commit.id || '',
           projectId: project.id,
           createdAt: Date.now(),
-          status: 'started'
+          status: 'Started'
         })
       })
       .then((_event) => {
@@ -94,7 +96,8 @@ export const Deploy = (app, opt) => {
             .then((ev) => {
               ev.stdout = stdout
               ev.stderr = stderr
-              ev.status = `error - ${err.toString()}`
+              ev.status = 'Error'
+              ev.statusMessage = `error - ${err.toString()}`
               return DeployEvent.update(ev)
             })
             .catch((e) => { throw e })
@@ -105,7 +108,8 @@ export const Deploy = (app, opt) => {
             .then((ev) => {
               ev.stdout = stdout
               ev.stderr = stderr
-              ev.status = 'finished ok'
+              ev.status = 'Ok'
+              ev.statusMessage = `finished ok in ${(Date.now() - startMoment) / 1000}s`
               return DeployEvent.update(ev)
             })
             .catch((e) => { throw e })
