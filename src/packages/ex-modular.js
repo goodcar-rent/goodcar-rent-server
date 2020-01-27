@@ -90,11 +90,9 @@ export const exModular = (app) => {
       if (!model.storage || model.storage === 'default') {
         model.storage = ex.storages.default
       }
-      // ex.routesAdd(generateRoutesForModel(app, model))
-      // model.
       return model.schemaInit()
-    }))
-      .catch((e) => { throw e })
+        .catch((e) => { throw e })
+    })).catch((e) => { throw e })
   }
   ex.modelAdd = (model) => {
     if (!model || !model.name || !model.props) {

@@ -290,8 +290,33 @@ export default (app) => {
                 Model.storage.mapPropToKnexTable(prop, table)
               })
             })
+          } else {
+            return knex(Model.name).columnInfo()
+              .then((info) => {
+                // check if all model's properties are in info:
+                const infoKeys = Object.keys(info)
+                const diff = _.differenceWith(Model.props, infoKeys, (prop, infoKey) => {
+                  if (!prop || !infoKey) {
+                    return false
+                  }
+                  if (prop.type === 'calculated') {
+                    return true
+                  }
+                  if (prop.name === infoKey) {
+                    return true
+                  }
+                  return false
+                })
+                if (diff.length > 0) {
+                  console.log(`${Model.name}.diff:`)
+                  console.log(JSON.stringify(diff))
+                  throw Error(`Database outdated for "${Model.name}" for columns: ${JSON.stringify(diff)}`)
+                }
+              })
+              .catch((e) => { throw e })
           }
         })
+        .catch((e) => { throw e })
     },
 
     schemaClear: (Model) => () => {
