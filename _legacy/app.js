@@ -6,7 +6,7 @@ import cors from 'cors'
 
 import Auth from './config/auth'
 import Models from './config/models'
-import indexRouter from './routes/index'
+import indexRouter from './routes'
 import UserRouter from './routes/users-router'
 import AuthRouter from './routes/auth-router'
 import LoginRouter from './routes/login-router'

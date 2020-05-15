@@ -1,8 +1,8 @@
 import _ from 'lodash'
 import uuid from 'uuid/v4'
 
-import dataUserGroupSystem from '../data/user-group-system'
-import dataUserGroup from '../data/user-group'
+import dataUserGroupSystem from '../data/user-group-system.json'
+import dataUserGroup from '../data/user-group.json'
 
 /*
 
