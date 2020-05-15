@@ -1,0 +1,18 @@
+{
+  "globals": {
+    "describe": true,
+    "it": true,
+    "expect": true,
+    "beforeEach": true,
+    "before": true,
+    "afterEach": true,
+    "after": true,
+    "app": true,
+    "request": true
+  },
+  "rules": {
+    "no-unused-expressions": 0,
+    "prefer-arrow-callback": 0,
+    "func-names": 0
+  }
+}
