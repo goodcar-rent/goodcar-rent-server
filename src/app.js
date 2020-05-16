@@ -1,7 +1,7 @@
 import express from 'express'
 import appBuilder from './packages/app-builder'
 import serverBuilder from './packages/server-builder'
-import { Deploy } from './ext/deploy'
+import { Deploy } from './ext-deploy/deploy'
 import env from 'dotenv-safe'
 
 // load .env
