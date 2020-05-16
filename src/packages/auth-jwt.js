@@ -4,7 +4,7 @@ const packageName = 'Auth-jwt'
 const DEF_SECRET = 'jhwckjeqfjnqwdoijed'
 
 export const AuthJwt = (app) => {
-  app.exModular.modules.Add({
+  const Module = {
     moduleName: packageName,
     dependency: [
       'services.errors',
@@ -12,16 +12,19 @@ export const AuthJwt = (app) => {
       'services.errors.ServerNotAllowed',
       'models.Session',
       'models.User'
-    ]
-  })
+    ],
+    module: {}
+  }
+
+  app.exModular.modules.Add(Module)
 
   // define methods on app.auth path:
   // encode sessionID into JWT:
-  const encode = (sessionId) =>
+  Module.module.encode = (sessionId) =>
     jwt.sign({ id: sessionId }, app.env.JWT_SECRET ? app.env.JWT_SECRET : DEF_SECRET, { expiresIn: '1h' })
 
   // parse req header and extract schema/token
-  const getTokenFromReq = (req) => {
+  Module.module.getTokenFromReq = (req) => {
     const pattern = /(\S+)\s+(\S+)/
     const headerValue = req.get('authorization')
     if (typeof headerValue !== 'string') {
@@ -32,12 +35,12 @@ export const AuthJwt = (app) => {
   }
 
   // middleware to check session in JWT, lod if from storage and load user profile:
-  const check = (req, res, next) => {
+  Module.module.check = (req, res, next) => {
     const Session = app.exModular.models.Session
     const User = app.exModular.models.User
     const Errors = app.exModular.services.errors
 
-    const auth = app.auth.getTokenFromReq(req)
+    const auth = app.exModular.auth.getTokenFromReq(req)
     if (auth && auth.scheme === 'bearer') {
       // we have some token
       try {
@@ -68,13 +71,13 @@ export const AuthJwt = (app) => {
         next(e)
       }
     } else {
-      next(new Error('Auth failed, no auth header or unknown scheme'))
+      // next(new Error('Auth failed, no auth header or unknown scheme'))
+      req.user = app.exModular.access.ACCESS_GUEST
+      req.user.session = null
+      req.user.jwt = null
+      next()
     }
   }
 
-  return {
-    encode,
-    getTokenFromReq,
-    check
-  }
+  return Module.module
 }

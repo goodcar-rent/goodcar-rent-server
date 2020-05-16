@@ -23,11 +23,12 @@ export const UserGroup = (app, options) => {
       {
         name: 'systemType',
         type: 'text',
-        default: null
+        default: ''
       },
       {
         name: 'users',
         type: 'refs',
+        model: 'User',
         default: []
       }
     ]

@@ -1,10 +1,23 @@
 import _ from 'lodash'
 import fs from 'fs'
 import moment from 'moment'
+import { isPromise } from './is-promise'
 
-export const processBeforeSaveToStorage = (Model, item) => {
+export const checkIsFullVirtual = (Model) => {
+  // check if model have only calculated fields
+  let allCalculated = true
+  Model.props.map((prop) => {
+    if (!(prop.calculated && prop.calculated === true)) {
+      allCalculated = false
+    }
+  })
+  return allCalculated
+}
+
+export const processBeforeSaveToStorage = (Model, item, opts) => {
   // console.log(`processBeforeSaveToStorage(${Model.name}, ${JSON.stringify(item)})\n`)
   const aItem = _.merge({}, item)
+  opts = opts || { defaults: true }
 
   // check if all keys are defined in model
   const aKeys = Object.keys(aItem)
@@ -18,7 +31,7 @@ export const processBeforeSaveToStorage = (Model, item) => {
 
   // process all default props if they are not defined in item:
   Model.props.map((prop) => {
-    if (prop.default && (!item[prop.name] || item[prop.name] === null || item[prop.name] === undefined)) {
+    if (opts.defaults && prop.default && (!item[prop.name] || item[prop.name] === null || item[prop.name] === undefined)) {
       if (typeof prop.default === 'function') {
         aItem[prop.name] = prop.default(aItem)
       } else {
@@ -37,7 +50,7 @@ export const processBeforeSaveToStorage = (Model, item) => {
       Model.key = prop.name
     }
     if (item[prop.name] && prop.type === 'datetime') {
-      aItem[prop.name] = moment(item[prop.name]).toDate()
+      aItem[prop.name] = moment.utc(item[prop.name]).toDate()
     }
     if (prop.type === 'enum') {
       // ensure enum values are in range:
@@ -45,7 +58,7 @@ export const processBeforeSaveToStorage = (Model, item) => {
         throw Error(`${Model.name}.${prop.name} enum value invalid: not found in enum format definition`)
       }
     }
-    if (prop.type === 'calculated') {
+    if (prop.calculated) {
       delete aItem[prop.name]
     }
 
@@ -60,6 +73,28 @@ export const processBeforeSaveToStorage = (Model, item) => {
   })
   // console.log(`processBeforeSaveToStorage result:\n${JSON.stringify(aItem)}`)
   return aItem
+}
+
+export const processAfterLoadFromStorageAsync = (Model, item) => {
+  const aItem = processAfterLoadFromStorage(Model, item)
+  const values = []
+  const props = []
+  Model.props.map((prop) => {
+    if (prop.calculated && aItem[prop.name] && isPromise(aItem[prop.name])) {
+      props.push(prop)
+      values.push(aItem[prop.name])
+    }
+  })
+  return Promise.all(values)
+    .then((_props) => {
+      _props.map((_prop, index) => {
+        aItem[props[index].name] = _prop
+      })
+      return aItem
+    }, (reason) => {
+      throw new Error(reason)
+    })
+    .catch((e) => { throw e })
 }
 
 // transform some item using rules from Model:l
@@ -79,7 +114,7 @@ export const processAfterLoadFromStorage = (Model, item) => {
     console.log(aKeys)
     console.log(propKeys)
   }
-  const getters = []
+  // const getters = []
   propKeys.map((key) => {
     const prop = _.find(Model.props, { name: key })
     if (!prop) {
@@ -94,9 +129,6 @@ export const processAfterLoadFromStorage = (Model, item) => {
       } else {
         aItem[prop.name] = prop.default
       }
-    }
-    if (prop.afterLoad && (typeof prop.afterLoad === 'function')) {
-      aItem[prop.name] = prop.afterLoad(aItem)
     }
 
     if (item[key] && prop.type === 'boolean') {
@@ -125,20 +157,36 @@ export const processAfterLoadFromStorage = (Model, item) => {
       }
     }
     if (item[key] && prop.type === 'datetime') {
-      aItem[key] = moment(item[key]).toDate()
+      aItem[key] = moment.utc(item[key]).toDate()
     }
-    if (prop.type === 'calculated') {
+    /* if (prop.type === 'calculated') {
       if (prop.getter && (typeof prop.getter === 'function')) {
         getters.push({ name: prop.name, getter: prop.getter })
       }
+    } */
+  })
+
+  // process all after-load getters:
+  Model.props.map((prop) => {
+    if (prop.calculated && prop.getter && (typeof prop.getter === 'function')) {
+      aItem[prop.name] = prop.getter(aItem)
+    }
+    if (prop.afterLoad && (typeof prop.afterLoad === 'function')) {
+      aItem[prop.name] = prop.afterLoad(aItem)
     }
   })
 
   // after processing all props process getters on final property values:
-  getters.map((getter) => { aItem[getter.name] = getter.getter(aItem) })
+  // getters.map((getter) => { aItem[getter.name] = getter.getter(aItem) })
 
   // console.log(`processAfterLoadFromStorage result:\n${JSON.stringify(aItem)}`)
   return aItem
+}
+
+const withWhere = (queryBuilder, opt) => {
+  if (opt && opt.where) {
+    queryBuilder.where(opt.where)
+  }
 }
 
 const withWhereIn = (queryBuilder, opt) => {
@@ -214,37 +262,48 @@ export default (app) => {
     name: 'KNEX-Generic',
 
     modelFromSchema: (Model) => {
-      // process refs:
-      const refsProps = _.filter(Model.props, { type: 'refs' })
-      refsProps.map((prop) => {
-        const methodAdd = `${prop.name}Add`
-        const methodRemove = `${prop.name}Remove`
-        const methodClear = `${prop.name}Clear`
-        const methodCount = `${prop.name}Count`
+      const modelMethods = []
 
-        // define methods:
-        Model[methodAdd] = Model.storage.refAdd(Model, prop)
-        Model[methodRemove] = Model.storage.refRemove(Model, prop)
-        Model[methodClear] = Model.storage.refClear(Model, prop)
-        Model[methodCount] = Model.storage.refCount(Model, prop)
-      })
+      modelMethods.push({ name: 'dataInit', handler: Model.storage.dataInit(Model) })
+      modelMethods.push({ name: 'dataClear', handler: Model.storage.dataClear(Model) })
+      modelMethods.push({ name: 'schemaInit', handler: Model.storage.schemaInit(Model) })
+      modelMethods.push({ name: 'schemaClear', handler: Model.storage.schemaClear(Model) })
+      modelMethods.push({ name: 'refsInit', handler: Model.storage.refsInit(Model) })
+      modelMethods.push({ name: 'refsClear', handler: Model.storage.refsClear(Model) })
+      if (!checkIsFullVirtual(Model)) {
+        // process refs:
+        const refsProps = _.filter(Model.props, { type: 'refs' })
+        refsProps.map((prop) => {
+          const methodAdd = `${prop.name}Add`
+          const methodRemove = `${prop.name}Remove`
+          const methodClear = `${prop.name}Clear`
+          const methodCount = `${prop.name}Count`
+          const methodList = `${prop.name}List`
 
-      return _.assign(Model, {
-        dataInit: Model.storage.dataInit(Model),
-        dataClear: Model.storage.dataClear(Model),
-        schemaInit: Model.storage.schemaInit(Model),
-        schemaClear: Model.storage.schemaClear(Model),
-        refsInit: Model.storage.refsInit(Model),
-        refsClear: Model.storage.refsClear(Model),
-        findById: Model.storage.findById(Model),
-        findOne: Model.storage.findOne(Model),
-        findAll: Model.storage.findAll(Model),
-        count: Model.storage.count(Model),
-        removeById: Model.storage.removeById(Model),
-        removeAll: Model.storage.removeAll(Model),
-        create: Model.storage.create(Model),
-        update: Model.storage.update(Model)
+          // define methods:
+          modelMethods.push({ name: methodAdd, handler: Model.storage.refAdd(Model, prop) })
+          modelMethods.push({ name: methodRemove, handler: Model.storage.refRemove(Model, prop) })
+          modelMethods.push({ name: methodClear, handler: Model.storage.refClear(Model, prop) })
+          modelMethods.push({ name: methodCount, handler: Model.storage.refCount(Model, prop) })
+          modelMethods.push({ name: methodList, handler: Model.storage.refList(Model, prop) })
+        })
+
+        modelMethods.push({ name: 'findById', handler: Model.storage.findById(Model) })
+        modelMethods.push({ name: 'findOne', handler: Model.storage.findOne(Model) })
+        modelMethods.push({ name: 'findAll', handler: Model.storage.findAll(Model) })
+        modelMethods.push({ name: 'count', handler: Model.storage.count(Model) })
+        modelMethods.push({ name: 'removeById', handler: Model.storage.removeById(Model) })
+        modelMethods.push({ name: 'removeAll', handler: Model.storage.removeAll(Model) })
+        modelMethods.push({ name: 'create', handler: Model.storage.create(Model) })
+        modelMethods.push({ name: 'update', handler: Model.storage.update(Model) })
+      }
+
+      modelMethods.map((method) => {
+        if (!Model[method.name]) {
+          Model[method.name] = method.handler
+        }
       })
+      return Model
     },
 
     mapPropToKnexTable: (prop, table) => {
@@ -261,14 +320,18 @@ export default (app) => {
 
     schemaInit: (Model) => (id) => {
       // console.log(`${Model.name}.init`)
+      if (checkIsFullVirtual(Model) === true) {
+        return Promise.resolve(true)
+      }
+
       if (!Model || !Model.storage || !Model.storage.db) {
         return Promise.reject(new Error(`${Model.name}.storageSchemaInit: some Model's properties are invalid:
           Model ${Model},
           .storage${Model.storage}
           .db ${Model.storage.db}`))
       }
-      const knex = Model.storage.db
 
+      const knex = Model.storage.db
       return knex.schema.hasTable(Model.name)
         .then((exists) => {
           if (exists && process.env.START_FRESH) {
@@ -299,7 +362,7 @@ export default (app) => {
                   if (!prop || !infoKey) {
                     return false
                   }
-                  if (prop.type === 'calculated') {
+                  if (prop.calculated) {
                     return true
                   }
                   if (prop.name === infoKey) {
@@ -359,6 +422,19 @@ export default (app) => {
           .storage ${Model.storage}
           .db ${Model.storage.db}`))
       }
+
+      // check if model have only calculated fields
+      let allCalculated = true
+      Model.props.map((prop) => {
+        if (!(prop.calculated && prop.calculated === true)) {
+          allCalculated = false
+        }
+      })
+
+      if (allCalculated === true) {
+        return Promise.resolve(true)
+      }
+
       const knex = Model.storage.db
       return knex(Model.name).del()
         .catch((err) => { throw err })
@@ -379,7 +455,7 @@ export default (app) => {
       return knex.select()
         .from(Model.name)
         .where(Model.key, id)
-        .then((res) => processAfterLoadFromStorage(Model, res[0]))
+        .then((res) => processAfterLoadFromStorageAsync(Model, res[0]))
         .catch((err) => { throw err })
     },
 
@@ -398,9 +474,14 @@ export default (app) => {
       // }
       return knex.select()
         .from(Model.name)
-        .where(opt ? opt.where : {})
+        .modify(withWhere, opt)
+        .modify(withWhereIn, opt)
+        .modify(withWhereOp, opt)
+        .modify(withWhereQ, opt)
+        .modify(withOrderBy, opt)
+        .modify(withRange, opt)
         .limit(1)
-        .then((res) => processAfterLoadFromStorage(Model, res[0]))
+        .then((res) => processAfterLoadFromStorageAsync(Model, res[0]))
         .catch((err) => { throw err })
     },
 
@@ -428,7 +509,7 @@ export default (app) => {
         .modify(withWhereQ, opt)
         .modify(withOrderBy, opt)
         .modify(withRange, opt)
-        .then((res) => res.map((item) => processAfterLoadFromStorage(Model, item)))
+        .then((res) => Promise.all(res.map((item) => processAfterLoadFromStorageAsync(Model, item))))
         .then((res) => {
           // console.log('res:')
           // console.log(res)
@@ -502,7 +583,7 @@ export default (app) => {
               // console.log('item:')
               // console.log(item)
               return Model.removeById(item.id)
-                .then((removedItem) => removedItem.id)
+                // .then((removedItem) => removedItem.id)
                 .catch((err) => { throw err })
             }))
           }
@@ -531,9 +612,9 @@ export default (app) => {
         })
     },
 
-    update: (Model) => (item) => {
-      if (!item.id) {
-        return Promise.reject(new Error(`${Model.name}.update: item.id should have proper value`))
+    update: (Model) => (aId, item) => {
+      if (!aId) {
+        return Promise.reject(new Error(`${Model.name}.update: aId param should have value`))
       }
       if (!Model || !Model.storage || !Model.storage.db) {
         return Promise.reject(new Error(`${Model.name}.update: some Model's properties are invalid:
@@ -545,12 +626,12 @@ export default (app) => {
 
       // console.log('item:')
       // console.log(item)
-      const aKeys = Object.keys(item)
-      const aItem = processBeforeSaveToStorage(Model, item)
+      // const aKeys = Object.keys(item)
+      const aItem = processBeforeSaveToStorage(Model, item, { defaults: false })
       // console.log('aItem:')
       // console.log(aItem)
       // process all item's props
-      aKeys.map((key) => {
+      /* aKeys.map((key) => {
         aItem[key] = item[key]
 
         // exec beforeSet hook:
@@ -567,15 +648,15 @@ export default (app) => {
         if (item[key] && aProp.type === 'refs') {
           aItem[key] = item[key].join(',')
         }
-      })
+      }) */
 
       // console.log('processed aItem:')
       // console.log(aItem)
       // process all props in item:
       return knex(Model.name)
-        .where(Model.key, item.id)
+        .where(Model.key, aId)
         .update(aItem)
-        .then(() => Model.findById(item.id))
+        .then((res) => Model.findById(aItem.id ? aItem.id : aId))
         .catch((err) => { throw err })
     },
 
@@ -588,8 +669,11 @@ export default (app) => {
           if (!item) {
             throw new Error(`${Model.name}.${prop.name}Add: item with id ${id} not found`)
           }
+          if (!Array.isArray(items)) {
+            items = [items]
+          }
           item[prop.name] = _.union(item[prop.name], items)
-          return Model.update(item)
+          return Model.update(id, item)
         })
         .catch((err) => { throw err })
     },
@@ -601,10 +685,30 @@ export default (app) => {
       return Model.findById(id)
         .then((item) => {
           if (!item) {
-            throw new Error(`${Model.name}.${prop.name}Add: item with id ${id} not found`)
+            throw new Error(`${Model.name}.${prop.name}Remove: item with id ${id} not found`)
           }
           _.pullAll(item[prop.name], items)
-          return Model.update(item)
+          return Model.update(id, item)
+        })
+        .catch((err) => { throw err })
+    },
+
+    refList: (Model, prop) => (id) => {
+      return Model.findById(id)
+        .then((item) => {
+          if (!item) {
+            throw new Error(`${Model.name}.${prop.name}Embed: item with id ${id} not found`)
+          }
+          const ids = item[prop.name]
+          const RefModelName = prop.model
+          if (!RefModelName) {
+            throw new Error(`${Model.name}.${prop.name}Embed: model name for refs property ${prop.name} not defined`)
+          }
+          const RefModel = app.exModular.models[RefModelName]
+          if (!RefModel) {
+            throw new Error(`${Model.name}.${prop.name}Embed: model ${RefModelName} for refs property ${prop.name} not found`)
+          }
+          return RefModel.findAll({ whereIn: [{ column: 'id', ids }] })
         })
         .catch((err) => { throw err })
     },
@@ -613,10 +717,10 @@ export default (app) => {
       return Model.findById(id)
         .then((item) => {
           if (!item) {
-            throw new Error(`${Model.name}.${prop.name}Add: item with id ${id} not found`)
+            throw new Error(`${Model.name}.${prop.name}Clear: item with id ${id} not found`)
           }
           item[prop.name] = []
-          return Model.update(item)
+          return Model.update(id, item)
         })
         .catch((err) => { throw err })
     },
@@ -625,7 +729,7 @@ export default (app) => {
       return Model.findById(id)
         .then((item) => {
           if (!item) {
-            throw new Error(`${Model.name}.${prop.name}Add: item with id ${id} not found`)
+            throw new Error(`${Model.name}.${prop.name}Count: item with id ${id} not found`)
           }
           return item[prop.name].length
         })

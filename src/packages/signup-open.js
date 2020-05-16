@@ -1,7 +1,7 @@
 const packageName = 'Signup-open'
 
 export const SignupOpen = (app) => {
-  app.exModular.modules.Add({
+  const Module = {
     moduleName: packageName,
     dependency: [
       'services.errors',
@@ -16,10 +16,13 @@ export const SignupOpen = (app) => {
       'models.User.count',
       'access.addAdmin',
       'routes.Add'
-    ]
-  })
+    ],
+    module: {}
+  }
 
-  const signup = (req, res) => {
+  app.exModular.modules.Add(Module)
+
+  Module.module.signup = (req, res) => {
     const Errors = app.exModular.services.errors
     const User = app.exModular.models.User
 
@@ -39,7 +42,7 @@ export const SignupOpen = (app) => {
 
     return User.count()
       .then((userCount) => {
-        if (userCount === 0) {
+        if (userCount === 1) {
           addUserAsAdmin = true
         }
         return User.create(req.data)
@@ -51,7 +54,7 @@ export const SignupOpen = (app) => {
         }
       })
       .then(() => {
-        res.json(user)
+        res.status(201).json(user)
       })
       .catch((error) => {
         if (error instanceof Errors.ServerError) {
@@ -63,22 +66,29 @@ export const SignupOpen = (app) => {
   }
 
   const Validator = app.exModular.services.validator
+
   // define routes for this module
-  app.exModular.routes.Add([
+  Module.module.routes = [
     {
       method: 'POST',
       name: 'Auth.Signup',
       description: 'Open signup via username/password',
       path: '/auth/signup',
-      handler: signup,
-      validate: Validator.checkBodyForModelName('User', { optionalId: true }),
+      handler: Module.module.signup,
+      validate: [
+        app.exModular.auth.check,
+        app.exModular.access.check('Auth.Signup'),
+        Validator.checkBodyForModelName('User', { optionalId: true })
+      ],
       /*
       beforeHandler: [ app.exModular.auth.optional ],
       */
       type: 'Auth',
       object: 'Signup'
     }
-  ])
+  ]
+
+  app.exModular.routes.Add(Module.module.routes)
 
   return app
 }

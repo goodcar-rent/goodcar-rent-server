@@ -1,7 +1,7 @@
 const packageName = 'Auth-password'
 
 export const AuthPassword = (app) => {
-  app.exModular.modules.Add({
+  const Module = {
     moduleName: packageName,
     dependency: [
       'services.errors',
@@ -16,21 +16,24 @@ export const AuthPassword = (app) => {
       'models.User.count',
       'access.addAdmin',
       'routes.Add'
-    ]
-  })
+    ],
+    module: {}
+  }
+
+  app.exModular.modules.Add(Module)
 
   const Errors = app.exModular.services.errors
   const User = app.exModular.models.User
   const Session = app.exModular.models.Session
 
-  const login = (req, res) => {
+  Module.module.login = (req, res) => {
     if (!req.data) {
       throw new Errors.ServerGenericError(
         `${packageName}.signup: Invalid request handling: req.data not initialized, use middleware to parse body`)
     }
 
     let user = null
-
+    let session = null
     return User.findOne({ where: { email: req.data.email } })
       .then((aUser) => {
         user = aUser
@@ -52,9 +55,12 @@ export const AuthPassword = (app) => {
 
         return Session.createOrUpdate({ userId: user.id, ip: req.ip })
       })
-      .then((session) => {
+      .then((_session) => {
+        session = _session
+        return app.exModular.access.addLogged(user)
+      })
+      .then(() => {
         res.json({ token: app.exModular.auth.encode(session.id) })
-        return app.exModular.access.registerLoggedUser(user)
       })
       .catch((error) => {
         // console.log('login: error')
@@ -67,7 +73,7 @@ export const AuthPassword = (app) => {
       })
   }
 
-  const logout = (req, res) => {
+  Module.module.logout = (req, res) => {
     // console.log('Auth.Logout')
     if (!req || !req.user || !req.user.session) {
       return new Errors.ServerNotAllowed('User session not found')
@@ -83,14 +89,11 @@ export const AuthPassword = (app) => {
 
         // destroy current session
         // remove current user from logged-in group
-        return Promise.all([
-          Session.removeById(session.id),
-          app.exModular.access.unregisterLoggedUser(req.user)
-        ])
+        return Session.removeById(session.id)
       })
-      .then((data) => {
+      .then(() => app.exModular.access.removeLogged(req.user))
+      .then(() => {
         res.status(200).send()
-        return Promise.resolve()
       })
       .catch((error) => {
         // console.log('login: error')
@@ -105,46 +108,48 @@ export const AuthPassword = (app) => {
 
   const Validator = app.exModular.services.validator
   // define routes for this module
-  app.exModular.routes.Add([
+  Module.module.routes = [
     {
       method: 'POST',
       name: 'Auth.Login',
       description: 'Login via username/password, return token',
       path: '/auth/login',
-      handler: login,
-      validate: Validator.checkBodyForModel({
-        name: 'AuthPassword',
-        props: [
-          {
-            name: 'email',
-            type: 'text',
-            format: 'email',
-            default: null
-          },
-          {
-            name: 'password',
-            type: 'text',
-            format: 'password',
-            default: null
-          }
-        ]
-      }, { optionalId: true }),
-      /*
-      beforeHandler: [ app.exModular.auth.optional ],
-      */
-      type: 'Auth',
-      object: 'Login'
+      handler: Module.module.login,
+      validate: [
+        app.exModular.auth.check,
+        app.exModular.access.check('Auth.Login'),
+        Validator.checkBodyForModel({
+          name: 'AuthPassword',
+          props: [
+            {
+              name: 'email',
+              type: 'text',
+              format: 'email',
+              default: null
+            },
+            {
+              name: 'password',
+              type: 'text',
+              format: 'password',
+              default: null
+            }
+          ]
+        }, { optionalId: true })
+      ]
     },
     {
       method: 'GET',
       name: 'Auth.Logout',
       path: '/auth/logout',
-      handler: logout,
-      validate: app.exModular.auth.check,
-      type: 'Auth',
-      object: 'Logout'
+      handler: Module.module.logout,
+      validate: [
+        app.exModular.auth.check,
+        app.exModular.access.check('Auth.Logout')
+      ]
     }
-  ])
+  ]
+
+  app.exModular.routes.Add(Module.module.routes)
 
   return app
 }

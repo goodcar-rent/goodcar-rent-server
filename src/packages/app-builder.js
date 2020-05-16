@@ -6,20 +6,33 @@ import Express from 'express'
 
 import sqliteStorage from './storage-knex-sqlite'
 import { exModular } from './ex-modular'
+
 import { Wrap } from './service-wrap'
 import { Mailer } from './service-mailer'
 import { Errors } from './service-errors'
 import { Validator } from './service-validator'
 import { RouteBuilder } from './route-builder'
 import { Controller } from './service-controller'
+import { ControllerDF } from './service-controller-df'
+import { Codegen } from './service-codegen'
+import { Seed } from './sevice-seed'
+import { Serial } from './service-serial'
+import { SendJson } from './service-send-json'
+
 import { User } from './model-user'
+import { UserGroup } from './model-user-group'
 import { Session } from './model-session'
+import { AccessObject } from './model-access-object'
+import { PermissionUser } from './model-permission-user'
+import { PermissionUserGroup } from './model-permission-user-group'
+
 import { AuthJwt as Auth } from './auth-jwt'
 import { AccessSimple as Access } from './access-simple'
+
 import { InitAccess } from './init-access'
-import { UserGroup } from './model-user-group'
 import { SignupOpen } from './signup-open'
 import { AuthPassword } from './auth-password'
+import { Me } from './me'
 
 export const appBuilder = (express, options) => {
   if (!express) {
@@ -76,6 +89,10 @@ export const appBuilder = (express, options) => {
       app.exModular.services.validator = Validator(app)
       app.exModular.routes.builder = RouteBuilder(app)
       app.exModular.services.controller = Controller(app)
+      app.exModular.services.controllerDF = ControllerDF(app)
+      app.exModular.services.seed = Seed(app)
+      app.exModular.services.serial = Serial(app)
+      app.exModular.services.sendJson = SendJson(app)
       app.exModular.auth = Auth(app)
       app.exModular.access = Access(app)
 
@@ -86,28 +103,22 @@ export const appBuilder = (express, options) => {
       app.exModular.modelAdd(User(app))
       app.exModular.modelAdd(UserGroup(app))
       app.exModular.modelAdd(Session(app))
+      app.exModular.modelAdd(AccessObject(app))
+      app.exModular.modelAdd(PermissionUser(app))
+      app.exModular.modelAdd(PermissionUserGroup(app))
 
       // configure app with modules:
       SignupOpen(app)
       AuthPassword(app)
+      Me(app)
+
+      Codegen(app)
 
       // configure system data init:
       app.exModular.initAdd(InitAccess(app))
 
       // check dependings among installed modules (plugins):
       app.exModular.checkDeps()
-
-      // app.routeBuilder = RouteBuilder(app)
-      // app.routeBuilder.routerForAllModels()
-      //
-      // // init routes:
-      // app.use('/', indexRouter)
-      //
-      // // catch 404 and forward to error handler
-      // app.use(function (req, res, next) {
-      //   next(createError(404))
-      // })
-      //
 
       return app
     })

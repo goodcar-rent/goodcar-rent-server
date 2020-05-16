@@ -111,6 +111,7 @@ export default (app) => {
     update: knexStorage.update,
     refAdd: knexStorage.refAdd,
     refRemove: knexStorage.refRemove,
+    refList: knexStorage.refList,
     refClear: knexStorage.refClear,
     refCount: knexStorage.refCount
   }

@@ -53,7 +53,7 @@ export const exModular = (app) => {
     if (!ex.storages || !ex.models) {
       throw new Error('.storages should be initialized before initializing model')
     }
-    return Promise.all(Object.keys(ex.models).map((modelName) => ex.models[modelName].dataClear()))
+    return ex.services.serial(Object.keys(ex.models).map((modelName) => () => ex.models[modelName].dataClear()))
       .then(() => app.exModular.initAll())
       .catch((e) => { throw e })
   }
@@ -78,6 +78,8 @@ export const exModular = (app) => {
         }
       })
     })
+
+    // TODO: check models with references - if all model properties are defined and valid
   }
 
   // init models
@@ -108,16 +110,20 @@ export const exModular = (app) => {
   }
 
   ex.initAll = () =>
-    Promise.all(ex.init.map((item) => item()))
+    ex.services.serial(ex.init)
       .catch((e) => { throw e })
 
+  /**
+   * routes.Add: add routes to list of all routes in app
+   * @param routes (Array<route> | Route): array or single route
+   */
   ex.routes.Add = (routes) => {
     if (!routes) return
     // convert routes to array
     if (!Array.isArray(routes)) {
       routes = [routes]
     }
-    routes.map((item) => {
+    (_.flattenDeep(routes)).map((item) => {
       ex.routes.push(item)
     })
   }

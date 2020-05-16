@@ -1,32 +1,82 @@
-import { body, param, validationResult, matchedData, query } from 'express-validator'
+import { body, param, validationResult, matchedData, query, oneOf } from 'express-validator'
+import validator from 'validator'
 
 const packageName = 'Service.Validator'
 
 export const Validator = (app) => {
-  app.exModular.modules.Add({ moduleName: packageName, dependency: ['services.errors', 'services.errors.ServerInvalidParams']})
+  app.exModular.modules.Add({ moduleName: packageName, dependency: ['services.errors', 'services.errors.ServerInvalidParams'] })
 
-  const validateData = (req, res, next) => {
+  const saveValidatedData = (req, res, next) => {
     try {
-      req.data = matchedData(req)
+      const errors = validationResult(req)
+      if (!errors.isEmpty()) {
+        next(new app.exModular.services.errors.ServerInvalidParams({ errors: errors.array() }))
+      }
+      req.data = matchedData(req, { includeOptionals: true })
       next()
     } catch (e) {
       next(e)
     }
   }
 
+  const mapPropToValidation = (Model, prop, propName, options) => {
+    if (prop.type === 'text') {
+      let v = body(propName).isString().withMessage(`${Model.name}.${prop.name} should be string`)
+      if (prop.default !== undefined) {
+        v = v.optional({ nullable: true })
+      }
+      return v
+    } else if (prop.type === 'id') {
+      let v = body(propName).isString().withMessage(`${Model.name}.${prop.name} should be string UUID`)
+      if (options && options.optionalId) {
+        v = v.optional()
+      }
+      return v
+    } else if (prop.type === 'refs') {
+      let v = body(propName).isArray({ min: 0 }).withMessage('Users should be specified as array')
+      if (prop.default !== undefined) {
+        v = v.optional()
+      }
+      return v
+    } else if (prop.type === 'ref') {
+      return body(propName).optional().isString().withMessage(`${Model.name}.${prop.name} should be string UUID`)
+    } else if (prop.type === 'boolean') {
+      let v = body(propName).isBoolean().withMessage(`${Model.name}.${prop.name} should be boolean`)
+      if (prop.default !== undefined) {
+        v = v.optional({ nullable: true })
+      }
+      return v
+    } else if (prop.type === 'enum') {
+      const aValues = prop.format.map((item) => item.value)
+      return body(propName).isIn(aValues).withMessage(`${Model.name}.${prop.name} should have predefined enum values: ${aValues}`)
+    }
+    return null
+  }
+
   const checkBodyForModel = (Model, options) => {
+    // build validations for single object:
     const validations = []
+    // const v = []
     Model.props.map((prop) => {
-      if (prop.type === 'text') {
-        validations.push(body([prop.name]).isString().withMessage(`${Model.name}.${prop.name} should be string`))
-      } else if (prop.type === 'id' && (options && !options.optionalId)) {
-        validations.push(body([prop.name]).optional().isString().withMessage(`${Model.name}.${prop.name} should be string UUID`))
-      } else if (prop.type === 'refs') {
-        validations.push(body([prop.name]).isArray({ min: 0 }).withMessage('Users should be specified as array'))
+      const v2 = mapPropToValidation(Model, prop, prop.name, options)
+      if (v2) {
+        validations.push(v2)
       }
     })
-    validations.push(validateData)
-    return validations
+
+    // // build validations for array of objects:
+    // if (options && options.orArray) {
+    //   v.push(body().isArray().withMessage('Should be array'))
+    //   Model.props.map((prop) => {
+    //     const v2 = mapPropToValidation(Model, prop, ['*.' + prop.name], options)
+    //     if (v2) {
+    //       v.push(v2)
+    //     }
+    //   })
+    //   return [oneOf([validations, v]), saveValidatedData]
+    // } else {
+    return [validations, saveValidatedData]
+    // }
   }
 
   const checkBodyForModelName = (modelName, options) => {
@@ -37,6 +87,51 @@ export const Validator = (app) => {
   const listFilterValidator = (Model, options) => {
     // const validations = []
     return query(['filter']).optional()
+  }
+
+  const checkBodyForArrayOfModel = (Model, options) => {
+    const prepareDate = (req, res, next) => {
+      if (!Array.isArray(req.body)) {
+        req.body = [req.body]
+      }
+      req.body._items = []
+      req.body.map((item, ndx) => {
+        req.body._items[ndx] = item
+      })
+      next()
+    }
+
+    const validations = []
+    // const v = []
+    Model.props.map((prop) => {
+      const v2 = mapPropToValidation(Model, prop, `_items.*.${prop.name}`, options)
+      if (v2) {
+        validations.push(v2)
+      }
+    })
+    return [prepareDate, validations, saveValidatedData]
+  }
+
+  const checkBodyForArrayOfRefs = (Model, prop) => {
+    return [
+      (req, res, next) => {
+        if (!Array.isArray(req.body)) {
+          req.body = [req.body]
+        }
+        req.body.map((item) => {
+          if (!validator.isUUID(item)) {
+            const err = new app.exModular.services.errors.ServerInvalidParameters(
+              `${Model.name}.${prop.name}`,
+              'refs',
+              'not UUID'
+            )
+            next(err)
+          }
+        })
+        req.data = req.body
+        next()
+      }
+    ]
   }
 
   const applyValidationsToReq = (validations, req) => {
@@ -59,7 +154,9 @@ export const Validator = (app) => {
   return {
     checkBodyForModel,
     checkBodyForModelName,
-    validateData,
+    checkBodyForArrayOfModel,
+    checkBodyForArrayOfRefs,
+    saveValidatedData,
     applyValidationsToReq,
     paramId,
     listFilterValidator
