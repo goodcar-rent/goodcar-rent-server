@@ -1,4 +1,4 @@
-import uuid from 'uuid/v4'
+import { v4 as uuid } from 'uuid'
 
 export const DeployEventType = {
   unknown: { value: 0, caption: '(unknown)' },

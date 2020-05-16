@@ -1,2 +1,7 @@
-# cloud-deploy
-Cloud-deploy appOld for deploying our site from GitHub on VM in Yandex Cloud.
+# Goodcar.rent Server
+
+Implemented features:
+
+* exModular based Express app
+* GitHub webhook controller extention
+
