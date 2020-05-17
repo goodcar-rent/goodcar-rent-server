@@ -26,6 +26,12 @@ export const Validator = (app) => {
         v = v.optional({ nullable: true })
       }
       return v
+    } else if (prop.type === 'decimal') {
+      let v = body(propName).isDecimal({ decimal_digits: `0,${prop.scale}` }).withMessage(`${Model.name}.${prop.name} should be decimal number with no more then ${prop.scale} digital digits`)
+      if (prop.default !== undefined) {
+        v = v.optional({ nullable: true })
+      }
+      return v
     } else if (prop.type === 'id') {
       let v = body(propName).isString().withMessage(`${Model.name}.${prop.name} should be string UUID`)
       if (options && options.optionalId) {

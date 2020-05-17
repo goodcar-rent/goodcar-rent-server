@@ -8,10 +8,9 @@ export const InitUsers = (app) => () => {
           email: 'admin@email.net',
           password: 'admin12345'
         })
+          .then((user) => app.exModular.access.addAdmin(user))
+          .catch((e) => { throw e })
       }
     })
-    .then((user) => app.exModular.access.addAdmin(user))
-    .catch((e) => {
-      throw e
-    })
+    .catch((e) => { throw e })
 }

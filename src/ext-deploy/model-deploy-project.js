@@ -33,10 +33,10 @@ export const DeployProject = () => {
       },
       {
         name: 'scriptTimeout',
-        type: 'text',
-        format: 'text',
-        size: 64,
-        default: ''
+        type: 'decimal',
+        precision: 10,
+        scale: 0,
+        default: 120000
       },
       {
         name: 'branch',

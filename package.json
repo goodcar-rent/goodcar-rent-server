@@ -7,6 +7,7 @@
   "license": "MIT",
   "scripts": {
     "start": "cross-env DEBUG='ex-modular:*' babel-node src/app.js",
+    "start:clear-db": "rimraf ./data/db.sqlite && cross-env DEBUG='ex-modular:*' babel-node src/app.js",
     "clean": "rimraf lib",
     "test": "mocha ./test/**/*.js",
     "cover": "nyc npm run test",
