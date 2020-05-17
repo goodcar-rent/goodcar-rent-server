@@ -62,6 +62,7 @@ export const DeployProject = () => {
       {
         name: 'siteConfig',
         type: 'calculated',
+        calculated: true,
         getter: (item) => {
           console.log('== getter')
           if (item && item.siteConfigPath && fs.existsSync(item.siteConfigPath)) {
@@ -77,6 +78,7 @@ export const DeployProject = () => {
       {
         name: 'caption',
         type: 'calculated',
+        calculated: true,
         format: 'text',
         getter: r => r.name + '(' + r.branch + ')'
       }
