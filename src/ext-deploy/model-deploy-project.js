@@ -64,14 +64,14 @@ export const DeployProject = () => {
         type: 'calculated',
         calculated: true,
         getter: (item) => {
-          console.log('== getter')
+          // console.log('== getter')
           if (item && item.siteConfigPath && fs.existsSync(item.siteConfigPath)) {
             const config = fs.readFileSync(item.siteConfigPath).toString()
-            console.log('== config here:')
-            console.log(config)
+            // console.log('== config here:')
+            // console.log(config)
             return config
           }
-          console.log('== empty')
+          // console.log('== empty')
           return ''
         }
       },
