@@ -44,6 +44,13 @@ export const Deploy = (app, opt) => {
     const DeployProject = app.exModular.models.DeployProject
     const DeployEvent = app.exModular.models.DeployEvent
 
+    if (!repo) {
+      const message = `Repo for the event was undefined. Data: ${data}`
+      console.log(`ERROR: ${message}`)
+      return DeployEvent.create({ caption: message, type: DeployEventType.error.value })
+        .catch((e) => { throw e })
+    }
+
     console.log(`== PUSH EVENT, repo ${repo}`)
     let project = null
     let event = null
@@ -52,12 +59,14 @@ export const Deploy = (app, opt) => {
     let stderr = ''
     const startMoment = Date.now()
 
+    console.log(`Deploy: find repo ${repo}`)
     DeployProject.findOne({ where: { name: repo } })
       .then((_project) => {
         if (!_project) {
           const message = `Repo ${repo} not found in Deploy Projects`
           console.log(`ERROR: ${message}`)
           return DeployEvent.create({ caption: message, type: DeployEventType.error.value })
+            .catch((e) => { throw e })
         }
         project = _project
         return DeployEvent.create({
