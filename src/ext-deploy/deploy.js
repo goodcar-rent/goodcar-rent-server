@@ -69,51 +69,52 @@ export const Deploy = (app, opt) => {
           createdAt: Date.now(),
           status: 'Started'
         })
-      })
-      .then((_event) => {
-        event = _event
-        proc = spawn(
-          project.script,
-          [event.branch],
-          {
-            env: process.env,
-            timeout: project.scriptTimeout | 3 * 60 * 1000,
-            maxBuffer: 2048 * 1024
-          }
-        )
-        proc.stdout.on('data', (data) => {
-          process.stdout.write(data)
-          stdout = stdout + data.toString()
-        })
-        proc.stderr.on('data', (data) => {
-          process.stderr.write(data)
-          stderr = stderr + data.toString()
-        })
-        proc.on('error', (err) => {
-          console.log(`Error ${err.toString()}`)
-          stderr = stderr + err.toString()
-          DeployEvent.findById(event.id)
-            .then((ev) => {
-              ev.stdout = stdout
-              ev.stderr = stderr
-              ev.status = 'Error'
-              ev.statusMessage = `error - ${err.toString()}`
-              return DeployEvent.update(ev)
+          .then((_event) => {
+            event = _event
+            proc = spawn(
+              project.script,
+              [event.branch],
+              {
+                env: process.env,
+                timeout: project.scriptTimeout | 3 * 60 * 1000,
+                maxBuffer: 2048 * 1024
+              }
+            )
+            proc.stdout.on('data', (data) => {
+              process.stdout.write(data)
+              stdout = stdout + data.toString()
             })
-            .catch((e) => { throw e })
-        })
-        proc.on('exit', (data) => {
-          console.log(`Process exited with code ${data.toString()}`)
-          DeployEvent.findById(event.id)
-            .then((ev) => {
-              ev.stdout = stdout
-              ev.stderr = stderr
-              ev.status = 'Ok'
-              ev.statusMessage = `finished ok in ${(Date.now() - startMoment) / 1000}s`
-              return DeployEvent.update(ev)
+            proc.stderr.on('data', (data) => {
+              process.stderr.write(data)
+              stderr = stderr + data.toString()
             })
-            .catch((e) => { throw e })
-        })
+            proc.on('error', (err) => {
+              console.log(`Error ${err.toString()}`)
+              stderr = stderr + err.toString()
+              DeployEvent.findById(event.id)
+                .then((ev) => {
+                  ev.stdout = stdout
+                  ev.stderr = stderr
+                  ev.status = 'Error'
+                  ev.statusMessage = `error - ${err.toString()}`
+                  return DeployEvent.update(ev.id, ev)
+                })
+                .catch((e) => { throw e })
+            })
+            proc.on('exit', (data) => {
+              console.log(`Process exited with code ${data.toString()}`)
+              DeployEvent.findById(event.id)
+                .then((ev) => {
+                  ev.stdout = stdout
+                  ev.stderr = stderr
+                  ev.status = 'Ok'
+                  ev.statusMessage = `finished ok in ${(Date.now() - startMoment) / 1000}s`
+                  return DeployEvent.update(ev.id, ev)
+                })
+                .catch((e) => { throw e })
+            })
+          })
+          .catch((e) => { throw e })
       })
       .catch((e) => { throw e })
 

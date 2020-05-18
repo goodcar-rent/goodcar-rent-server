@@ -80,7 +80,7 @@ export const DeployEvent = () => {
         name: 'createdAt',
         type: 'datetime',
         format: 'YYYY/MM/DD',
-        default: ''
+        default: () => Date.now()
       },
       {
         name: 'status',

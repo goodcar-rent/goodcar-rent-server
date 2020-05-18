@@ -76,6 +76,9 @@ export const processBeforeSaveToStorage = (Model, item, opts) => {
 }
 
 export const processAfterLoadFromStorageAsync = (Model, item) => {
+  if (!item) {
+    return Promise.resolve(item)
+  }
   const aItem = processAfterLoadFromStorage(Model, item)
   const values = []
   const props = []
