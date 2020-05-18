@@ -36,6 +36,8 @@ export const Deploy = (app, opt) => {
   app.exModular.initAdd(InitUsers(app))
   app.exModular.initAdd(InitDeploy(app))
 
+  console.log('opt:')
+  console.log(opt)
   const webhookHandler = GithubWebHook({ path: opt.webhook, secret: opt.secret })
 
   // при поступлении события от гитхаба - разбираемся в источнике события
