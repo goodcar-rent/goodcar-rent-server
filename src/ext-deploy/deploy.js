@@ -19,7 +19,7 @@ const extractBranchName = (str) => {
 export const Deploy = (app, opt) => {
   opt = opt || {}
   opt.webhook = opt.webhook || '/hooks/github'
-  // opt.secret = opt.secret || process.env.WEBHOOK_SECRET
+  opt.secret = opt.secret || process.env.WEBHOOK_SECRET
 
   app.exModular.modules.Add({
     moduleName: packageName,
