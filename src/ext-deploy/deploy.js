@@ -147,22 +147,28 @@ export const Deploy = (app, opt) => {
   }
 
   const errorHandler = (err, req, res) => {
+    const DeployEvent = app.exModular.models.DeployEvent
+
     console.log('== ERROR:')
     console.log(err)
+    const message = `Error: ${err}`
+    return DeployEvent.create({ caption: message, type: DeployEventType.error.value })
+      .catch((e) => { throw e })
     // console.log(req)
     // console.log(res)
   }
-  const hookHandler = (req, res) => {
-    console.log(`hook! param = ${req.params.hookId}`)
-    res.status(200).send('hooked!')
-  }
+
+  // const hookHandler = (req, res) => {
+  //   console.log(`hook! param = ${req.params.hookId}`)
+  //   res.status(200).send('hooked!')
+  // }
 
   webhookHandler.on('push', pushHandler)
   webhookHandler.on('error', errorHandler)
 
   app.use(webhookHandler)
-  app.get('/hooks/:hookId', hookHandler)
-  app.post('/hooks/:hookId', hookHandler)
+  // app.get('/hooks/:hookId', hookHandler)
+  // app.post('/hooks/:hookId', hookHandler)
 
   return app
 }
