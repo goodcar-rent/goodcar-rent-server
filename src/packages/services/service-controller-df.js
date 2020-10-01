@@ -542,7 +542,7 @@ export const ControllerDF = (app) => {
    * @param Model
    * @param prop
    */
-  const refsCreate = (Model, prop) => (req, res) => {
+  const refsCreate = (Model, prop) => (req, res, next) => {
     // validate that body have properly shaped object:
     if (!req.data) {
       throw new app.exModular.services.errors.ServerInvalidParameters(
@@ -561,7 +561,8 @@ export const ControllerDF = (app) => {
     const fn = Model[`${prop.name}Add`]
     return fn(req.params.id, req.data)
       .then((_items) => {
-        return res.status(201).json(_items[prop.name])
+        res.statusCode = 201
+        res.data = _items[prop.name]
       })
       .catch((error) => {
         if (error instanceof app.exModular.services.errors.ServerError) {
@@ -572,7 +573,7 @@ export const ControllerDF = (app) => {
       })
   }
 
-  const refsList = (Model, prop) => (req, res) => {
+  const refsList = (Model, prop) => (req, res, next) => {
     // validate that req have id param
     if (!req.params.id) {
       throw new app.exModular.services.errors.ServerInvalidParameters(
@@ -582,7 +583,7 @@ export const ControllerDF = (app) => {
     }
     return Model.findById(req.params.id)
       .then((_item) => {
-        return res.status(200).json(_item[prop.name])
+        res.data = _item[prop.name]
       })
       .catch((error) => {
         if (error instanceof app.exModular.services.errors.ServerError) {
@@ -593,7 +594,7 @@ export const ControllerDF = (app) => {
       })
   }
 
-  const refsRemove = (Model, prop) => (req, res) => {
+  const refsRemove = (Model, prop) => (req, res, next) => {
     // validate that body have properly shaped object:
     if (!req.data) {
       throw new app.exModular.services.errors.ServerInvalidParameters(
@@ -612,7 +613,7 @@ export const ControllerDF = (app) => {
     const fn = Model[`${prop.name}Remove`]
     return fn(req.params.id, req.data)
       .then((_items) => {
-        return res.status(200).json(_items[prop.name])
+        res.data = _items[prop.name]
       })
       .catch((error) => {
         if (error instanceof app.exModular.services.errors.ServerError) {

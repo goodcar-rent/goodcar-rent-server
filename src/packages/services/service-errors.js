@@ -42,6 +42,11 @@ export const Errors = (app) => {
     // const payload = {}
     // payload.error = (req.app.get('env') === 'development' ? err : (req.app.get('env') === 'test' ? err : {}))
 
+    if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') {
+      console.log('ERROR handler:')
+      console.log(err.toString())
+    }
+
     if (err instanceof errors.ServerError) {
       if (err instanceof errors.ServerInvalidParameters) {
         res.status(412).json({ message: err.message, err })

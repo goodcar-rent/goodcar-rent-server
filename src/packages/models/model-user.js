@@ -9,30 +9,39 @@ export const User = (app, options) => {
 
   const Schema = {
     name: 'User',
-    priority: 0,
+    caption: 'Пользователи',
+    description: 'Пользователи системы',
     props: [
       {
         name: 'id',
         type: 'id',
         format: 'uuid',
+        caption: 'Идентификатор',
+        description: 'Идентификатор пользователя',
         default: () => uuid()
       },
       {
         name: 'name',
         type: 'text',
         format: 'name',
-        default: null
+        caption: 'Имя пользователя',
+        description: 'Имя пользователя',
+        default: ''
       },
       {
         name: 'email',
         type: 'text',
         format: 'email',
-        default: null
+        caption: 'Email',
+        description: 'Электронная почта пользователя',
+        default: ''
       },
       {
         name: 'password',
         type: 'text',
         format: 'password',
+        caption: 'Пароль',
+        description: 'Пароль',
         default: null,
         beforeSave: (item) => bcrypt.hashSync(item.password, bcrypt.genSaltSync())
       },
@@ -55,6 +64,8 @@ export const User = (app, options) => {
       {
         name: 'disabled',
         type: 'boolean',
+        caption: 'Заблокирован',
+        description: 'Признак, заблокирована ли учётная запись пользователя',
         default: false
       }
     ],

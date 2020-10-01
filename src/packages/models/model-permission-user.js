@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid'
-import { AccessPermissionType } from './const-access'
+import { AccessPermissionType } from '../const-access'
 // import _ from 'lodash'
 
 export const PermissionUser = (app, options) => {
@@ -10,7 +10,9 @@ export const PermissionUser = (app, options) => {
 
   const Model = {
     name: 'PermissionUser',
-    priority: 0,
+    caption: 'Разрешения пользователя',
+    description: 'Разрешения, установленные для определенных пользователей',
+    resourcePath: '/access/permission-user',
     props: [
       {
         name: 'id',
@@ -54,8 +56,7 @@ export const PermissionUser = (app, options) => {
         description: 'Есть ли право передоверить это разрешение',
         default: false
       }
-    ],
-    resourcePath: '/access/permission-user'
+    ]
   }
   return Model
 }

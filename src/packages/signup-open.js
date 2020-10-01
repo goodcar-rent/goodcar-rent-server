@@ -22,7 +22,7 @@ export const SignupOpen = (app) => {
 
   app.exModular.modules.Add(Module)
 
-  Module.module.signup = (req, res) => {
+  Module.module.signup = (req, res, next) => {
     const Errors = app.exModular.services.errors
     const User = app.exModular.models.User
 
@@ -45,6 +45,12 @@ export const SignupOpen = (app) => {
         if (userCount === 1) {
           addUserAsAdmin = true
         }
+        return User.findOne({ where: { email: req.data.email } })
+      })
+      .then((_user) => {
+        if (_user) {
+          throw new Errors.ServerInvalidParameters('user.email', 'email', 'user with this email already registered')
+        }
         return User.create(req.data)
       })
       .then((aUser) => {
@@ -54,7 +60,8 @@ export const SignupOpen = (app) => {
         }
       })
       .then(() => {
-        res.status(201).json(user)
+        res.data = user
+        res.statusCode = 201
       })
       .catch((error) => {
         if (error instanceof Errors.ServerError) {
@@ -74,11 +81,14 @@ export const SignupOpen = (app) => {
       name: 'Auth.Signup',
       description: 'Open signup via username/password',
       path: '/auth/signup',
-      handler: Module.module.signup,
       validate: [
         app.exModular.auth.check,
         app.exModular.access.check('Auth.Signup'),
         Validator.checkBodyForModelName('User', { optionalId: true })
+      ],
+      handler: Module.module.signup,
+      after: [
+        app.exModular.services.controllerDF.sendData
       ],
       /*
       beforeHandler: [ app.exModular.auth.optional ],

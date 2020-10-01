@@ -29,7 +29,7 @@ export const AuthPassword = (app) => {
   Module.module.login = (req, res) => {
     if (!req.data) {
       throw new Errors.ServerGenericError(
-        `${packageName}.signup: Invalid request handling: req.data not initialized, use middleware to parse body`)
+        `${packageName}.login: Invalid request handling: req.data not initialized, use middleware to parse body`)
     }
 
     let user = null

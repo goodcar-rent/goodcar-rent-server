@@ -6,8 +6,10 @@ export const Seed = (app) => {
     if (!opt) {
       opt = {}
     }
-    opt.onlyIfEmpty = opt.onlyIfEmpty || true
+    opt.onlyIfEmpty = opt.onlyIfEmpty || false
     opt.upsert = opt.upsert || true
+
+    console.log(`seed data from file "${fileName}" with opts ${JSON.stringify(opt)}`)
 
     // eslint-disable-next-line no-useless-catch
     try {
@@ -37,16 +39,20 @@ export const Seed = (app) => {
               })
           } else if (opt.upsert) {
             // if upsert is true, then refresh data:
-            return Promise.all(data.map((item) =>
-              Model.findById(item.id)
-                .then((found) => {
-                  if (!found) {
-                    return Model.create(item)
-                  }
-                  return Model.update(item.id, item)
-                })
-                .catch((e) => { throw e })
-            ))
+            return Promise.all(data.map((item) => {
+              if (item && item.id) {
+                return Model.findById(item.id)
+                  .then((found) => {
+                    if (!found) {
+                      return Model.create(item)
+                    }
+                    return Model.update(item.id, item)
+                  })
+                  .catch((e) => { throw e })
+              } else {
+                return Model.create(item)
+              }
+            }))
           } else {
             return Promise.all(data.map((item) =>
               Model.create(item)

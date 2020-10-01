@@ -1,16 +1,13 @@
 import { v4 as uuid } from 'uuid'
-import { AccessPermissionType } from './const-access'
+import { AccessPermissionType } from '../const-access'
 // import _ from 'lodash'
 
-export const PermissionUserGroup = (app, options) => {
-  if (!options) {
-    options = {}
-  }
-  // options.storage = options.storage || 'default'
-
+export const PermissionUserGroup = () => {
   const Model = {
     name: 'PermissionUserGroup',
-    priority: 0,
+    caption: 'Разрешения групп',
+    description: 'Разрешения, установленные для групп пользователей',
+    resourcePath: '/access/permission-user-group',
     props: [
       {
         name: 'id',
@@ -54,8 +51,7 @@ export const PermissionUserGroup = (app, options) => {
         description: 'Есть ли право передоверить это разрешение',
         default: false
       }
-    ],
-    resourcePath: '/access/permission-user-group'
+    ]
   }
   return Model
 }

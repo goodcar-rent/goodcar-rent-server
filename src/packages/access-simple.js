@@ -18,6 +18,7 @@ export const AccessSimple = (app) => {
   app.exModular.modules.Add(Module)
 
   Module.module.LOGGED_GROUP_ID = ACCESS.LOGGED_GROUP_ID
+  Module.module.ADMIN_GROUP_ID = ACCESS.ADMIN_GROUP_ID
 
   Module.module.ACCESS_GUEST = {
     id: ACCESS.GUEST_ID,
@@ -43,7 +44,7 @@ export const AccessSimple = (app) => {
 
   Module.module.addLogged = (user) => {
     if (!user || !user.id) {
-      throw Error(`${packageName}.addLogged: invalid param "user" - ${user.toString()}`)
+      throw Error(`${packageName}.addLogged: invalid param "user"`)
     }
 
     return app.exModular.models.UserGroup.usersAdd(ACCESS.LOGGED_GROUP_ID, user.id)
@@ -52,7 +53,7 @@ export const AccessSimple = (app) => {
 
   Module.module.removeLogged = (user) => {
     if (!user || !user.id) {
-      throw Error(`${packageName}.removeLogged: invalid param "user" - ${user.toString()}`)
+      throw Error(`${packageName}.removeLogged: invalid param "user"`)
     }
 
     return app.exModular.models.UserGroup.usersRemove(ACCESS.LOGGED_GROUP_ID, user.id)
@@ -66,7 +67,7 @@ export const AccessSimple = (app) => {
    */
   Module.module.isAdmin = (user) => {
     if (!user || !user.id) {
-      throw Error(`${packageName}.addAdmin: invalid param "user" - ${user.toString()}`)
+      throw Error(`${packageName}.addAdmin: invalid param "user"`)
     }
 
     return app.exModular.models.UserGroup.findById(ACCESS.ADMIN_GROUP_ID)
@@ -86,7 +87,7 @@ export const AccessSimple = (app) => {
    */
   Module.module.getUserGroups = (user) => {
     if (!user || !user.id) {
-      throw Error(`${packageName}.getUserGroups: invalid param "user" - ${user.toString()}`)
+      throw Error(`${packageName}.getUserGroups: invalid param "user"`)
     }
 
     return app.exModular.models.UserGroup.findAll()

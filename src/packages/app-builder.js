@@ -7,24 +7,23 @@ import Express from 'express'
 import sqliteStorage from './storage-knex-sqlite'
 import { exModular } from './ex-modular'
 
-import { Wrap } from './service-wrap'
-import { Mailer } from './service-mailer'
-import { Errors } from './service-errors'
-import { Validator } from './service-validator'
+import { Wrap } from './services/service-wrap'
+import { Mailer } from './services/service-mailer'
+import { Errors } from './services/service-errors'
+import { Validator } from './services/service-validator'
 import { RouteBuilder } from './route-builder'
-import { Controller } from './service-controller'
-import { ControllerDF } from './service-controller-df'
-import { Codegen } from './service-codegen'
-import { Seed } from './sevice-seed'
-import { Serial } from './service-serial'
-import { SendJson } from './service-send-json'
+import { ControllerDF } from './services/service-controller-df'
+import { Codegen } from './services/service-codegen'
+import { Seed } from './services/sevice-seed'
+import { Serial } from './services/service-serial'
+import { Yandex } from '../ext-intg/service-yandex'
 
-import { User } from './model-user'
-import { UserGroup } from './model-user-group'
-import { Session } from './model-session'
-import { AccessObject } from './model-access-object'
-import { PermissionUser } from './model-permission-user'
-import { PermissionUserGroup } from './model-permission-user-group'
+import { User } from './models/model-user'
+import { UserGroup } from './models/model-user-group'
+import { Session } from './models/model-session'
+import { AccessObject } from './models/model-access-object'
+import { PermissionUser } from './models/model-permission-user'
+import { PermissionUserGroup } from './models/model-permission-user-group'
 
 import { AuthJwt as Auth } from './auth-jwt'
 import { AccessSimple as Access } from './access-simple'
@@ -32,7 +31,13 @@ import { AccessSimple as Access } from './access-simple'
 import { InitAccess } from './init-access'
 import { SignupOpen } from './signup-open'
 import { AuthPassword } from './auth-password'
+import { AuthSocial } from './auth-social'
 import { Me } from './me'
+import { UserDomain } from './models/model-user-domain'
+import { UserSocial } from './models/model-user-social'
+import { InitUserDomain } from './init-user-domain'
+import { SessionSocial } from './models/model-session-social'
+import { Intg } from '../ext-intg/intg'
 
 export const appBuilder = (express, options) => {
   if (!express) {
@@ -88,11 +93,12 @@ export const appBuilder = (express, options) => {
       app.exModular.services.errors = Errors(app)
       app.exModular.services.validator = Validator(app)
       app.exModular.routes.builder = RouteBuilder(app)
-      app.exModular.services.controller = Controller(app)
       app.exModular.services.controllerDF = ControllerDF(app)
       app.exModular.services.seed = Seed(app)
       app.exModular.services.serial = Serial(app)
-      app.exModular.services.sendJson = SendJson(app)
+      app.exModular.services.yandex = Yandex(app)
+
+      // app.exModular.services.sendJson = SendJson(app)
       app.exModular.auth = Auth(app)
       app.exModular.access = Access(app)
 
@@ -103,21 +109,27 @@ export const appBuilder = (express, options) => {
       app.exModular.modelAdd(User(app))
       app.exModular.modelAdd(UserGroup(app))
       app.exModular.modelAdd(Session(app))
+      app.exModular.modelAdd(SessionSocial(app))
       app.exModular.modelAdd(AccessObject(app))
       app.exModular.modelAdd(PermissionUser(app))
       app.exModular.modelAdd(PermissionUserGroup(app))
+      app.exModular.modelAdd(UserDomain(app))
+      app.exModular.modelAdd(UserSocial(app))
 
       // configure app with modules:
       SignupOpen(app)
       AuthPassword(app)
+      AuthSocial(app)
       Me(app)
+      Intg(app)
 
       Codegen(app)
 
       // configure system data init:
       app.exModular.initAdd(InitAccess(app))
+      app.exModular.initAdd(InitUserDomain(app))
 
-      // check dependings among installed modules (plugins):
+      // check deps among installed modules (plugins):
       app.exModular.checkDeps()
 
       return app

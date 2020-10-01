@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid'
-import * as ACCESS from './const-access'
-import { removeAllRouteName, saveRouteName } from './route-builder'
+import * as ACCESS from '../const-access'
+import { removeAllRouteName, saveRouteName } from '../route-builder'
 
 export const MeGrant = (app, options) => {
   if (!options) {
@@ -10,7 +10,10 @@ export const MeGrant = (app, options) => {
 
   const Model = {
     name: 'MeGrant',
-    priority: 0,
+    caption: 'Передоверия',
+    description: 'Передоверия',
+    routes: [],
+    resourcePath: '/me/grant',
     props: [
       {
         name: 'id',
@@ -62,9 +65,7 @@ export const MeGrant = (app, options) => {
         description: 'Ссылка на разрешение, которое в рамках передоверия сформировано в системе',
         default: null
       }
-    ],
-    routes: [],
-    resourcePath: '/me/grant'
+    ]
   }
 
   const Wrap = app.exModular.services.wrap

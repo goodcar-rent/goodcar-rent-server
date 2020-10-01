@@ -1,4 +1,4 @@
-import { isPromise } from './is-promise'
+import { isPromise } from '../is-promise'
 
 export const Wrap = (app) => (fn) => (req, res, next) => {
   const processErr = (next, err) => {

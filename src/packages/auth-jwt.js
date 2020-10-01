@@ -37,8 +37,11 @@ export const AuthJwt = (app) => {
   // middleware to check session in JWT, lod if from storage and load user profile:
   Module.module.check = (req, res, next) => {
     const Session = app.exModular.models.Session
+    const SessionSocial = app.exModular.models.SessionSocial
     const User = app.exModular.models.User
     const Errors = app.exModular.services.errors
+
+    let sessionSocial = null
 
     const auth = app.exModular.auth.getTokenFromReq(req)
     if (auth && auth.scheme === 'bearer') {
@@ -49,26 +52,46 @@ export const AuthJwt = (app) => {
         Session.findById(payload.id)
           .then((session) => {
             if (!session) {
+              // console.log('PAYLOAD:')
+              // console.log(payload)
               return next(new Errors.ServerNotAllowed('session not registered'), null)
             }
             if (!session.createdAt || !session.userId) {
               return next(new Errors.ServerNotAllowed('session structure is invalid'), null)
             }
             aSession = session
-            return User.findById(session.userId)
+            if (aSession.type === 'social') {
+              return SessionSocial.findOne({ where: { sessionId: aSession.id } })
+                .then((_sessionSocial) => {
+                  if (!_sessionSocial) {
+                    throw new Errors.ServerGenericError('socialSession is not found by sessionId!')
+                  }
+                  sessionSocial = _sessionSocial
+                })
+                .catch(e => { throw e })
+            }
           })
+          .then(() => User.findById(aSession.userId))
           .then((user) => {
             if (!user) {
               return next(new Errors.ServerNotAllowed('User not found'), null)
             }
             req.user = user
             req.user.session = aSession
+            if (sessionSocial) {
+              req.user.sessionSocial = sessionSocial
+            }
             req.user.jwt = payload
+            req.user.jwt.token = auth.token
             next()
           })
           .catch(e => next(e))
       } catch (e) {
-        next(e)
+        if (e instanceof jwt.JsonWebTokenError) {
+          next(new Errors.ServerNotAllowed(e.toString()))
+        } else {
+          next(e)
+        }
       }
     } else {
       // next(new Error('Auth failed, no auth header or unknown scheme'))

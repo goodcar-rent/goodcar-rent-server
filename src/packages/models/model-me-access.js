@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid'
-import * as ACCESS from './const-access'
+import * as ACCESS from '../const-access'
 
 export const MeAccess = (app, options) => {
   if (!options) {
@@ -9,14 +9,17 @@ export const MeAccess = (app, options) => {
 
   const Model = {
     name: 'MeAccess',
-    priority: 0,
+    caption: 'Полномочия',
+    description: 'Полномочия пользователя',
+    routes: [],
+    resourcePath: '/me/access',
     props: [
       {
         name: 'id',
         type: 'id',
         calculated: true,
         caption: 'Id',
-        description: 'Идентификатор объекта доступа',
+        description: 'Идентификатор полномочия',
         default: () => uuid()
       },
       {
@@ -24,7 +27,7 @@ export const MeAccess = (app, options) => {
         type: 'enum',
         calculated: true,
         caption: 'Разрешение',
-        description: 'Какое именно передоверие выдано',
+        description: 'Какое резрешение указано для полномочия',
         format: [
           ACCESS.AccessPermissionType.unknown,
           ACCESS.AccessPermissionType.DENY,
@@ -37,7 +40,7 @@ export const MeAccess = (app, options) => {
         type: 'boolean',
         calculated: true,
         caption: 'Передоверие',
-        description: 'Есть ли право передоверить это передоверие',
+        description: 'Есть ли право передоверия',
         default: false
       },
       {
@@ -45,7 +48,7 @@ export const MeAccess = (app, options) => {
         type: 'boolean',
         calculated: true,
         caption: 'isAdmin',
-        description: 'Есть ли право передоверить это передоверие',
+        description: 'Полномочие получено от статуса администратора',
         default: false
       },
       {
@@ -53,7 +56,7 @@ export const MeAccess = (app, options) => {
         type: 'text',
         calculated: true,
         caption: 'error',
-        description: 'Есть ли право передоверить это передоверие',
+        description: 'Ошибка',
         default: false
       },
       {
@@ -61,8 +64,8 @@ export const MeAccess = (app, options) => {
         type: 'ref',
         calculated: true,
         model: 'PermissionUser',
-        caption: 'Разрешение',
-        description: 'Ссылка на разрешение, которое в рамках передоверия сформировано в системе',
+        caption: 'РазрешениеПользователю',
+        description: 'Ссылка на разрешение пользователя, которое предоставило эти полномочия',
         default: null
       },
       {
@@ -71,12 +74,10 @@ export const MeAccess = (app, options) => {
         calculated: true,
         model: 'PermissionUserGroup',
         caption: 'Разрешение',
-        description: 'Ссылка на разрешение, которое в рамках передоверия сформировано в системе',
+        description: 'Ссылка на разрешение группы, которое сформировало это полномочие',
         default: null
       }
-    ],
-    routes: [],
-    resourcePath: '/me/access'
+    ]
   }
 
   // disable auto-generation of routes except list:

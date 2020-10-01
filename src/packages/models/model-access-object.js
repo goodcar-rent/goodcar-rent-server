@@ -14,7 +14,9 @@ export const AccessObject = (app, options) => {
 
   const Model = {
     name: 'AccessObject',
-    priority: 0,
+    caption: 'Объект доступа',
+    description: 'Объект для контроля доступа в системе',
+    resourcePath: '/access/object',
     props: [
       {
         name: 'id',
@@ -41,8 +43,7 @@ export const AccessObject = (app, options) => {
         ],
         default: AccessObjectType.unknown.value
       }
-    ],
-    resourcePath: '/access/object'
+    ]
   }
   return Model
 }

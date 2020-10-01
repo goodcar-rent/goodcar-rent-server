@@ -1,6 +1,7 @@
 import sgMail from '@sendgrid/mail'
 import _ from 'lodash'
-import { markdown, plaintext } from './markdown'
+import { markdown, plaintext } from '../markdown'
+import parser from 'email-addresses'
 
 const msg = {
   from: 'noreply@goodcar.rent'
@@ -15,5 +16,8 @@ export const Mailer = (app) => {
   } else {
     throw Error('Expecting to have MAIL_API_KEY on app.env!')
   }
-  return mail
+  return {
+    mail,
+    parser
+  }
 }

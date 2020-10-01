@@ -54,8 +54,8 @@ export const processBeforeSaveToStorage = (Model, item, opts) => {
     }
     if (prop.type === 'enum') {
       // ensure enum values are in range:
-      if (!_.find(prop.format, { value: item[prop.name] })) {
-        throw Error(`${Model.name}.${prop.name} enum value invalid: not found in enum format definition`)
+      if (!_.find(prop.format, { value: aItem[prop.name] })) {
+        throw Error(`${Model.name}.${prop.name} enum value invalid: not found in enum format definition (${item[prop.name]})`)
       }
     }
     if (prop.calculated) {
@@ -64,6 +64,15 @@ export const processBeforeSaveToStorage = (Model, item, opts) => {
 
     // replace refs array with string representation
     if (prop.type === 'refs') {
+      if (!item[prop.name] || item[prop.name] === [] || item[prop.name] === '') {
+        aItem[prop.name] = null
+      } else if (Array.isArray(item[prop.name])) {
+        aItem[prop.name] = item[prop.name].join(',')
+      }
+    }
+
+    // array of some values:
+    if (prop.type === 'array' && (prop.itemType === 'decimal' || prop.itemType === 'id')) {
       if (!item[prop.name] || item[prop.name] === [] || item[prop.name] === '') {
         aItem[prop.name] = null
       } else if (Array.isArray(item[prop.name])) {
@@ -159,6 +168,20 @@ export const processAfterLoadFromStorage = (Model, item) => {
         aItem[key] = []
       }
     }
+
+    if (prop.type === 'array') {
+      if (!item[key]) {
+        aItem[key] = []
+      } else if (item[key].length > 0) {
+        aItem[key] = item[key].split(',')
+        if (!Array.isArray(aItem[key])) {
+          aItem[key] = [aItem[key]]
+        }
+      } else {
+        aItem[key] = []
+      }
+    }
+
     if (item[key] && prop.type === 'datetime') {
       aItem[key] = moment.utc(item[key]).toDate()
     }
@@ -262,482 +285,481 @@ export default (app) => {
   const aStorage = {
     db: {},
     props: {},
-    name: 'KNEX-Generic',
+    name: 'KNEX-Generic'
+  }
 
-    modelFromSchema: (Model) => {
-      const modelMethods = []
+  aStorage.modelFromSchema = (Model) => {
+    const modelMethods = []
 
-      modelMethods.push({ name: 'dataInit', handler: Model.storage.dataInit(Model) })
-      modelMethods.push({ name: 'dataClear', handler: Model.storage.dataClear(Model) })
-      modelMethods.push({ name: 'schemaInit', handler: Model.storage.schemaInit(Model) })
-      modelMethods.push({ name: 'schemaClear', handler: Model.storage.schemaClear(Model) })
-      modelMethods.push({ name: 'refsInit', handler: Model.storage.refsInit(Model) })
-      modelMethods.push({ name: 'refsClear', handler: Model.storage.refsClear(Model) })
-      if (!checkIsFullVirtual(Model)) {
-        // process refs:
-        const refsProps = _.filter(Model.props, { type: 'refs' })
-        refsProps.map((prop) => {
-          const methodAdd = `${prop.name}Add`
-          const methodRemove = `${prop.name}Remove`
-          const methodClear = `${prop.name}Clear`
-          const methodCount = `${prop.name}Count`
-          const methodList = `${prop.name}List`
+    modelMethods.push({ name: 'dataInit', handler: Model.storage.dataInit(Model) })
+    modelMethods.push({ name: 'dataClear', handler: Model.storage.dataClear(Model) })
+    modelMethods.push({ name: 'schemaInit', handler: Model.storage.schemaInit(Model) })
+    modelMethods.push({ name: 'schemaClear', handler: Model.storage.schemaClear(Model) })
+    modelMethods.push({ name: 'refsInit', handler: Model.storage.refsInit(Model) })
+    modelMethods.push({ name: 'refsClear', handler: Model.storage.refsClear(Model) })
+    if (!checkIsFullVirtual(Model)) {
+      // process refs:
+      const refsProps = _.filter(Model.props, { type: 'refs' })
+      refsProps.map((prop) => {
+        const methodAdd = `${prop.name}Add`
+        const methodRemove = `${prop.name}Remove`
+        const methodClear = `${prop.name}Clear`
+        const methodCount = `${prop.name}Count`
+        const methodList = `${prop.name}List`
 
-          // define methods:
-          modelMethods.push({ name: methodAdd, handler: Model.storage.refAdd(Model, prop) })
-          modelMethods.push({ name: methodRemove, handler: Model.storage.refRemove(Model, prop) })
-          modelMethods.push({ name: methodClear, handler: Model.storage.refClear(Model, prop) })
-          modelMethods.push({ name: methodCount, handler: Model.storage.refCount(Model, prop) })
-          modelMethods.push({ name: methodList, handler: Model.storage.refList(Model, prop) })
-        })
-
-        modelMethods.push({ name: 'findById', handler: Model.storage.findById(Model) })
-        modelMethods.push({ name: 'findOne', handler: Model.storage.findOne(Model) })
-        modelMethods.push({ name: 'findAll', handler: Model.storage.findAll(Model) })
-        modelMethods.push({ name: 'count', handler: Model.storage.count(Model) })
-        modelMethods.push({ name: 'removeById', handler: Model.storage.removeById(Model) })
-        modelMethods.push({ name: 'removeAll', handler: Model.storage.removeAll(Model) })
-        modelMethods.push({ name: 'create', handler: Model.storage.create(Model) })
-        modelMethods.push({ name: 'update', handler: Model.storage.update(Model) })
-      }
-
-      modelMethods.map((method) => {
-        if (!Model[method.name]) {
-          Model[method.name] = method.handler
-        }
-      })
-      return Model
-    },
-
-    mapPropToKnexTable: (prop, table) => {
-      return table.string(prop.name)
-    },
-
-    storageInit: () => {
-      return Promise.resolve()
-    },
-
-    storageClose: () => {
-      return Promise.resolve()
-    },
-
-    schemaInit: (Model) => (id) => {
-      // console.log(`${Model.name}.init`)
-      if (checkIsFullVirtual(Model) === true) {
-        return Promise.resolve(true)
-      }
-
-      if (!Model || !Model.storage || !Model.storage.db) {
-        return Promise.reject(new Error(`${Model.name}.storageSchemaInit: some Model's properties are invalid:
-          Model ${Model},
-          .storage${Model.storage}
-          .db ${Model.storage.db}`))
-      }
-
-      const knex = Model.storage.db
-      return knex.schema.hasTable(Model.name)
-        .then((exists) => {
-          if (exists && process.env.START_FRESH) {
-            return knex.schema.dropTable(Model.name)
-              .then(() => Promise.resolve(false))
-          }
-
-          return Promise.resolve(exists)
-        })
-        .then((exists) => {
-          Model.props.map((prop) => {
-            if (prop.type === 'id') {
-              Model.key = prop.name
-            }
-          })
-          if (!exists) {
-            return knex.schema.createTable(Model.name, (table) => {
-              Model.props.map((prop) => {
-                Model.storage.mapPropToKnexTable(prop, table)
-              })
-            })
-          } else {
-            return knex(Model.name).columnInfo()
-              .then((info) => {
-                // check if all model's properties are in info:
-                const infoKeys = Object.keys(info)
-                const diff = _.differenceWith(Model.props, infoKeys, (prop, infoKey) => {
-                  if (!prop || !infoKey) {
-                    return false
-                  }
-                  if (prop.calculated) {
-                    return true
-                  }
-                  if (prop.name === infoKey) {
-                    return true
-                  }
-                  return false
-                })
-                if (diff.length > 0) {
-                  console.log(`${Model.name}.diff:`)
-                  console.log(JSON.stringify(diff))
-                  throw Error(`Database outdated for "${Model.name}" for columns: ${JSON.stringify(diff)}`)
-                }
-              })
-              .catch((e) => { throw e })
-          }
-        })
-        .catch((e) => { throw e })
-    },
-
-    schemaClear: (Model) => () => {
-      if (!Model || !Model.storage || !Model.storage.db) {
-        return Promise.reject(new Error(`${Model.name}.storageSchemaClear: some Model's properties are invalid:
-          Model ${Model},
-          .storage${Model.storage}
-          .db ${Model.storage.db}`))
-      }
-      const knex = Model.storage.db
-
-      return knex.schema.hasTable(Model.name)
-        .then((exists) => {
-          if (exists) {
-            return knex.schema.dropTable(Model.name)
-          }
-          return Promise.resolve(false)
-        })
-    },
-
-    dataInit: (Model) => (seedFileName) => {
-      if (!Model || !Model.storage || !Model.storage.db) {
-        return Promise.reject(new Error(`${Model.name}.dataInit: some Model's properties are invalid:
-          Model ${Model},
-          .storage ${Model.storage}
-          .db ${Model.storage.db}`))
-      }
-      const knex = Model.storage.db
-      const seedData = JSON.parse(fs.readFileSync(seedFileName))
-
-      const tasks = seedData.map((item) => knex(Model.name).insert(item))
-      return Promise.all(tasks)
-        .catch((err) => { throw err })
-    },
-
-    dataClear: (Model) => () => {
-      if (!Model || !Model.storage || !Model.storage.db) {
-        return Promise.reject(new Error(`${Model.name}.dataClear: some Model's properties are invalid:
-          Model ${Model},
-          .storage ${Model.storage}
-          .db ${Model.storage.db}`))
-      }
-
-      // check if model have only calculated fields
-      let allCalculated = true
-      Model.props.map((prop) => {
-        if (!(prop.calculated && prop.calculated === true)) {
-          allCalculated = false
-        }
+        // define methods:
+        modelMethods.push({ name: methodAdd, handler: Model.storage.refAdd(Model, prop) })
+        modelMethods.push({ name: methodRemove, handler: Model.storage.refRemove(Model, prop) })
+        modelMethods.push({ name: methodClear, handler: Model.storage.refClear(Model, prop) })
+        modelMethods.push({ name: methodCount, handler: Model.storage.refCount(Model, prop) })
+        modelMethods.push({ name: methodList, handler: Model.storage.refList(Model, prop) })
       })
 
-      if (allCalculated === true) {
-        return Promise.resolve(true)
-      }
-
-      const knex = Model.storage.db
-      return knex(Model.name).del()
-        .catch((err) => { throw err })
-    },
-
-    refsInit: (Model) => () => {},
-    refsClear: (Model) => () => {},
-
-    findById: (Model) => (id) => {
-      if (!Model || !Model.storage || !Model.storage.db) {
-        return Promise.reject(new Error(`${Model.name}.findById: some Model's properties are invalid:
-          Model ${Model},
-          .storage ${Model.storage}
-          .db ${Model.storage.db}`))
-      }
-      const knex = Model.storage.db
-
-      return knex.select()
-        .from(Model.name)
-        .where(Model.key, id)
-        .then((res) => processAfterLoadFromStorageAsync(Model, res[0]))
-        .catch((err) => { throw err })
-    },
-
-    findOne: (Model) => (opt) => {
-      if (!Model || !Model.storage || !Model.storage.db) {
-        return Promise.reject(new Error(`${Model.name}.findOne: some Model's properties are invalid:
-          Model ${Model},
-          .storage ${Model.storage}
-          .db ${Model.storage.db}`))
-      }
-      const knex = Model.storage.db
-
-      // if (opt) {
-      //   console.log('opt:')
-      //   console.log(opt)
-      // }
-      return knex.select()
-        .from(Model.name)
-        .modify(withWhere, opt)
-        .modify(withWhereIn, opt)
-        .modify(withWhereOp, opt)
-        .modify(withWhereQ, opt)
-        .modify(withOrderBy, opt)
-        .modify(withRange, opt)
-        .limit(1)
-        .then((res) => processAfterLoadFromStorageAsync(Model, res[0]))
-        .catch((err) => { throw err })
-    },
-
-    findAll: (Model) => (opt) => {
-      // console.log('storage.findAll:')
-      // console.log(opt)
-      if (!Model || !Model.storage || !Model.storage.db) {
-        return Promise.reject(new Error(`${Model.name}.findAll: some Model's properties are invalid:
-          Model ${Model},
-          .storage ${Model.storage}
-          .db ${Model.storage.db}`))
-      }
-      const knex = Model.storage.db
-
-      // if (opt) {
-      //   console.log('opt:')
-      //   console.log(opt)
-      // }
-
-      return knex.select()
-        .from(Model.name)
-        .where((opt && opt.where) ? opt.where : {})
-        .modify(withWhereIn, opt)
-        .modify(withWhereOp, opt)
-        .modify(withWhereQ, opt)
-        .modify(withOrderBy, opt)
-        .modify(withRange, opt)
-        .then((res) => Promise.all(res.map((item) => processAfterLoadFromStorageAsync(Model, item))))
-        .then((res) => {
-          // console.log('res:')
-          // console.log(res)
-          return Promise.resolve(res)
-        })
-        .catch((err) => {
-          // console.log('error:')
-          // console.log(err)
-          throw err
-        })
-    },
-
-    count: (Model) => () => {
-      // console.log('storage.count')
-      if (!Model || !Model.storage || !Model.storage.db) {
-        throw Error(`${Model.name}.count: some Model's properties are invalid:
-          Model ${Model},
-          .storage ${Model.storage}
-          .db ${Model.storage.db}`)
-      }
-      const knex = Model.storage.db
-      return knex(Model.name)
-        .count()
-        .then((res) => {
-          if (!res) return 0
-          const count = res[0]
-          return ((Object.values(count))[0])
-        })
-        .then((res) => {
-          // console.log('res:')
-          // console.log(res)
-          return Promise.resolve(res)
-        })
-        .catch((err) => {
-          // console.log('error:')
-          // console.log(err)
-          throw err
-        })
-    },
-
-    removeById: (Model) => (id) => {
-      if (!Model || !Model.storage || !Model.storage.db) {
-        return Promise.reject(new Error(`${Model.name}.removeById: some Model's properties are invalid:
-          Model ${Model},
-          .storage ${Model.storage}
-          .db ${Model.storage.db}`))
-      }
-      const knex = Model.storage.db
-      return Model.findById(id)
-        .then((res) => {
-          if (!res) {
-            throw new Error(`${Model.name}.removeById: record with id ${id} not found`)
-          }
-          return Promise.all([res, knex(Model.name).del().where(Model.key, id)])
-        })
-        .then((res) => {
-          return res[0] // res
-        })
-        .catch((err) => { throw err })
-    },
-
-    removeAll: (Model) => (opt) => {
-      // console.log(`${Model.name}.removeAll: opt:`)
-      // console.log(opt)
-      return Model.findAll(opt)
-        .then((res) => {
-          // console.log('.findAll res:')
-          // console.log(res)
-          if (res) {
-            return Promise.all(res.map((item) => {
-              // console.log('item:')
-              // console.log(item)
-              return Model.removeById(item.id)
-                // .then((removedItem) => removedItem.id)
-                .catch((err) => { throw err })
-            }))
-          }
-          return null
-        })
-        .catch((err) => { throw err })
-    },
-
-    create: (Model) => (item) => {
-      if (!Model || !Model.storage || !Model.storage.db) {
-        return Promise.reject(new Error(`${Model.name}.create: some Model's properties are invalid:
-          Model ${Model},
-          .storage ${Model.storage}
-          .db ${Model.storage.db}`))
-      }
-      const knex = Model.storage.db
-      const aItem = processBeforeSaveToStorage(Model, item)
-
-      // build query:
-      return knex(Model.name)
-        .insert(aItem)
-        .then(() => Model.findById(aItem.id))
-        .catch((err) => {
-          // console.log(`--\nError: ${JSON.stringify(err)}`)
-          throw err
-        })
-    },
-
-    update: (Model) => (aId, item) => {
-      if (!aId) {
-        return Promise.reject(new Error(`${Model.name}.update: aId param should have value`))
-      }
-      if (!Model || !Model.storage || !Model.storage.db) {
-        return Promise.reject(new Error(`${Model.name}.update: some Model's properties are invalid:
-          Model ${Model},
-          .storage ${Model.storage}
-          .db ${Model.storage.db}`))
-      }
-      const knex = Model.storage.db
-
-      // console.log('item:')
-      // console.log(item)
-      // const aKeys = Object.keys(item)
-      const aItem = processBeforeSaveToStorage(Model, item, { defaults: false })
-      // console.log('aItem:')
-      // console.log(aItem)
-      // process all item's props
-      /* aKeys.map((key) => {
-        aItem[key] = item[key]
-
-        // exec beforeSet hook:
-        const aProp = _.find(Model.props, { name: key })
-        if (aProp && aProp.beforeSet && (typeof aProp.beforeSet === 'function')) {
-          aItem[key] = aProp.beforeSet(item)
-        }
-        // process booleans
-        if (item[key] && aProp.type === 'boolean') {
-          aItem[key] = item[key] ? 1 : 0
-        }
-
-        // process refs:
-        if (item[key] && aProp.type === 'refs') {
-          aItem[key] = item[key].join(',')
-        }
-      }) */
-
-      // console.log('processed aItem:')
-      // console.log(aItem)
-      // process all props in item:
-      return knex(Model.name)
-        .where(Model.key, aId)
-        .update(aItem)
-        .then((res) => Model.findById(aItem.id ? aItem.id : aId))
-        .catch((err) => { throw err })
-    },
-
-    refAdd: (Model, prop) => (id, items) => {
-      if (!Array.isArray(items)) {
-        items = [items]
-      }
-      return Model.findById(id)
-        .then((item) => {
-          if (!item) {
-            throw new Error(`${Model.name}.${prop.name}Add: item with id ${id} not found`)
-          }
-          if (!Array.isArray(items)) {
-            items = [items]
-          }
-          item[prop.name] = _.union(item[prop.name], items)
-          return Model.update(id, item)
-        })
-        .catch((err) => { throw err })
-    },
-
-    refRemove: (Model, prop) => (id, items) => {
-      if (!Array.isArray(items)) {
-        items = [items]
-      }
-      return Model.findById(id)
-        .then((item) => {
-          if (!item) {
-            throw new Error(`${Model.name}.${prop.name}Remove: item with id ${id} not found`)
-          }
-          _.pullAll(item[prop.name], items)
-          return Model.update(id, item)
-        })
-        .catch((err) => { throw err })
-    },
-
-    refList: (Model, prop) => (id) => {
-      return Model.findById(id)
-        .then((item) => {
-          if (!item) {
-            throw new Error(`${Model.name}.${prop.name}Embed: item with id ${id} not found`)
-          }
-          const ids = item[prop.name]
-          const RefModelName = prop.model
-          if (!RefModelName) {
-            throw new Error(`${Model.name}.${prop.name}Embed: model name for refs property ${prop.name} not defined`)
-          }
-          const RefModel = app.exModular.models[RefModelName]
-          if (!RefModel) {
-            throw new Error(`${Model.name}.${prop.name}Embed: model ${RefModelName} for refs property ${prop.name} not found`)
-          }
-          return RefModel.findAll({ whereIn: [{ column: 'id', ids }] })
-        })
-        .catch((err) => { throw err })
-    },
-
-    refClear: (Model, prop) => (id) => {
-      return Model.findById(id)
-        .then((item) => {
-          if (!item) {
-            throw new Error(`${Model.name}.${prop.name}Clear: item with id ${id} not found`)
-          }
-          item[prop.name] = []
-          return Model.update(id, item)
-        })
-        .catch((err) => { throw err })
-    },
-
-    refCount: (Model, prop) => (id) => {
-      return Model.findById(id)
-        .then((item) => {
-          if (!item) {
-            throw new Error(`${Model.name}.${prop.name}Count: item with id ${id} not found`)
-          }
-          return item[prop.name].length
-        })
-        .catch((err) => { throw err })
+      modelMethods.push({ name: 'findById', handler: Model.storage.findById(Model) })
+      modelMethods.push({ name: 'findOne', handler: Model.storage.findOne(Model) })
+      modelMethods.push({ name: 'findAll', handler: Model.storage.findAll(Model) })
+      modelMethods.push({ name: 'count', handler: Model.storage.count(Model) })
+      modelMethods.push({ name: 'removeById', handler: Model.storage.removeById(Model) })
+      modelMethods.push({ name: 'removeAll', handler: Model.storage.removeAll(Model) })
+      modelMethods.push({ name: 'create', handler: Model.storage.create(Model) })
+      modelMethods.push({ name: 'update', handler: Model.storage.update(Model) })
     }
+
+    modelMethods.map((method) => {
+      if (!Model[method.name]) {
+        Model[method.name] = method.handler
+      }
+    })
+    return Model
+  }
+
+  aStorage.mapPropToKnexTable = (prop, table) => {
+    return table.string(prop.name)
+  }
+
+  aStorage.storageInit = () => {
+    return Promise.resolve()
+  }
+
+  aStorage.storageClose = () => {
+    return Promise.resolve()
+  }
+
+  aStorage.schemaInit = (Model) => () => {
+    if (checkIsFullVirtual(Model) === true) {
+      return Promise.resolve(true)
+    }
+
+    if (!Model || !Model.storage || !Model.storage.db) {
+      return Promise.reject(new Error(`${Model.name}.storageSchemaInit: some Model's properties are invalid:
+        Model ${Model},
+        .storage${Model.storage}
+        .db ${Model.storage.db}`))
+    }
+
+    const knex = Model.storage.db
+    return knex.schema.hasTable(Model.name)
+      .then((exists) => {
+        if (exists && process.env.START_FRESH) {
+          return knex.schema.dropTable(Model.name)
+            .then(() => Promise.resolve(false))
+        }
+
+        return Promise.resolve(exists)
+      })
+      .then((exists) => {
+        Model.props.map((prop) => {
+          if (prop.type === 'id') {
+            Model.key = prop.name
+          }
+        })
+        if (!exists) {
+          return knex.schema.createTable(Model.name, (table) => {
+            Model.props.map((prop) => {
+              Model.storage.mapPropToKnexTable(prop, table)
+            })
+          })
+        } else {
+          return knex(Model.name).columnInfo()
+            .then((info) => {
+              // check if all model's properties are in info:
+              const infoKeys = Object.keys(info)
+              const diff = _.differenceWith(Model.props, infoKeys, (prop, infoKey) => {
+                if (!prop || !infoKey) {
+                  return false
+                }
+                if (prop.calculated) {
+                  return true
+                }
+                return prop.name === infoKey
+              })
+              if (diff.length > 0) {
+                console.log(`${Model.name}.diff:`)
+                console.log(JSON.stringify(diff))
+                throw Error(`Database outdated for "${Model.name}" for columns: ${JSON.stringify(diff)}`)
+              }
+            })
+            .catch((e) => { throw e })
+        }
+      })
+      .catch((e) => { throw e })
+  }
+
+  aStorage.schemaClear = (Model) => () => {
+    if (!Model || !Model.storage || !Model.storage.db) {
+      return Promise.reject(new Error(`${Model.name}.storageSchemaClear: some Model's properties are invalid:
+        Model ${Model},
+        .storage${Model.storage}
+        .db ${Model.storage.db}`))
+    }
+    const knex = Model.storage.db
+
+    return knex.schema.hasTable(Model.name)
+      .then((exists) => {
+        if (exists) {
+          return knex.schema.dropTable(Model.name)
+        }
+        return Promise.resolve(false)
+      })
+  }
+
+  aStorage.dataInit = (Model) => (seedFileName) => {
+    if (!Model || !Model.storage || !Model.storage.db) {
+      return Promise.reject(new Error(`${Model.name}.dataInit: some Model's properties are invalid:
+        Model ${Model},
+        .storage ${Model.storage}
+        .db ${Model.storage.db}`))
+    }
+    const knex = Model.storage.db
+    const seedData = JSON.parse((fs.readFileSync(seedFileName)).toString())
+
+    const tasks = seedData.map((item) => knex(Model.name).insert(item))
+    return Promise.all(tasks)
+      .catch((err) => { throw err })
+  }
+
+  aStorage.dataClear = (Model) => () => {
+    if (!Model || !Model.storage || !Model.storage.db) {
+      return Promise.reject(new Error(`${Model.name}.dataClear: some Model's properties are invalid:
+        Model ${Model},
+        .storage ${Model.storage}
+        .db ${Model.storage.db}`))
+    }
+
+    // check if model have only calculated fields
+    let allCalculated = true
+    Model.props.map((prop) => {
+      if (!(prop.calculated && prop.calculated === true)) {
+        allCalculated = false
+      }
+    })
+
+    if (allCalculated === true) {
+      return Promise.resolve(true)
+    }
+
+    const knex = Model.storage.db
+    return knex(Model.name).del()
+      .catch((err) => { throw err })
+  }
+
+  aStorage.refsInit = () => () => {}
+  aStorage.refsClear = () => () => {}
+
+  aStorage.findById = (Model) => (id) => {
+    if (!Model || !Model.storage || !Model.storage.db) {
+      return Promise.reject(new Error(`${Model.name}.findById: some Model's properties are invalid:
+        Model ${Model},
+        .storage ${Model.storage}
+        .db ${Model.storage.db}`))
+    }
+    const knex = Model.storage.db
+
+    return knex.select()
+      .from(Model.name)
+      .where(Model.key, id)
+      .then((res) => processAfterLoadFromStorageAsync(Model, res[0]))
+      .catch((err) => { throw err })
+  }
+
+  aStorage.findOne = (Model) => (opt) => {
+    if (!Model || !Model.storage || !Model.storage.db) {
+      return Promise.reject(new Error(`${Model.name}.findOne: some Model's properties are invalid:
+        Model ${Model},
+        .storage ${Model.storage}
+        .db ${Model.storage.db}`))
+    }
+    const knex = Model.storage.db
+
+    // if (opt) {
+    //   console.log('opt:')
+    //   console.log(opt)
+    // }
+    return knex.select()
+      .from(Model.name)
+      .modify(withWhere, opt)
+      .modify(withWhereIn, opt)
+      .modify(withWhereOp, opt)
+      .modify(withWhereQ, opt)
+      .modify(withOrderBy, opt)
+      .modify(withRange, opt)
+      .limit(1)
+      .then((res) => processAfterLoadFromStorageAsync(Model, res[0]))
+      .catch((err) => { throw err })
+  }
+
+  aStorage.findAll = (Model) => (opt) => {
+    // console.log('storage.findAll:')
+    // console.log(opt)
+    if (!Model || !Model.storage || !Model.storage.db) {
+      return Promise.reject(new Error(`${Model.name}.findAll: some Model's properties are invalid:
+        Model ${Model},
+        .storage ${Model.storage}
+        .db ${Model.storage.db}`))
+    }
+    const knex = Model.storage.db
+
+    // if (opt) {
+    //   console.log('opt:')
+    //   console.log(opt)
+    // }
+
+    return knex.select()
+      .from(Model.name)
+      .where((opt && opt.where) ? opt.where : {})
+      .modify(withWhereIn, opt)
+      .modify(withWhereOp, opt)
+      .modify(withWhereQ, opt)
+      .modify(withOrderBy, opt)
+      .modify(withRange, opt)
+      .then((res) => Promise.all(res.map((item) => processAfterLoadFromStorageAsync(Model, item))))
+      .then((res) => {
+        // console.log('res:')
+        // console.log(res)
+        return Promise.resolve(res)
+      })
+      .catch((err) => {
+        // console.log('error:')
+        // console.log(err)
+        throw err
+      })
+  }
+
+  aStorage.count = (Model) => () => {
+    // console.log('storage.count')
+    if (!Model || !Model.storage || !Model.storage.db) {
+      throw Error(`${Model.name}.count: some Model's properties are invalid:
+        Model ${Model},
+        .storage ${Model.storage}
+        .db ${Model.storage.db}`)
+    }
+    const knex = Model.storage.db
+    return knex(Model.name)
+      .count()
+      .then((res) => {
+        if (!res) return 0
+        const count = res[0]
+        return ((Object.values(count))[0])
+      })
+      .then((res) => {
+        // console.log('res:')
+        // console.log(res)
+        return Promise.resolve(res)
+      })
+      .catch((err) => {
+        // console.log('error:')
+        // console.log(err)
+        throw err
+      })
+  }
+
+  aStorage.removeById = (Model) => (id) => {
+    if (!Model || !Model.storage || !Model.storage.db) {
+      return Promise.reject(new Error(`${Model.name}.removeById: some Model's properties are invalid:
+        Model ${Model},
+        .storage ${Model.storage}
+        .db ${Model.storage.db}`))
+    }
+    const knex = Model.storage.db
+    return Model.findById(id)
+      .then((res) => {
+        if (!res) {
+          throw new Error(`${Model.name}.removeById: record with id ${id} not found`)
+        }
+        return Promise.all([res, knex(Model.name).del().where(Model.key, id)])
+      })
+      .then((res) => {
+        return res[0] // res
+      })
+      .catch((err) => { throw err })
+  }
+
+  aStorage.removeAll = (Model) => (opt) => {
+    // console.log(`${Model.name}.removeAll: opt:`)
+    // console.log(opt)
+    return Model.findAll(opt)
+      .then((res) => {
+        // console.log('.findAll res:')
+        // console.log(res)
+        if (res) {
+          return Promise.all(res.map((item) => {
+            // console.log('item:')
+            // console.log(item)
+            return Model.removeById(item.id)
+              // .then((removedItem) => removedItem.id)
+              .catch((err) => { throw err })
+          }))
+        }
+        return null
+      })
+      .catch((err) => { throw err })
+  }
+
+  aStorage.create = (Model) => (item) => {
+    if (!Model || !Model.storage || !Model.storage.db) {
+      return Promise.reject(new Error(`${Model.name}.create: some Model's properties are invalid:
+        Model ${Model},
+        .storage ${Model.storage}
+        .db ${Model.storage.db}`))
+    }
+    const knex = Model.storage.db
+    const aItem = processBeforeSaveToStorage(Model, item)
+
+    // build query:
+    return knex(Model.name)
+      .insert(aItem)
+      .then(() => Model.findById(aItem.id))
+      .catch((err) => {
+        // console.log(`--\nError: ${JSON.stringify(err)}`)
+        throw err
+      })
+  }
+
+  aStorage.update = (Model) => (aId, item) => {
+    if (!aId) {
+      return Promise.reject(new Error(`${Model.name}.update: aId param should have value`))
+    }
+    if (!Model || !Model.storage || !Model.storage.db) {
+      return Promise.reject(new Error(`${Model.name}.update: some Model's properties are invalid:
+        Model ${Model},
+        .storage ${Model.storage}
+        .db ${Model.storage.db}`))
+    }
+    const knex = Model.storage.db
+
+    // console.log('item:')
+    // console.log(item)
+    // const aKeys = Object.keys(item)
+    const aItem = processBeforeSaveToStorage(Model, item, { defaults: false })
+    // console.log('aItem:')
+    // console.log(aItem)
+    // process all item's props
+    /* aKeys.map((key) => {
+      aItem[key] = item[key]
+
+      // exec beforeSet hook:
+      const aProp = _.find(Model.props, { name: key })
+      if (aProp && aProp.beforeSet && (typeof aProp.beforeSet === 'function')) {
+        aItem[key] = aProp.beforeSet(item)
+      }
+      // process booleans
+      if (item[key] && aProp.type === 'boolean') {
+        aItem[key] = item[key] ? 1 : 0
+      }
+
+      // process refs:
+      if (item[key] && aProp.type === 'refs') {
+        aItem[key] = item[key].join(',')
+      }
+    }) */
+
+    // console.log('processed aItem:')
+    // console.log(aItem)
+    // process all props in item:
+    return knex(Model.name)
+      .where(Model.key, aId)
+      .update(aItem)
+      .then((res) => Model.findById(aItem.id ? aItem.id : aId))
+      .catch((err) => { throw err })
+  }
+
+  aStorage.refAdd = (Model, prop) => (id, items) => {
+    if (!Array.isArray(items)) {
+      items = [items]
+    }
+    return Model.findById(id)
+      .then((item) => {
+        if (!item) {
+          throw new Error(`${Model.name}.${prop.name}Add: item with id ${id} not found`)
+        }
+        if (!Array.isArray(items)) {
+          items = [items]
+        }
+        item[prop.name] = _.union(item[prop.name], items)
+        return Model.update(id, item)
+      })
+      .catch((err) => { throw err })
+  }
+
+  aStorage.refRemove = (Model, prop) => (id, items) => {
+    if (!Array.isArray(items)) {
+      items = [items]
+    }
+    return Model.findById(id)
+      .then((item) => {
+        if (!item) {
+          throw new Error(`${Model.name}.${prop.name}Remove: item with id ${id} not found`)
+        }
+        if (_.difference(items, item[prop.name]).length !== 0) {
+          throw new Error(`${Model.name}.${prop.name}Remove: not all param items found in ${prop.name}`)
+        }
+        _.pullAll(item[prop.name], items)
+        return Model.update(id, item)
+      })
+      .catch((err) => { throw err })
+  }
+
+  aStorage.refList = (Model, prop) => (id) => {
+    return Model.findById(id)
+      .then((item) => {
+        if (!item) {
+          throw new Error(`${Model.name}.${prop.name}Embed: item with id ${id} not found`)
+        }
+        const ids = item[prop.name]
+        const RefModelName = prop.model
+        if (!RefModelName) {
+          throw new Error(`${Model.name}.${prop.name}Embed: model name for refs property ${prop.name} not defined`)
+        }
+        const RefModel = app.exModular.models[RefModelName]
+        if (!RefModel) {
+          throw new Error(`${Model.name}.${prop.name}Embed: model ${RefModelName} for refs property ${prop.name} not found`)
+        }
+        return RefModel.findAll({ whereIn: [{ column: 'id', ids }] })
+      })
+      .catch((err) => { throw err })
+  }
+
+  aStorage.refClear = (Model, prop) => (id) => {
+    return Model.findById(id)
+      .then((item) => {
+        if (!item) {
+          throw new Error(`${Model.name}.${prop.name}Clear: item with id ${id} not found`)
+        }
+        item[prop.name] = []
+        return Model.update(id, item)
+      })
+      .catch((err) => { throw err })
+  }
+
+  aStorage.refCount = (Model, prop) => (id) => {
+    return Model.findById(id)
+      .then((item) => {
+        if (!item) {
+          throw new Error(`${Model.name}.${prop.name}Count: item with id ${id} not found`)
+        }
+        return item[prop.name].length
+      })
+      .catch((err) => { throw err })
   }
 
   return aStorage

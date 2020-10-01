@@ -33,11 +33,23 @@ export const Validator = (app) => {
       }
       return v
     } else if (prop.type === 'id') {
-      let v = body(propName).isString().withMessage(`${Model.name}.${prop.name} should be string UUID`)
-      if (options && options.optionalId) {
-        v = v.optional()
+      if (process.env.NODE_ENV === 'test') {
+        const v = [
+          body(propName).isString().withMessage(`${Model.name}.${prop.name} should be string UUID`),
+          body(propName).isNumeric().withMessage(`${Model.name}.${prop.name} should be number`)
+        ]
+        if (options && options.optionalId) {
+          v[0] = v[0].optional()
+          v[1] = v[1].optional()
+        }
+        return oneOf(v)
+      } else {
+        let v = body(propName).isString().withMessage(`${Model.name}.${prop.name} should be string UUID`)
+        if (options && options.optionalId) {
+          v = v.optional()
+        }
+        return v
       }
-      return v
     } else if (prop.type === 'refs') {
       let v = body(propName).isArray({ min: 0 }).withMessage('Users should be specified as array')
       if (prop.default !== undefined) {
@@ -45,7 +57,14 @@ export const Validator = (app) => {
       }
       return v
     } else if (prop.type === 'ref') {
-      return body(propName).optional().isString().withMessage(`${Model.name}.${prop.name} should be string UUID`)
+      if (process.env.NODE_ENV === 'test') {
+        return oneOf([
+          body(propName).optional().isString().withMessage(`${Model.name}.${prop.name} should be string UUID`),
+          body(propName).optional().isNumeric().withMessage(`${Model.name}.${prop.name} should be number`)
+        ])
+      } else {
+        return body(propName).optional().isString().withMessage(`${Model.name}.${prop.name} should be string UUID`)
+      }
     } else if (prop.type === 'boolean') {
       let v = body(propName).isBoolean().withMessage(`${Model.name}.${prop.name} should be boolean`)
       if (prop.default !== undefined) {
@@ -154,6 +173,12 @@ export const Validator = (app) => {
       .catch((err) => { throw err })
   }
   const paramId = (Model) => {
+    if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') {
+      return oneOf([
+        param('id').isString().withMessage('Id should be specified in URL'),
+        param('id').isAlphanumeric().withMessage('Id should be specified in URL')
+      ])
+    }
     return param('id').isString().withMessage('Id should be specified in URL')
   }
 
