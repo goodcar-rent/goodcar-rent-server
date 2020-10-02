@@ -1,5 +1,4 @@
 import { v4 as uuid } from 'uuid'
-import { AccessObjectType } from '../packages/models/model-access-object'
 
 export const FinOpType = {
   unknown: { value: null, caption: '(unknown)' },
@@ -22,6 +21,14 @@ export const FinOp = () => {
         default: () => uuid()
       },
       {
+        name: 'caption',
+        type: 'text',
+        format: 'text',
+        caption: 'Описание',
+        description: 'Описание операции',
+        default: null
+      },
+      {
         name: 'date',
         type: 'datetime',
         caption: 'Дата',
@@ -39,7 +46,7 @@ export const FinOp = () => {
           FinOpType.income,
           FinOpType.payment
         ],
-        default: AccessObjectType.unknown.value
+        default: FinOpType.unknown.value
       },
       {
         name: 'orgId',
@@ -66,11 +73,19 @@ export const FinOp = () => {
         default: null
       },
       {
-        name: 'email',
-        type: 'text',
-        format: 'email',
-        caption: 'Электронная почта',
-        description: 'Электронная почта, зарегистрированная в соцсети"',
+        name: 'planId',
+        type: 'ref',
+        model: 'FinPlan',
+        caption: 'Тип',
+        description: 'Тип операции: факт, план',
+        default: null
+      },
+      {
+        name: 'cfoId',
+        type: 'ref',
+        model: 'FinCfo',
+        caption: 'ЦФО',
+        description: 'ЦФО операции',
         default: null
       }
     ]
