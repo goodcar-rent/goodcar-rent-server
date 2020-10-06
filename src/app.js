@@ -3,6 +3,7 @@ import appBuilder from './packages/app-builder'
 import serverBuilder from './packages/server-builder'
 import { Deploy } from './ext-deploy/deploy'
 import env from 'dotenv-safe'
+import { ExtFin } from './ext-fin/ext-fin'
 
 // load .env
 
@@ -15,6 +16,7 @@ appBuilder(express, {})
   .then((_app) => {
     app = _app
     Deploy(app)
+    ExtFin(app)
   })
   .then(() => app.exModular.storages.Init()) // init storages
   .then(() => app.exModular.modelsInit())

@@ -17,13 +17,18 @@ export const Seed = (app) => {
         fileName = path.join(process.env.SEEDS_DIR, fileName)
       }
 
-      const data = JSON.parse(fs.readFileSync(fileName).toString())
       const Model = app.exModular.models[modelName]
-
       if (!Model) {
         throw Error(`Seed: model ${modelName} not found in app`)
       }
 
+      // if no data file, then exit
+      if (!fs.existsSync(fileName)) {
+        console.log('no file for seeding, exiting')
+        return Promise.resolve()
+      }
+
+      const data = JSON.parse(fs.readFileSync(fileName).toString())
       return Promise.resolve()
         .then(() => {
           if (opt.onlyIfEmpty) {
