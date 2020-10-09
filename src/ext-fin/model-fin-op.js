@@ -87,6 +87,16 @@ export const FinOp = () => {
         caption: 'ЦФО',
         description: 'ЦФО операции',
         default: null
+      },
+      {
+        name: 'summ',
+        type: 'decimal',
+        caption: 'Сумма',
+        description: 'Сумма операции',
+        format: '',
+        precision: 12,
+        scale: 2,
+        default: 0
       }
     ]
   }

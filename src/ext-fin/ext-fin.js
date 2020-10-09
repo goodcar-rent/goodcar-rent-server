@@ -4,6 +4,7 @@ import { FinOp } from './model-fin-op'
 import { FinOrg } from './model-fin-org'
 import { FinPlan } from './model-fin-plan'
 import { InitExtFin } from './init-ext-fin'
+import { FinData } from './model-fin-data'
 
 const moduleName = 'ExtFin'
 
@@ -25,6 +26,7 @@ export const ExtFin = (app) => {
   app.exModular.modelAdd(FinOp(app))
   app.exModular.modelAdd(FinOrg(app))
   app.exModular.modelAdd(FinPlan(app))
+  app.exModular.modelAdd(FinData(app))
 
   app.exModular.initAdd(InitExtFin(app))
 

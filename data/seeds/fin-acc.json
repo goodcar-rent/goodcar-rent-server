@@ -1,0 +1,50 @@
+[
+  {
+    "id": "inc",
+    "caption": "Выручка",
+    "description": "Выручка от основной деятельности",
+    "parentId": null
+  },
+  {
+    "id": "lea",
+    "caption": "Лизинг",
+    "description": "Затраты на лизинг",
+    "parentId": null
+  },
+  {
+    "id": "ins",
+    "caption": "Страховка",
+    "description": "Затраты на страхование",
+    "parentId": null
+  },
+  {
+    "id": "ins-o",
+    "caption": "ОСАГО",
+    "description": "Затраты на обязательное страхование ОСАГО",
+    "parentId": "ins"
+  },
+  {
+    "id": "ins-c",
+    "caption": "КАСКО",
+    "description": "Затраты на КАСКО",
+    "parentId": "ins"
+  },
+  {
+    "id": "man",
+    "caption": "Обслуживание",
+    "description": "Затраты на текущее обслуживание, запчасти, ремонт",
+    "parentId": null
+  },
+  {
+    "id": "adv",
+    "caption": "Реклама",
+    "description": "Затраты на рекламу и маркетинг",
+    "parentId": null
+  },
+  {
+    "id": "dz",
+    "caption": "ДЗ",
+    "description": "ДЗ",
+    "parentId": null
+  }
+]

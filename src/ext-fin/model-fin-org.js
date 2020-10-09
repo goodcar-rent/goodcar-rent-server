@@ -86,15 +86,15 @@ export const FinOrg = () => {
         caption: 'КПП',
         description: 'КПП компании',
         default: null
-      },
+      } /*,
       {
         name: 'bankAccId',
         type: 'ref',
-        model: 'FinBancAcc',
+        model: 'FinBankAcc',
         caption: 'Расчетный счёт',
         description: 'Расчётный счёт компании',
         default: null
-      }
+      } */
     ]
   }
 }
