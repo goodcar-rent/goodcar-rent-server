@@ -12,7 +12,8 @@ export const FinData = (app) => {
         type: 'id',
         caption: 'Идентификатор',
         description: 'Идентификатор',
-        default: () => uuid()
+        default: () => uuid(),
+        calculated: true
       },
       {
         name: 'csv',
@@ -21,7 +22,8 @@ export const FinData = (app) => {
         size: (1024 * 8),
         caption: 'CSV',
         description: 'Данные в формате CSV',
-        default: null
+        default: null,
+        calculated: true
       }
     ]
   }
