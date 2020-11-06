@@ -225,6 +225,20 @@ export const noteList = (context, expectedCode) => context.request.get(`${contex
   .accept('json')
   .expect(expectedCode || expected.Ok)
 
+export const noteListOpt = (context, opt, expectedCode) => {
+  let filter = null
+
+  if (opt && opt.filter) {
+    filter = `?filter=${JSON.stringify(opt.filter)}`
+  }
+
+  return context.request.get(`${context.apiRoot}/note${filter}`)
+    .set('Authorization', `${context.authSchema} ${context.token}`)
+    .type('json')
+    .accept('json')
+    .expect(expectedCode || expected.Ok)
+}
+
 export const noteAdd = (context, data, expectedCode) => context.request.post(`${context.apiRoot}/note`)
   .set('Authorization', `${context.authSchema} ${context.token}`)
   .send(data)

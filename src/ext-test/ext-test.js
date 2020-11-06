@@ -1,4 +1,14 @@
+/**
+
+ exModular project
+
+ Test module
+
+ This module initialize "Test" extension module.
+
+*/
 import { Note } from './model-note'
+import { InitExtTest } from './init-test'
 
 const packageName = 'ExtTest'
 
@@ -13,10 +23,7 @@ export const ExtTest = (app, opt) => {
   })
 
   app.exModular.modelAdd(Note(app))
-
-//  app.exModular.services.MRP = MRP(app)
-
-//  app.exModular.initAdd(InitUsers(app))
+  app.exModular.initAdd(InitExtTest(app))
 
   return app
 }
