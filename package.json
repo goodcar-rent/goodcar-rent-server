@@ -8,7 +8,8 @@
   "scripts": {
     "start": "cross-env DEBUG='ex-modular:*' babel-node src/app.js",
     "start:clear-db": "rimraf ./data/db.sqlite && cross-env DEBUG='ex-modular:*' babel-node src/app.js",
-    "clean": "rimraf lib",
+    "clean": "rimraf ./data/db.sqlite && rimraf lib",
+    "clean:node_modules": "rimraf ./data/db.sqlite && rimraf lib && rimraf ./node_modules",
     "test": "mocha ./test/**/*.js",
     "cover": "nyc npm run test",
     "lint": "eslint",

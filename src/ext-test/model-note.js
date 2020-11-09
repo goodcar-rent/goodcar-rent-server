@@ -27,6 +27,22 @@ export const Note = (app) => {
         format: 'text',
         size: 127,
         default: ''
+      },
+      {
+        name: 'createdAt',
+        type: 'datetime',
+        caption: 'Дата',
+        format: 'date',
+        default: null
+      },
+      {
+        name: 'comments',
+        type: 'decimal',
+        precision: 12,
+        scale: 0,
+        caption: 'Комментариев',
+        format: '',
+        default: 0
       }
     ]
   }
