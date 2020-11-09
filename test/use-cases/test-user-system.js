@@ -32,7 +32,7 @@ import { ExtTest } from '../../src/ext-test/ext-test'
 chai.use(dirtyChai)
 
 // test case:
-describe('ex-modular test: user system', function () {
+describe('exModular: storage', function () {
   env.config()
   process.env.NODE_ENV = 'test' // just to be sure
   let app = null
@@ -224,7 +224,7 @@ describe('ex-modular test: user system', function () {
       .catch((e) => { throw e })
   }
 
-  describe('Storage system test', function () {
+  describe('exModular: storage', function () {
     it('s-1: storage.update:', function () {
       return createAdmin()
         .then(() => noteAdd(context, { caption: '1' }))
@@ -298,7 +298,7 @@ describe('ex-modular test: user system', function () {
     })
   })
 
-  describe('User system test', function () {
+  describe('exModular: user system', function () {
     it('u-s-1: register first user account', function () {
       return signupUser(context, UserAdmin)
         .then((res) => {
