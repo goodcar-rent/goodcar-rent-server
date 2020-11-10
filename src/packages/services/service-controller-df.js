@@ -1,5 +1,6 @@
 // DeFined verion of controller: nextgen controller for exModular
 import _ from 'lodash'
+import moment from 'moment'
 
 const packageName = 'ControllerDF'
 
@@ -71,7 +72,7 @@ export const ControllerDF = (app) => {
         propName = key.substring(0, key.length - 4)
         op = '<='
       }
-      const val = f[key]
+      let val = f[key]
       // console.log(`propName=${propName}, op=${op}, val=${val}`)
       // console.log('item')
       // console.log(item)
@@ -106,6 +107,13 @@ export const ControllerDF = (app) => {
             `Request's filter param "${propName}" not found in model "${Model.name}"`)
           res.err = err
           return next(err)
+        }
+        if (prop.type === 'datetime') {
+          // console.log(val)
+          val = ((moment.utc(val)).toDate()).valueOf()
+          // console.log(`val: ${val.toString()}`)
+          // console.log(`val: ${val.valueOf()}`)
+          val = val.valueOf()
         }
         if (Array.isArray(val)) {
           // if value is array:

@@ -223,5 +223,27 @@ describe('exModular: controller', function () {
           .catch((e) => { throw e })
       })
     })
+    describe('1-7: date field', function () {
+      it('1-7-1: date field, single value, lte', function () {
+        return signupUser(context, UserAdmin)
+          .then(() => loginAs(context, UserAdmin))
+          .then((res) => {
+            context.adminToken = res.body.token
+            context.token = context.adminToken
+            return noteListOpt(context, { filter: { createdAt_lte: '2020-03-02' } })
+          })
+          .then((res) => {
+            // console.log(res.body)
+            expect(res.body).to.exist('Body should exist')
+            expect(res.body).to.be.an('array').that.have.lengthOf(7)
+            // expect(res.body[0].id).to.be.equal('2')
+            // expect(res.body[1].id).to.be.equal('3')
+            // expect(res.body[2].id).to.be.equal('6')
+            // expect(res.body[3].id).to.be.equal('10')
+            // expect(res.body[4].id).to.be.equal('11')
+          })
+          .catch((e) => { throw e })
+      })
+    })
   })
 })
