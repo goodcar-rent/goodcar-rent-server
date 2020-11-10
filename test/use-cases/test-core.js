@@ -224,7 +224,7 @@ describe('exModular: controller', function () {
       })
     })
     describe('1-7: date field', function () {
-      it('1-7-1: date field, single value, lte', function () {
+      it('1-7-1: date field, single value, _lte', function () {
         return signupUser(context, UserAdmin)
           .then(() => loginAs(context, UserAdmin))
           .then((res) => {
@@ -233,14 +233,32 @@ describe('exModular: controller', function () {
             return noteListOpt(context, { filter: { createdAt_lte: '2020-03-02' } })
           })
           .then((res) => {
-            // console.log(res.body)
             expect(res.body).to.exist('Body should exist')
             expect(res.body).to.be.an('array').that.have.lengthOf(7)
-            // expect(res.body[0].id).to.be.equal('2')
-            // expect(res.body[1].id).to.be.equal('3')
-            // expect(res.body[2].id).to.be.equal('6')
-            // expect(res.body[3].id).to.be.equal('10')
-            // expect(res.body[4].id).to.be.equal('11')
+            expect(res.body[0].id).to.be.equal('1')
+            expect(res.body[1].id).to.be.equal('2')
+            expect(res.body[2].id).to.be.equal('3')
+            expect(res.body[3].id).to.be.equal('4')
+            expect(res.body[4].id).to.be.equal('5')
+            expect(res.body[5].id).to.be.equal('6')
+            expect(res.body[6].id).to.be.equal('7')
+          })
+          .catch((e) => { throw e })
+      })
+      it('1-7-2: date field, range values, _gte + _lt', function () {
+        return signupUser(context, UserAdmin)
+          .then(() => loginAs(context, UserAdmin))
+          .then((res) => {
+            context.adminToken = res.body.token
+            context.token = context.adminToken
+            return noteListOpt(context, { filter: { createdAt_gte: '2020-02-01', createdAt_lt: '2020-03-02' } })
+          })
+          .then((res) => {
+            expect(res.body).to.exist('Body should exist')
+            expect(res.body).to.be.an('array').that.have.lengthOf(3)
+            expect(res.body[0].id).to.be.equal('4')
+            expect(res.body[1].id).to.be.equal('5')
+            expect(res.body[2].id).to.be.equal('6')
           })
           .catch((e) => { throw e })
       })

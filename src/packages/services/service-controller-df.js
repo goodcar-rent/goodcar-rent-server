@@ -108,7 +108,7 @@ export const ControllerDF = (app) => {
           res.err = err
           return next(err)
         }
-        if (prop.type === 'datetime') {
+        if (prop.type === 'datetime' && !Array.isArray(val)) {
           // console.log(val)
           val = ((moment.utc(val)).toDate()).valueOf()
           // console.log(`val: ${val.toString()}`)

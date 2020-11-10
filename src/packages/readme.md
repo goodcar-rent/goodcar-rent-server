@@ -93,3 +93,13 @@ Model.resourcePath: на какой маршрут монтировать
 * `decimal`: `.precision` знаков всего и `.scale` знаков после запятой
 * `text`: строка текста, размер можно задать свойством `.size`, формат задаётся свойством `.format` (string, date, email, name, ...)
 
+## Filter
+
+Filter types:
+* special q filter
+* simple values: json object
+* conditional filter: json object with suffixes for keys _lt, _lte, _gt, _gte
+
+/route?filter=q:some%20text
+/route?filter={someprop: somvalue}
+/route?filter={someprop_gte: somevalue, someOtherProp_lt: otherValue}
