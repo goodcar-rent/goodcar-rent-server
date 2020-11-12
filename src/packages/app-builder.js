@@ -38,6 +38,7 @@ import { UserSocial } from './models/model-user-social'
 import { InitUserDomain } from './init-user-domain'
 import { SessionSocial } from './models/model-session-social'
 import { Intg } from '../ext-intg/intg'
+import { Flow } from './services/service-flow'
 
 export const appBuilder = (express, options) => {
   if (!express) {
@@ -97,8 +98,8 @@ export const appBuilder = (express, options) => {
       app.exModular.services.seed = Seed(app)
       app.exModular.services.serial = Serial(app)
       app.exModular.services.yandex = Yandex(app)
+      app.exModular.flow = Flow(app)
 
-      // app.exModular.services.sendJson = SendJson(app)
       app.exModular.auth = Auth(app)
       app.exModular.access = Access(app)
 

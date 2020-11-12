@@ -22,6 +22,27 @@ export const SignupOpen = (app) => {
 
   app.exModular.modules.Add(Module)
 
+  /*
+
+  Signup code with flow tech:
+
+  userCount:
+    * models: User model,
+    * input: userId,
+    * output: userCount
+
+  userFindByEmail:
+    * models: User
+    * input: email
+    * output: user
+
+  userCreate:
+    * models: User
+    * input: user
+    * output: user
+
+  */
+
   Module.module.signup = (req, res, next) => {
     const Errors = app.exModular.services.errors
     const User = app.exModular.models.User
@@ -81,7 +102,7 @@ export const SignupOpen = (app) => {
       name: 'Auth.Signup',
       description: 'Open signup via username/password',
       path: '/auth/signup',
-      validate: [
+      before: [
         app.exModular.auth.check,
         app.exModular.access.check('Auth.Signup'),
         Validator.checkBodyForModelName('User', { optionalId: true })

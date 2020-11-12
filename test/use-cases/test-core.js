@@ -75,7 +75,7 @@ describe('exModular: controller', function () {
       .catch(done)
   })
 
-  describe('1: filter tests', function () {
+  describe('1: filter', function () {
     it('1-1: one-field single-value', function () {
       return signupUser(context, UserAdmin)
         .then(() => loginAs(context, UserAdmin))
@@ -262,6 +262,22 @@ describe('exModular: controller', function () {
           })
           .catch((e) => { throw e })
       })
+    })
+  })
+
+  describe('2: flow:', function () {
+    it('2-1: run experimental flow', function () {
+      const ctx = {}
+      console.log('prepare to run flow:')
+      return app.exModular.flow.run('Auth.Service', ctx)
+        .then((res) => {
+          console.log('res:')
+          console.log(res)
+          console.log('ctx:')
+          console.log(ctx)
+
+          expect(ctx).to.be.not.null()
+        })
     })
   })
 })
