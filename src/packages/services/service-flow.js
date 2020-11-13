@@ -8,34 +8,64 @@ export const Flow = (app) => {
 
   Service.actions = [
     {
-      name: 'countUsers',
+      name: 'userCount',
       models: ['User'],
       outputs: 'count',
-      fn: (ctx) => ctx.models.User.count()
+      fn: (actionCtx) => actionCtx.models.User.count()
         .then(count => {
-          ctx.count = count
-          return ctx
+          actionCtx.count = count
+          return actionCtx
         })
+    },
+    {
+      name: 'userFindByEmail',
+      models: 'User',
+      input: 'email',
+      output: 'user',
+      fn: (actionCtx) => actionCtx.models.User.findOne({ where: { email: actionCtx.email } })
+    },
+    {
+      name: 'userCheckIsFound',
+      input: 'user',
+      fn: (actionCtx) => {
+        if (!actionCtx.user) {
+          throw new Error('user not found')
+        }
+        return Promise.resolve(actionCtx)
+      }
+    },
+    {
+      name: 'adminAdd',
+      input: 'user',
+      services: 'access',
+      fn: (actionCtx) => actionCtx.access.addAdmin(actionCtx.user)
+    },
+    {
+      name: 'userCreate',
+      input: 'user',
+      output: 'user',
+      models: 'User',
+      fn: (actionCtx) => actionCtx.models.User.create(actionCtx.user)
     },
     {
       name: 'delay',
       inputs: 'ms',
-      fn: (ctx) => {
-        return new Promise(resolve => setTimeout(resolve, ctx.ms)).then(() => ctx)
+      fn: (actionCtx) => {
+        return new Promise(resolve => setTimeout(resolve, actionCtx.ms)).then(() => actionCtx)
       }
     }
   ]
 
   Service.flows['Auth.Service'] = [
     {
-      action: 'countUsers',
-      after: (ctx) => {
-        ctx.data.userCount = ctx.countUsers.count
+      action: 'userCount',
+      after: (ctx, actionCtx) => {
+        ctx.data.userCount = actionCtx.count
       }
     },
     {
       action: 'delay',
-      before: (ctx) => { ctx.delay.ms = 3000 }
+      before: (ctx, actionCtx) => { actionCtx.ms = 3000 }
     }
   ]
 
@@ -68,10 +98,20 @@ export const Flow = (app) => {
       } else if (!Array.isArray(_action.models)) {
         _action.models = [_action.models]
       }
+
+      if (!_action.import) {
+        _action.import = { models: {} }
+      }
+      _action.models.map(model => {
+        _action.import.models[model] = app.exModular.models[model]
+        if (!_action.import.models[model]) {
+          throw Error(`Action ${_action.name}: model ${model} not found, failed to init action.import`)
+        }
+      })
     })
   }
 
-  Service.run = (flowName, ctx) => {
+  Service.run = (flowName, flowCtx) => {
     // prepare first step
 
     const flow = Service.flows[flowName]
@@ -79,18 +119,27 @@ export const Flow = (app) => {
       throw new Error(`flow named "${flowName}" not found`)
     }
 
-    ctx.ndx = 0
-    ctx.data = {}
+    if (!flowCtx) {
+      throw new Error('flow.run: ctx param required')
+    }
+
+    if (flowCtx.ndx === undefined) {
+      flowCtx.ndx = 0
+    }
+    if (flowCtx.data === undefined) {
+      flowCtx.data = {}
+    }
 
     // start flow from first statement:
-    return Service.runSt(flow, ctx)
+    return Service.runSt(flow, flowCtx)
       .catch((e) => { throw e })
   }
 
-  Service.prepareCtx = (action, ctx) => {
-    // prepare action's own ctx:
-    ctx[action.name] = {}
-    const actionCtx = ctx[action.name]
+  Service.prepareActionCtx = (action, actionCtx) => {
+    if (!actionCtx) {
+      actionCtx = {}
+    }
+
     // prepare action inputs, outputs:
     action.input.map(_input => {
       actionCtx[_input] = null
@@ -98,18 +147,9 @@ export const Flow = (app) => {
     action.output.map(output => {
       actionCtx[output] = null
     })
+    actionCtx.models = action.import.models
 
-    // prepare imported models:
-    if (!actionCtx.models) {
-      actionCtx.models = {}
-    }
-
-    action.models.map(model => {
-      actionCtx.models[model] = app.exModular.models[model]
-      if (!actionCtx.models[model]) {
-        throw Error(`Action ${action.name}: model ${model} not found, failed to init ctx`)
-      }
-    })
+    return actionCtx
   }
 
   /**
@@ -135,7 +175,7 @@ export const Flow = (app) => {
     if (!action) {
       throw Error(`Action (${st.name}) not found at statement #${ctx.ndx}`)
     }
-    Service.prepareCtx(action, ctx)
+    const actionCtx = Service.prepareActionCtx(action)
 
     // next st:
     ctx.next = null
@@ -146,13 +186,13 @@ export const Flow = (app) => {
 
     // run current st:
     if (st.before) {
-      st.before(ctx)
+      st.before(ctx, actionCtx)
     }
 
-    return action.fn(ctx[action.name])
+    return action.fn(actionCtx)
       .then(res => {
         if (st.after) {
-          st.after(ctx)
+          st.after(ctx, actionCtx)
         }
         if (ctx.next) {
           // run next st:
@@ -169,6 +209,44 @@ export const Flow = (app) => {
     Service.processAllActions()
     return Promise.resolve()
   })
+
+  Service.httpRequestToFlow = (flowName) => (req, res) => {
+    const ctx = {}
+
+    ctx.httpRequest = {}
+    const r = {}
+    r.baseUrl = req.baseUrl
+    r.body = req.body
+    r.cookies = req.cookies
+    r.fresh = req.fresh
+    r.hostname = req.hostname
+    r.ip = req.ip
+    r.ips = req.ips
+    r.method = req.method
+    r.originalUrl = req.originalUrl
+    r.params = req.params
+    r.path = req.path
+    r.protocol = req.protocol
+    r.query = req.query
+    r.route = req.route
+    r.secure = req.secure
+    r.signedCookies = req.signedCookies
+    r.stale = req.stale
+    r.subdomains = req.subdomains
+    r.xhr = req.xhr
+
+    ctx.httpRequest.req = r
+
+    return Service.run(flowName, ctx)
+      .then(() => {
+        // TODO: get other artifacts from ctx and decorate res with proper data (headers, cookies, etc)
+        const status = ctx.httpRequest.res.status || 200
+        const body = ctx.httpRequest.res.body || {}
+
+        res.status(status).json(body)
+      })
+      .catch((e) => { throw e })
+  }
 
   return Service
 }
