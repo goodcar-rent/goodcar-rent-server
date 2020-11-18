@@ -15,10 +15,10 @@ export const Flow = (app) => {
       name: 'userCount',
       models: ['User'],
       outputs: 'count',
-      fn: (actionCtx) => actionCtx.models.User.count()
+      fn: (stCtx) => stCtx.models.User.count()
         .then(count => {
-          actionCtx.count = count
-          return actionCtx
+          stCtx.count = count
+          return stCtx
         })
     },
     {
@@ -26,40 +26,52 @@ export const Flow = (app) => {
       models: 'User',
       input: 'email',
       output: 'user',
-      fn: (actionCtx) => actionCtx.models.User.findOne({ where: { email: actionCtx.email } })
+      fn: (stCtx) => stCtx.models.User.findOne({ where: { email: stCtx.email } })
         .then((_user) => {
-          actionCtx.user = _user
+          stCtx.user = _user
           return _user
         })
     },
     {
       name: 'userCheckIsFound',
       input: 'user',
-      fn: (actionCtx) => {
-        if (!actionCtx.user) {
+      fn: (stCtx) => {
+        if (!stCtx.user) {
           throw new Error('user not found')
         }
-        return Promise.resolve(actionCtx)
+        return Promise.resolve(stCtx)
       }
     },
     {
       name: 'adminAdd',
       input: 'user',
       services: 'access',
-      fn: (actionCtx) => actionCtx.access.addAdmin(actionCtx.user)
+      fn: (stCtx) => stCtx.access.addAdmin(stCtx.user)
     },
     {
       name: 'userCreate',
       input: 'user',
       output: 'user',
       models: 'User',
-      fn: (actionCtx) => actionCtx.models.User.create(actionCtx.user)
+      fn: (stCtx) => stCtx.models.User.create(stCtx.user)
     },
     {
       name: 'delay',
       inputs: 'ms',
-      fn: (actionCtx) => {
-        return new Promise(resolve => setTimeout(resolve, actionCtx.ms)).then(() => actionCtx)
+      fn: (stCtx) => {
+        return new Promise(resolve => setTimeout(resolve, stCtx.ms)).then(() => stCtx)
+      }
+    }
+  ]
+
+  Service.flows['Auth.Service._ifAdmin'] = [
+    {
+      action: 'adminAdd',
+      before: (ctx, stCtx) => {
+        stCtx.user = ctx.user
+      },
+      after: (ctx, stCtx) => {
+        ctx.data.addedAsAdmiт = true
       }
     }
   ]
@@ -67,39 +79,41 @@ export const Flow = (app) => {
   Service.flows['Auth.Service'] = [
     {
       action: 'userCount',
-      after: (ctx, actionCtx) => {
-        ctx.data.userCount = actionCtx.count
-        ctx.data.addAsAdmin = (actionCtx.count === 1)
+      after: (ctx, stCtx) => {
+        ctx.data.userCount = stCtx.count
+        ctx.data.addAsAdmin = (stCtx.count === 1)
       }
     },
     {
       action: 'userFindByEmail',
-      before: (ctx, actionCtx) => {
-        actionCtx.email = ctx.http.req.body.email
+      before: (ctx, stCtx) => {
+        stCtx.email = ctx.http.req.body.email
       },
-      after: (ctx, actionCtx) => {
-        if (actionCtx.user) {
-          throw new Error(`User with email ${actionCtx.email} already registered`)
+      after: (ctx, stCtx) => {
+        if (stCtx.user) {
+          throw new Error(`User with email ${stCtx.email} already registered`)
         }
       }
     },
     {
       action: 'userCreate',
-      before: (ctx, actionCtx) => {
-        actionCtx.user = ctx.http.req.body
+      before: (ctx, stCtx) => {
+        stCtx.user = ctx.http.req.body
       },
-      after: (ctx, actionCtx) => {
-        ctx.data.user = actionCtx.user
+      after: (ctx, stCtx) => {
+        ctx.data.user = stCtx.user
       }
+    },
+    {
+      type: ST.IF,
+      condition: (ctx) => {
+        return ctx.data.addAsAdmin
+      },
+      flow: 'Auth.Service._ifAdmin'
     }
     // {
-    //   type: ST.IF,
-    //   condition: (ctx) => {},
-    //   flow: 'flowName',
-    // },
-    // {
     //   action: 'delay',
-    //   before: (ctx, actionCtx) => { actionCtx.ms = 3000 }
+    //   before: (ctx, stCtx) => { stCtx.ms = 3000 }
     // }
   ]
 
@@ -157,8 +171,8 @@ export const Flow = (app) => {
       throw new Error('flow.run: ctx param required')
     }
 
-    if (flowCtx.ndx === undefined) {
-      flowCtx.ndx = 0
+    if (!flowCtx.flow || flowCtx.flow.ndx === undefined) {
+      flowCtx.flow = { ndx: 0 }
     }
     if (flowCtx.data === undefined) {
       flowCtx.data = {}
@@ -169,39 +183,46 @@ export const Flow = (app) => {
       .catch((e) => { throw e })
   }
 
-  Service.prepareActionCtx = (action, actionCtx) => {
-    if (!actionCtx) {
-      actionCtx = {}
+  Service.prepareActionCtx = (action, stCtx) => {
+    if (!stCtx) {
+      stCtx = {}
     }
 
     // prepare action inputs, outputs:
     action.input.map(_input => {
-      actionCtx[_input] = null
+      stCtx[_input] = null
     })
     action.output.map(output => {
-      actionCtx[output] = null
+      stCtx[output] = null
     })
-    actionCtx.models = action.import.models
+    stCtx.models = action.import.models
 
-    return actionCtx
+    return stCtx
   }
 
   /**
-   * Выполнить текущий шаг (по индексу ctx.ndx) из потока
+   * Выполнить текущий шаг (по индексу ctx.flow.ndx) из потока
    * @param flow
    * @param ctx
    * @return promise
    */
   Service.runSt = (flow, ctx) => {
-    if (ctx.ndx === undefined) {
-      throw new Error('ctx.ndx not found')
+    if (ctx.flow.ndx === undefined) {
+      throw new Error('ctx.flow.ndx not found')
     }
 
-    const st = flow[ctx.ndx]
+    const st = flow[ctx.flow.ndx]
     // empty st, return unmodified ctx
     if (!st) {
-      ctx.ndx += 1
+      ctx.flow.ndx += 1
       return Promise.resolve(ctx)
+    }
+
+    // next st:
+    ctx.next = null
+    if ((ctx.flow.ndx + 1) < flow.length) {
+      // we did not reach the end of flow, proceed to next statement
+      ctx.next = ctx.flow.ndx + 1
     }
 
     // if we have and action:
@@ -216,7 +237,7 @@ export const Flow = (app) => {
       .then(() => {
         if (ctx.next) {
           // run next st:
-          ctx.ndx = ctx.next
+          ctx.flow.ndx = ctx.next
           return Promise.resolve(Service.runSt(flow, ctx))
             .catch((e) => { throw e })
         }
@@ -225,38 +246,71 @@ export const Flow = (app) => {
       .catch((e) => { throw e })
   }
 
+  /**
+   * Run action statement
+   * @param flow
+   * @param ctx
+   * @return promise
+   */
   Service.runStAction = (flow, ctx) => {
-    const st = flow[ctx.ndx]
+    const st = flow[ctx.flow.ndx]
 
     // prepare to run action:
     const action = _.find(Service.actions, { name: st.action })
     if (!action) {
-      throw Error(`Action (${st.name}) not found at statement #${ctx.ndx}`)
+      throw Error(`Action (${st.name}) not found at statement #${ctx.flow.ndx}`)
     }
-    const actionCtx = Service.prepareActionCtx(action)
-
-    // next st:
-    ctx.next = null
-    if ((ctx.ndx + 1) < flow.length) {
-      // we did not reach the end of flow, proceed to next statement
-      ctx.next = ctx.ndx + 1
-    }
+    const stCtx = Service.prepareActionCtx(action)
 
     // run current st:
-    const before = (st.before ? Promise.resolve(st.before(ctx, actionCtx)) : Promise.resolve())
-
+    const before = (st.before ? Promise.resolve(st.before(ctx, stCtx)) : Promise.resolve())
     return before
-      .then(() => Promise.resolve(action.fn(actionCtx)))
+      .then(() => Promise.resolve(action.fn(stCtx)))
       .then(res => {
-        return (st.after ? Promise.resolve(st.after(ctx, actionCtx)) : Promise.resolve())
+        return (st.after ? Promise.resolve(st.after(ctx, stCtx)) : Promise.resolve())
       })
       .catch((e) => { throw e })
   }
 
+  /**
+   * Run "if" statement
+   * @param flow
+   * @param ctx
+   */
   Service.runStIF = (flow, ctx) => {
-    const st = flow[ctx.ndx]
+    const st = flow[ctx.flow.ndx]
+    if (st.type !== ST.IF) {
+      throw new Error('runStIf called on other type of statement')
+    }
 
+    const stCtx = {}
 
+    // run current st:
+    let _conditionRes = null
+    const before = (st.before ? Promise.resolve(st.before(ctx, stCtx)) : Promise.resolve())
+    return before
+      .then(() => Promise.resolve(st.condition(stCtx)))
+      .then(res => {
+        // save result of condition evaluation:
+        _conditionRes = res
+
+        // run "after" handler:
+        return (st.after ? Promise.resolve(st.after(ctx, stCtx)) : Promise.resolve())
+      })
+      .then(() => {
+        // proceed to specified flow, if condition is true:
+        if (_conditionRes === true) {
+          // prepare context of new flow: same as original ctx, except .flow part (because flow is new)
+          const newFlowCtx = _.assign({}, ctx, { flow: { ndx: 0, next: null } })
+          return Service.run(st.flow, newFlowCtx)
+            .then(() => {
+              // copy results of flow execution from flowCtx to original ctx:
+              ctx = _.assign(ctx, _.omit(newFlowCtx, ['flow']))
+              return ctx
+            })
+        }
+      })
+      .catch((e) => { throw e })
   }
 
   app.exModular.initAdd(() => {
