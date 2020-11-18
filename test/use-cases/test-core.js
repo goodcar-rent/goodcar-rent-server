@@ -267,7 +267,21 @@ describe('exModular: controller', function () {
 
   describe('2: flow:', function () {
     it('2-1: run experimental flow', function () {
-      const ctx = {}
+      // emulate http req:
+      const ctx = {
+        http: {
+          req: {
+            body: {
+              email: UserAdmin.email,
+              password: UserAdmin.password
+            }
+          },
+          res: {
+            body: {},
+            status: null
+          }
+        }
+      }
       console.log('prepare to run flow:')
       return app.exModular.flow.run('Auth.Service', ctx)
         .then((res) => {

@@ -1,5 +1,9 @@
 import _ from 'lodash'
 
+export const ST = {
+  IF: 'IF'
+}
+
 export const Flow = (app) => {
   const Service = {
     add: (flow) => {},
@@ -23,6 +27,10 @@ export const Flow = (app) => {
       input: 'email',
       output: 'user',
       fn: (actionCtx) => actionCtx.models.User.findOne({ where: { email: actionCtx.email } })
+        .then((_user) => {
+          actionCtx.user = _user
+          return _user
+        })
     },
     {
       name: 'userCheckIsFound',
@@ -61,12 +69,38 @@ export const Flow = (app) => {
       action: 'userCount',
       after: (ctx, actionCtx) => {
         ctx.data.userCount = actionCtx.count
+        ctx.data.addAsAdmin = (actionCtx.count === 1)
       }
     },
     {
-      action: 'delay',
-      before: (ctx, actionCtx) => { actionCtx.ms = 3000 }
+      action: 'userFindByEmail',
+      before: (ctx, actionCtx) => {
+        actionCtx.email = ctx.http.req.body.email
+      },
+      after: (ctx, actionCtx) => {
+        if (actionCtx.user) {
+          throw new Error(`User with email ${actionCtx.email} already registered`)
+        }
+      }
+    },
+    {
+      action: 'userCreate',
+      before: (ctx, actionCtx) => {
+        actionCtx.user = ctx.http.req.body
+      },
+      after: (ctx, actionCtx) => {
+        ctx.data.user = actionCtx.user
+      }
     }
+    // {
+    //   type: ST.IF,
+    //   condition: (ctx) => {},
+    //   flow: 'flowName',
+    // },
+    // {
+    //   action: 'delay',
+    //   before: (ctx, actionCtx) => { actionCtx.ms = 3000 }
+    // }
   ]
 
   Service.processAllActions = () => {
@@ -167,8 +201,32 @@ export const Flow = (app) => {
     // empty st, return unmodified ctx
     if (!st) {
       ctx.ndx += 1
-      return ctx
+      return Promise.resolve(ctx)
     }
+
+    // if we have and action:
+    return Promise.resolve()
+      .then(() => {
+        if (st.action) {
+          return Service.runStAction(flow, ctx)
+        } else if (st.block === ST.IF) {
+          return Service.runStIF(flow, ctx)
+        }
+      })
+      .then(() => {
+        if (ctx.next) {
+          // run next st:
+          ctx.ndx = ctx.next
+          return Promise.resolve(Service.runSt(flow, ctx))
+            .catch((e) => { throw e })
+        }
+        return Promise.resolve(ctx)
+      })
+      .catch((e) => { throw e })
+  }
+
+  Service.runStAction = (flow, ctx) => {
+    const st = flow[ctx.ndx]
 
     // prepare to run action:
     const action = _.find(Service.actions, { name: st.action })
@@ -185,24 +243,20 @@ export const Flow = (app) => {
     }
 
     // run current st:
-    if (st.before) {
-      st.before(ctx, actionCtx)
-    }
+    const before = (st.before ? Promise.resolve(st.before(ctx, actionCtx)) : Promise.resolve())
 
-    return action.fn(actionCtx)
+    return before
+      .then(() => Promise.resolve(action.fn(actionCtx)))
       .then(res => {
-        if (st.after) {
-          st.after(ctx, actionCtx)
-        }
-        if (ctx.next) {
-          // run next st:
-          ctx.ndx = ctx.next
-          return Promise.resolve(Service.runSt(flow, ctx))
-            .catch((e) => { throw e })
-        }
-        return res
+        return (st.after ? Promise.resolve(st.after(ctx, actionCtx)) : Promise.resolve())
       })
       .catch((e) => { throw e })
+  }
+
+  Service.runStIF = (flow, ctx) => {
+    const st = flow[ctx.ndx]
+
+
   }
 
   app.exModular.initAdd(() => {
@@ -210,32 +264,28 @@ export const Flow = (app) => {
     return Promise.resolve()
   })
 
-  Service.httpRequestToFlow = (flowName) => (req, res) => {
-    const ctx = {}
-
-    ctx.httpRequest = {}
-    const r = {}
-    r.baseUrl = req.baseUrl
-    r.body = req.body
-    r.cookies = req.cookies
-    r.fresh = req.fresh
-    r.hostname = req.hostname
-    r.ip = req.ip
-    r.ips = req.ips
-    r.method = req.method
-    r.originalUrl = req.originalUrl
-    r.params = req.params
-    r.path = req.path
-    r.protocol = req.protocol
-    r.query = req.query
-    r.route = req.route
-    r.secure = req.secure
-    r.signedCookies = req.signedCookies
-    r.stale = req.stale
-    r.subdomains = req.subdomains
-    r.xhr = req.xhr
-
-    ctx.httpRequest.req = r
+  Service.flowMW = (flowName) => (req, res) => {
+    const ctx = { http: { req, res } }
+    // const r = {}
+    // r.baseUrl = req.baseUrl
+    // r.body = req.body
+    // r.cookies = req.cookies
+    // r.fresh = req.fresh
+    // r.hostname = req.hostname
+    // r.ip = req.ip
+    // r.ips = req.ips
+    // r.method = req.method
+    // r.originalUrl = req.originalUrl
+    // r.params = req.params
+    // r.path = req.path
+    // r.protocol = req.protocol
+    // r.query = req.query
+    // r.route = req.route
+    // r.secure = req.secure
+    // r.signedCookies = req.signedCookies
+    // r.stale = req.stale
+    // r.subdomains = req.subdomains
+    // r.xhr = req.xhr
 
     return Service.run(flowName, ctx)
       .then(() => {
