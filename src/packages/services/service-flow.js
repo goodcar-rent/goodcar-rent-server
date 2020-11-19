@@ -46,7 +46,7 @@ export const Flow = (app) => {
       name: 'adminAdd',
       input: 'user',
       services: 'access',
-      fn: (stCtx) => stCtx.access.addAdmin(stCtx.user)
+      fn: (stCtx) => stCtx.services.access.addAdmin(stCtx.user)
     },
     {
       name: 'userCreate',
@@ -68,7 +68,7 @@ export const Flow = (app) => {
     {
       action: 'adminAdd',
       before: (ctx, stCtx) => {
-        stCtx.user = ctx.user
+        stCtx.user = ctx.data.user
       },
       after: (ctx, stCtx) => {
         ctx.data.addedAsAdmiт = true
@@ -140,6 +140,7 @@ export const Flow = (app) => {
         _action.output = [_action.output]
       }
 
+      // process models
       // convert action.models into array
       if (!_action.models) {
         _action.models = []
@@ -156,10 +157,29 @@ export const Flow = (app) => {
           throw Error(`Action ${_action.name}: model ${model} not found, failed to init action.import`)
         }
       })
+
+      // process services:
+      if (!_action.services) {
+        _action.services = []
+      } else if (!Array.isArray(_action.services)) {
+        _action.services = [_action.services]
+      }
+
+      if (!_action.import.services) {
+        _action.import.services = {}
+      }
+      _action.services.map(service => {
+        _action.import.services[service] = app.exModular[service]
+        if (!_action.import.services[service]) {
+          throw Error(`Action ${_action.name}: service ${service} not found, failed to init action.import`)
+        }
+      })
+
     })
   }
 
   Service.run = (flowName, flowCtx) => {
+    console.log(`Run flow ${flowName} with context:\n${JSON.stringify(flowCtx)}`)
     // prepare first step
 
     const flow = Service.flows[flowName]
@@ -196,6 +216,7 @@ export const Flow = (app) => {
       stCtx[output] = null
     })
     stCtx.models = action.import.models
+    stCtx.services = action.import.services
 
     return stCtx
   }
@@ -207,6 +228,7 @@ export const Flow = (app) => {
    * @return promise
    */
   Service.runSt = (flow, ctx) => {
+    console.log(`Run statement,\n flow: ${JSON.stringify(flow)}\n ctx: ${JSON.stringify(ctx)}`)
     if (ctx.flow.ndx === undefined) {
       throw new Error('ctx.flow.ndx not found')
     }
@@ -230,7 +252,7 @@ export const Flow = (app) => {
       .then(() => {
         if (st.action) {
           return Service.runStAction(flow, ctx)
-        } else if (st.block === ST.IF) {
+        } else if (st.type === ST.IF) {
           return Service.runStIF(flow, ctx)
         }
       })
@@ -255,12 +277,15 @@ export const Flow = (app) => {
   Service.runStAction = (flow, ctx) => {
     const st = flow[ctx.flow.ndx]
 
+    console.log(`run action #${ctx.flow.ndx}: ${JSON.stringify(st)}\n ctx:${JSON.stringify(ctx)}`)
+
     // prepare to run action:
     const action = _.find(Service.actions, { name: st.action })
     if (!action) {
       throw Error(`Action (${st.name}) not found at statement #${ctx.flow.ndx}`)
     }
     const stCtx = Service.prepareActionCtx(action)
+    console.log(` stCtx: ${JSON.stringify(stCtx)}`)
 
     // run current st:
     const before = (st.before ? Promise.resolve(st.before(ctx, stCtx)) : Promise.resolve())
@@ -279,6 +304,7 @@ export const Flow = (app) => {
    */
   Service.runStIF = (flow, ctx) => {
     const st = flow[ctx.flow.ndx]
+    console.log(`run IF #${ctx.flow.ndx}: ${JSON.stringify(st)}`)
     if (st.type !== ST.IF) {
       throw new Error('runStIf called on other type of statement')
     }
@@ -289,7 +315,7 @@ export const Flow = (app) => {
     let _conditionRes = null
     const before = (st.before ? Promise.resolve(st.before(ctx, stCtx)) : Promise.resolve())
     return before
-      .then(() => Promise.resolve(st.condition(stCtx)))
+      .then(() => Promise.resolve(st.condition(ctx)))
       .then(res => {
         // save result of condition evaluation:
         _conditionRes = res
