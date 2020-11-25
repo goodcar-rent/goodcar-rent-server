@@ -54,6 +54,11 @@ export const Flow = (app) => {
       output: 'user',
       models: 'User',
       fn: (stCtx) => stCtx.models.User.create(stCtx.user)
+        .then((_user) => {
+          stCtx.user = _user
+          return _user
+        })
+        .catch((e) => { throw e })
     },
     {
       name: 'delay',
@@ -174,7 +179,6 @@ export const Flow = (app) => {
           throw Error(`Action ${_action.name}: service ${service} not found, failed to init action.import`)
         }
       })
-
     })
   }
 

@@ -35,7 +35,7 @@ export const AccessSimple = (app) => {
    */
   Module.module.addAdmin = (user) => {
     if (!user || !user.id) {
-      throw Error(`${packageName}.addAdmin: invalid param "user" or incorrect format`)
+      throw Error(`${packageName}.addAdmin: invalid param "user" or incorrect format (no user.id found)`)
     }
 
     return app.exModular.models.UserGroup.usersAdd(ACCESS.ADMIN_GROUP_ID, user.id)
