@@ -6,7 +6,12 @@ export const ST = {
 
 export const Flow = (app) => {
   const Service = {
-    add: (flow) => {},
+    add: (name, flow) => {
+      if (!name) {
+        return
+      }
+      Service.flows[name] = flow
+    },
     flows: {}
   }
 
@@ -76,7 +81,7 @@ export const Flow = (app) => {
         stCtx.user = ctx.data.user
       },
       after: (ctx, stCtx) => {
-        ctx.data.addedAsAdmiт = true
+        ctx.data.addedAsAdmin = true
       }
     }
   ]
@@ -182,6 +187,12 @@ export const Flow = (app) => {
     })
   }
 
+  /**
+   * Метод для запуска действия по имени. Можно передать начальный контекст.
+   * @param flowName имя потока действий, который будет запущен
+   * @param flowCtx начальный контекст
+   * @return {Promise<ctx>} возвращается Promise с контекстом на момент завершения выполнения
+   */
   Service.run = (flowName, flowCtx) => {
     console.log(`Run flow ${flowName} with context:\n${JSON.stringify(flowCtx)}`)
     // prepare first step
@@ -207,14 +218,20 @@ export const Flow = (app) => {
       .catch((e) => { throw e })
   }
 
+  /**
+   * Подготовить контекст действия: инициализировать null все входящие параметры и возвращаемые переменные, а также инициализировать .models и .services в stCtx
+   * @param action действие, для которого нужно инициализировать контекст
+   * @param stCtx объект контекста действия для инициализации
+   * @return {<stCtx>>} возвращается подготовленный контекст действия
+   */
   Service.prepareActionCtx = (action, stCtx) => {
     if (!stCtx) {
       stCtx = {}
     }
 
     // prepare action inputs, outputs:
-    action.input.map(_input => {
-      stCtx[_input] = null
+    action.input.map(input => {
+      stCtx[input] = null
     })
     action.output.map(output => {
       stCtx[output] = null
@@ -233,7 +250,7 @@ export const Flow = (app) => {
    */
   Service.runSt = (flow, ctx) => {
     console.log(`Run statement,\n flow: ${JSON.stringify(flow)}\n ctx: ${JSON.stringify(ctx)}`)
-    if (ctx.flow.ndx === undefined) {
+    if (ctx === undefined || ctx.flow === undefined || ctx.flow.ndx === undefined) {
       throw new Error('ctx.flow.ndx not found')
     }
 
@@ -245,10 +262,10 @@ export const Flow = (app) => {
     }
 
     // next st:
-    ctx.next = null
+    ctx.flow.next = null
     if ((ctx.flow.ndx + 1) < flow.length) {
       // we did not reach the end of flow, proceed to next statement
-      ctx.next = ctx.flow.ndx + 1
+      ctx.flow.next = ctx.flow.ndx + 1
     }
 
     // if we have and action:
@@ -261,9 +278,9 @@ export const Flow = (app) => {
         }
       })
       .then(() => {
-        if (ctx.next) {
+        if (ctx.flow.next) {
           // run next st:
-          ctx.flow.ndx = ctx.next
+          ctx.flow.ndx = ctx.flow.next
           return Promise.resolve(Service.runSt(flow, ctx))
             .catch((e) => { throw e })
         }
@@ -317,7 +334,7 @@ export const Flow = (app) => {
 
     // run current st:
     let _conditionRes = null
-    const before = (st.before ? Promise.resolve(st.before(ctx, stCtx)) : Promise.resolve())
+    const before = Service.runHook(st.before, ctx, stCtx) // (st.before ? Promise.resolve(st.before(ctx, stCtx)) : Promise.resolve())
     return before
       .then(() => Promise.resolve(st.condition(ctx)))
       .then(res => {
@@ -325,7 +342,7 @@ export const Flow = (app) => {
         _conditionRes = res
 
         // run "after" handler:
-        return (st.after ? Promise.resolve(st.after(ctx, stCtx)) : Promise.resolve())
+        return Service.runHook(st.after, ctx, stCtx) // (st.after ? Promise.resolve(st.after(ctx, stCtx)) : Promise.resolve())
       })
       .then(() => {
         // proceed to specified flow, if condition is true:
@@ -340,7 +357,20 @@ export const Flow = (app) => {
             })
         }
       })
+      .then(() => Service.runHook(st.afterBlock, ctx, stCtx) // (st.after ? Promise.resolve(st.after(ctx, stCtx)) : Promise.resolve())
+)
       .catch((e) => { throw e })
+  }
+
+  Service.runHook = (hook, ctx, stCtx) => {
+    if (!hook) {
+      return Promise.resolve()
+    }
+    if (!Array.isArray(hook)) {
+      return Promise.resolve(hook(ctx, stCtx))
+    }
+
+
   }
 
   app.exModular.initAdd(() => {
@@ -377,9 +407,18 @@ export const Flow = (app) => {
         const status = ctx.httpRequest.res.status || 200
         const body = ctx.httpRequest.res.body || {}
 
-        res.status(status).json(body)
+        return res.status(status).json(body)
       })
-      .catch((e) => { throw e })
+      .catch((e) => {
+        let status = 500
+        if (e.status) {
+          status = e.status
+        }
+        const body = {
+          error: e.toString()
+        }
+        return res.status(status).json(body)
+      })
   }
 
   return Service
