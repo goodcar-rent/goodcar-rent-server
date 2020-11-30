@@ -66,10 +66,29 @@ export const Flow = (app) => {
         .catch((e) => { throw e })
     },
     {
+      name: 'checkDomain',
+      input: 'user',
+      models: 'UserDomain',
+      services: 'mailer',
+      fn: (stCtx) => {
+        const p = stCtx.services.mailer.parser(stCtx.user)
+        console.log(p)
+      }
+    },
+    {
       name: 'delay',
       inputs: 'ms',
       fn: (stCtx) => {
         return new Promise(resolve => setTimeout(resolve, stCtx.ms)).then(() => stCtx)
+      }
+    }
+  ]
+
+  Service.flows['Auth.CheckDomain'] = [
+    {
+      action: 'checkDomain',
+      before: (ctx, stCtx) => {
+        stCtx.user = ctx.data.user
       }
     }
   ]
@@ -179,7 +198,7 @@ export const Flow = (app) => {
         _action.import.services = {}
       }
       _action.services.map(service => {
-        _action.import.services[service] = app.exModular[service]
+        _action.import.services[service] = app.exModular[service] ? app.exModular[service] : app.exModular.services[service]
         if (!_action.import.services[service]) {
           throw Error(`Action ${_action.name}: service ${service} not found, failed to init action.import`)
         }
@@ -357,12 +376,19 @@ export const Flow = (app) => {
             })
         }
       })
-      .then(() => Service.runHook(st.afterBlock, ctx, stCtx) // (st.after ? Promise.resolve(st.after(ctx, stCtx)) : Promise.resolve())
-)
+      .then(() => Service.runHook(st.afterBlock, ctx, stCtx)) // (st.after ? Promise.resolve(st.after(ctx, stCtx)) : Promise.resolve()))
       .catch((e) => { throw e })
   }
 
+  /**
+   * Выполнить обработкич события (before/after) для statement
+   * @param hook - переменная, где хранится обработчик. Может быть пустой (если обработчик не определён), отдельной функцией с сигнатурой (ctx, stCtx) или массивом функций с подобной сигнатурой.
+   * @param ctx - с каким параметром ctx вызывать обработчик/обработчики
+   * @param stCtx - с каким параметром stCtx вызывать обработчик/обработчики
+   * @returns возвращает Promise c результатом обработчика/или массив с результатами обработчиков
+   */
   Service.runHook = (hook, ctx, stCtx) => {
+    // no hook defined, ok - rerurn empty promise
     if (!hook) {
       return Promise.resolve()
     }
@@ -370,13 +396,25 @@ export const Flow = (app) => {
       return Promise.resolve(hook(ctx, stCtx))
     }
 
-
+    // у нас - массив обработчиков. Подготовить массив для выполнения через .serial
+    const arr = hook.map((_hook) => {
+      const fn = () => { return Promise.resolve(_hook(ctx, stCtx)) }
+      return fn
+    })
+    return app.services.serial(arr)
   }
 
-  app.exModular.initAdd(() => {
-    Service.processAllActions()
-    return Promise.resolve()
-  })
+  Service.hookAdd = (hooks, fn) => {
+    if (!hooks) {
+      return []
+    }
+
+    if (!Array.isArray(hooks)) {
+      hooks = [hooks]
+    }
+
+    return hooks.push(fn)
+  }
 
   Service.flowMW = (flowName) => (req, res) => {
     const ctx = { http: { req, res } }
@@ -420,6 +458,11 @@ export const Flow = (app) => {
         return res.status(status).json(body)
       })
   }
+
+  app.exModular.initAdd(() => {
+    Service.processAllActions()
+    return Promise.resolve()
+  })
 
   return Service
 }
