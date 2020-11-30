@@ -67,12 +67,30 @@ export const Flow = (app) => {
     },
     {
       name: 'checkDomain',
-      input: 'user',
+      input: 'email',
       models: 'UserDomain',
       services: 'mailer',
       fn: (stCtx) => {
-        const p = stCtx.services.mailer.parser(stCtx.user)
-        console.log(p)
+        if (!process.env.AUTH_SIGNUP_CHECK_DOMAIN) {
+          console.log('no domain check')
+          return Promise.resolve()
+        }
+        const { domain } = stCtx.services.mailer.parser.parseOneAddress(stCtx.email)
+        if (!domain) {
+          console.log('parse failed')
+          throw new Error(`checkDomain: failed to parse email ${stCtx.email}`)
+        }
+        return stCtx.models.UserDomain.findOne({ where: { domain } })
+          .then((_userDomain) => {
+            if (!_userDomain) {
+              throw new Error(`checkDomain: domain ${domain} not registered! Reject`)
+            }
+            if (_userDomain.isAllow === false) {
+              throw new Error(`checkDomain: domain ${domain} restricted`)
+            }
+            return Promise.resolve()
+          })
+          .catch(e => { throw e })
       }
     },
     {
@@ -414,6 +432,17 @@ export const Flow = (app) => {
     }
 
     return hooks.push(fn)
+  }
+
+  Service.flowAddStAfter = (flow, stToFind, stToAdd) => {
+    if (!Array.isArray(flow)) {
+      throw new Error('flowAddStAfter: flow parameter is not array')
+    }
+    const ndx = _.findIndex(flow, stToFind)
+    if (ndx === -1) {
+      throw new Error(`flowAddStAfter: st ${JSON.stringify(stToFind)} not found in flow ${JSON.stringify(flow)}`)
+    }
+    flow.splice(ndx + 1, 0, stToAdd)
   }
 
   Service.flowMW = (flowName) => (req, res) => {

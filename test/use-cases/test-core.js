@@ -293,5 +293,43 @@ describe('exModular: controller', function () {
           expect(ctx).to.be.not.null()
         })
     })
+    it('2-2: add hooks for domainCheck', function () {
+      const Flow = app.exModular.flow
+      // emulate http req:
+      const ctx = {
+        http: {
+          req: {
+            body: {
+              email: UserAdmin.email,
+              password: UserAdmin.password
+            }
+          },
+          res: {
+            body: {},
+            status: null
+          }
+        }
+      }
+      console.log('add hook:')
+      Flow.flowAddStAfter(Flow.flows['Auth.Service'], { action: 'userFindByEmail' },
+        {
+          action: 'checkDomain',
+          before: (ctx, stCtx) => {
+            stCtx.email = ctx.http.req.body.email
+          }
+        })
+
+      process.env.AUTH_SIGNUP_CHECK_DOMAIN = true
+      console.log('prepare to run flow:')
+      return app.exModular.flow.run('Auth.Service', ctx)
+        .then((res) => {
+          console.log('res:')
+          console.log(res)
+          console.log('ctx:')
+          console.log(ctx)
+
+          expect(ctx).to.be.not.null()
+        })
+    })
   })
 })
