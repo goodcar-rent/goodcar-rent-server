@@ -107,7 +107,8 @@ export const SignupOpen = (app) => {
         app.exModular.access.check('Auth.Signup'),
         Validator.checkBodyForModelName('User', { optionalId: true })
       ],
-      handler: Module.module.signup,
+      // handler: Module.module.signup,
+      handler: 'Auth.Signup',
       after: [
         app.exModular.services.controllerDF.sendData
       ],

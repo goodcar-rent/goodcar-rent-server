@@ -94,6 +94,10 @@ export const Flow = (app) => {
       }
     },
     {
+      name: 'nop',
+      fn: (stCtx) => Promise.resolve(stCtx)
+    },
+    {
       name: 'delay',
       inputs: 'ms',
       fn: (stCtx) => {
@@ -123,7 +127,7 @@ export const Flow = (app) => {
     }
   ]
 
-  Service.flows['Auth.Service'] = [
+  Service.flows['Auth.Signup'] = [
     {
       action: 'userCount',
       after: (ctx, stCtx) => {
@@ -145,7 +149,11 @@ export const Flow = (app) => {
     {
       action: 'userCreate',
       before: (ctx, stCtx) => {
-        stCtx.user = ctx.http.req.body
+        stCtx.user = {
+          name: ctx.http.req.body.name,
+          email: ctx.http.req.body.email,
+          password: ctx.http.req.body.password
+        }
       },
       after: (ctx, stCtx) => {
         ctx.data.user = stCtx.user
@@ -157,6 +165,13 @@ export const Flow = (app) => {
         return ctx.data.addAsAdmin
       },
       flow: 'Auth.Service._ifAdmin'
+    },
+    {
+      action: 'nop',
+      after: (ctx, stCtx) => {
+        ctx.http.res.body = ctx.data.user
+        ctx.http.res.statusCode = 201
+      }
     }
     // {
     //   action: 'delay',
@@ -231,7 +246,7 @@ export const Flow = (app) => {
    * @return {Promise<ctx>} возвращается Promise с контекстом на момент завершения выполнения
    */
   Service.run = (flowName, flowCtx) => {
-    console.log(`Run flow ${flowName} with context:\n${JSON.stringify(flowCtx)}`)
+    // console.log(`Run flow ${flowName} with context:\n${JSON.stringify(flowCtx)}`)
     // prepare first step
 
     const flow = Service.flows[flowName]
@@ -286,7 +301,7 @@ export const Flow = (app) => {
    * @return promise
    */
   Service.runSt = (flow, ctx) => {
-    console.log(`Run statement,\n flow: ${JSON.stringify(flow)}\n ctx: ${JSON.stringify(ctx)}`)
+    // console.log(`Run statement,\n flow: ${JSON.stringify(flow)}\n ctx: ${JSON.stringify(ctx)}`)
     if (ctx === undefined || ctx.flow === undefined || ctx.flow.ndx === undefined) {
       throw new Error('ctx.flow.ndx not found')
     }
@@ -335,7 +350,7 @@ export const Flow = (app) => {
   Service.runStAction = (flow, ctx) => {
     const st = flow[ctx.flow.ndx]
 
-    console.log(`run action #${ctx.flow.ndx}: ${JSON.stringify(st)}\n ctx:${JSON.stringify(ctx)}`)
+    // console.log(`run action #${ctx.flow.ndx}: ${JSON.stringify(st)}\n ctx:${JSON.stringify(ctx)}`)
 
     // prepare to run action:
     const action = _.find(Service.actions, { name: st.action })
@@ -343,7 +358,7 @@ export const Flow = (app) => {
       throw Error(`Action (${st.name}) not found at statement #${ctx.flow.ndx}`)
     }
     const stCtx = Service.prepareActionCtx(action)
-    console.log(` stCtx: ${JSON.stringify(stCtx)}`)
+    // console.log(` stCtx: ${JSON.stringify(stCtx)}`)
 
     // run current st:
     const before = (st.before ? Promise.resolve(st.before(ctx, stCtx)) : Promise.resolve())
@@ -362,7 +377,7 @@ export const Flow = (app) => {
    */
   Service.runStIF = (flow, ctx) => {
     const st = flow[ctx.flow.ndx]
-    console.log(`run IF #${ctx.flow.ndx}: ${JSON.stringify(st)}`)
+    // console.log(`run IF #${ctx.flow.ndx}: ${JSON.stringify(st)}`)
     if (st.type !== ST.IF) {
       throw new Error('runStIf called on other type of statement')
     }
@@ -447,6 +462,9 @@ export const Flow = (app) => {
 
   Service.flowMW = (flowName) => (req, res) => {
     const ctx = { http: { req, res } }
+    ctx.http.res.body = {}
+    ctx.http.res.statusCode = 200
+
     // const r = {}
     // r.baseUrl = req.baseUrl
     // r.body = req.body
@@ -471,12 +489,13 @@ export const Flow = (app) => {
     return Service.run(flowName, ctx)
       .then(() => {
         // TODO: get other artifacts from ctx and decorate res with proper data (headers, cookies, etc)
-        const status = ctx.httpRequest.res.status || 200
-        const body = ctx.httpRequest.res.body || {}
+        const status = ctx.http.res.statusCode || 200
+        const body = ctx.http.res.body || {}
 
         return res.status(status).json(body)
       })
       .catch((e) => {
+        console.log('MW: ERROR!')
         let status = 500
         if (e.status) {
           status = e.status

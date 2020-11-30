@@ -283,7 +283,7 @@ describe('exModular: controller', function () {
         }
       }
       console.log('prepare to run flow:')
-      return app.exModular.flow.run('Auth.Service', ctx)
+      return app.exModular.flow.run('Auth.Signup', ctx)
         .then((res) => {
           console.log('res:')
           console.log(res)
@@ -311,7 +311,7 @@ describe('exModular: controller', function () {
         }
       }
       console.log('add hook:')
-      Flow.flowAddStAfter(Flow.flows['Auth.Service'], { action: 'userFindByEmail' },
+      Flow.flowAddStAfter(Flow.flows['Auth.Signup'], { action: 'userFindByEmail' },
         {
           action: 'checkDomain',
           before: (ctx, stCtx) => {
@@ -321,7 +321,7 @@ describe('exModular: controller', function () {
 
       process.env.AUTH_SIGNUP_CHECK_DOMAIN = true
       console.log('prepare to run flow:')
-      return app.exModular.flow.run('Auth.Service', ctx)
+      return app.exModular.flow.run('Auth.Signup', ctx)
         .then((res) => {
           console.log('res:')
           console.log(res)
@@ -329,6 +329,12 @@ describe('exModular: controller', function () {
           console.log(ctx)
 
           expect(ctx).to.be.not.null()
+        })
+        .catch(e => {
+          console.log('TEST ERR:')
+          console.log(e)
+
+          throw e
         })
     })
   })

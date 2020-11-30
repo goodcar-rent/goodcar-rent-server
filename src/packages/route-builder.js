@@ -305,6 +305,16 @@ export const RouteBuilder = (app) => {
     return app
   }
 
+  const convertFlowToMW = (item) => {
+    const Flow = app.exModular.flow
+    if (typeof item === 'string') {
+      return Flow.flowMW(item)
+    } else if (typeof item === 'function') {
+      return item
+    }
+    throw new Error('convertFlowToMW: item is not a flow / function!')
+  }
+
   const generateRoutes = () => {
     const Wrap = app.exModular.services.wrap
 
@@ -328,7 +338,7 @@ export const RouteBuilder = (app) => {
           }
 
           if (route.handler) {
-            handlers = _.concat(handlers, Wrap(route.handler))
+            handlers = _.concat(handlers, Wrap(convertFlowToMW(route.handler)))
           }
 
           if (route.after) {
@@ -337,6 +347,9 @@ export const RouteBuilder = (app) => {
             }
             handlers = _.concat(handlers, _.flattenDeep(route.after))
           }
+
+          // replace flow names in handlers with mw functions:
+          handlers = handlers.map((_handler) => convertFlowToMW(_handler))
 
           switch (route.method) {
             case 'GET':
