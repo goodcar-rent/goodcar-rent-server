@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import * as ACCESS from '../const-access'
 
 export const ST = {
   IF: 'IF'
@@ -19,7 +20,7 @@ export const Flow = (app) => {
     {
       name: 'userCount',
       models: ['User'],
-      outputs: 'count',
+      output: 'count',
       fn: (stCtx) => stCtx.models.User.count()
         .then(count => {
           stCtx.count = count
@@ -68,6 +69,7 @@ export const Flow = (app) => {
     {
       name: 'checkDomain',
       input: 'email',
+      output: 'domain',
       models: 'UserDomain',
       services: 'mailer',
       fn: (stCtx) => {
@@ -78,19 +80,41 @@ export const Flow = (app) => {
         const { domain } = stCtx.services.mailer.parser.parseOneAddress(stCtx.email)
         if (!domain) {
           console.log('parse failed')
-          throw new Error(`checkDomain: failed to parse email ${stCtx.email}`)
+          const e = new Error(`checkDomain: failed to parse email ${stCtx.email}`)
+          e.status = 400
+          throw e
         }
         return stCtx.models.UserDomain.findOne({ where: { domain } })
           .then((_userDomain) => {
             if (!_userDomain) {
-              throw new Error(`checkDomain: domain ${domain} not registered! Reject`)
+              const e = new Error(`checkDomain: domain ${domain} not registered! Reject`)
+              e.status = 403
+              throw e
             }
             if (_userDomain.isAllow === false) {
-              throw new Error(`checkDomain: domain ${domain} restricted`)
+              const e = new Error(`checkDomain: domain ${domain} restricted`)
+              e.status = 403
+              throw e
             }
+            stCtx.domain = _userDomain
             return Promise.resolve()
           })
           .catch(e => { throw e })
+      }
+    },
+    {
+      name: 'userGroupAddUserToGroups',
+      input: ['user', { name: 'groups', type: 'array' }],
+      services: ['serial'],
+      models: 'UserGroup',
+      fn: (stCtx) => {
+        if (!stCtx.user.id) {
+          throw Error('userGroupAddUserToGroups action: user.id not found')
+        }
+
+        return stCtx.services.serial(stCtx.groups.map((group) => () => {
+          return stCtx.models.UserGroup.usersAdd(group, stCtx.user.id)
+        }))
       }
     },
     {
@@ -99,7 +123,7 @@ export const Flow = (app) => {
     },
     {
       name: 'delay',
-      inputs: 'ms',
+      input: 'ms',
       fn: (stCtx) => {
         return new Promise(resolve => setTimeout(resolve, stCtx.ms)).then(() => stCtx)
       }
@@ -202,6 +226,35 @@ export const Flow = (app) => {
         _action.output = [_action.output]
       }
 
+      // process params:
+      const processParams = (params) => {
+        if (!params) { return [] }
+
+        return params.map((item) => {
+          const i = {
+            name: '',
+            type: 'string',
+            required: false
+          }
+          if (typeof item === 'string') {
+            i.name = item
+            if (_.startsWith(item, '!')) {
+              // required property
+              i.required = true
+            }
+          } else if (typeof item === 'object' && item.name) {
+            i.name = item.name
+            i.required = item.required
+            i.type = item.type
+          } else {
+            throw new Error(`processAllActions.processParams: unknown type of item ${typeof item}`)
+          }
+          return i
+        })
+      }
+      _action.input = processParams(_action.input)
+      _action.output = processParams(_action.output)
+
       // process models
       // convert action.models into array
       if (!_action.models) {
@@ -282,11 +335,11 @@ export const Flow = (app) => {
     }
 
     // prepare action inputs, outputs:
-    action.input.map(input => {
-      stCtx[input] = null
+    action.input.map(item => {
+      stCtx[item.name] = null
     })
-    action.output.map(output => {
-      stCtx[output] = null
+    action.output.map(item => {
+      stCtx[item.name] = null
     })
     stCtx.models = action.import.models
     stCtx.services = action.import.services
@@ -363,9 +416,26 @@ export const Flow = (app) => {
     // run current st:
     const before = (st.before ? Promise.resolve(st.before(ctx, stCtx)) : Promise.resolve())
     return before
+      .then(() => {
+        // check if we have all inputs before fn:
+        action.input.map((item) => {
+          if (item.required && stCtx[item.name] === undefined) {
+            throw new Error(`runStAction: for action ${action.name} required param ${item.name} not found`)
+          }
+        })
+      })
       .then(() => Promise.resolve(action.fn(stCtx)))
       .then(res => {
         return (st.after ? Promise.resolve(st.after(ctx, stCtx)) : Promise.resolve())
+      })
+      .then((res) => {
+        // check if we have all inputs before fn:
+        action.output.map((item) => {
+          if (item.required && stCtx[item.name] === undefined) {
+            throw new Error(`runStAction: for action ${action.name} required param ${item.name} not found`)
+          }
+        })
+        return res
       })
       .catch((e) => { throw e })
   }
@@ -495,7 +565,7 @@ export const Flow = (app) => {
         return res.status(status).json(body)
       })
       .catch((e) => {
-        console.log('MW: ERROR!')
+        console.log(`MW: ${e.toString()}`)
         let status = 500
         if (e.status) {
           status = e.status

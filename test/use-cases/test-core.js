@@ -14,6 +14,7 @@ import supertest from 'supertest'
 import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
 import env from 'dotenv-safe'
+import _ from 'lodash'
 
 import App from '../../src/packages/app-builder'
 
@@ -265,8 +266,8 @@ describe('exModular: controller', function () {
     })
   })
 
-  describe('2: flow:', function () {
-    it('2-1: run experimental flow', function () {
+  describe('2: flow mw:', function () {
+    it('2-1: run flow from emulated http req', function () {
       // emulate http req:
       const ctx = {
         http: {
@@ -282,35 +283,15 @@ describe('exModular: controller', function () {
           }
         }
       }
-      console.log('prepare to run flow:')
       return app.exModular.flow.run('Auth.Signup', ctx)
         .then((res) => {
-          console.log('res:')
-          console.log(res)
-          console.log('ctx:')
-          console.log(ctx)
-
           expect(ctx).to.be.not.null()
         })
     })
     it('2-2: add hooks for domainCheck', function () {
       const Flow = app.exModular.flow
-      // emulate http req:
-      const ctx = {
-        http: {
-          req: {
-            body: {
-              email: UserAdmin.email,
-              password: UserAdmin.password
-            }
-          },
-          res: {
-            body: {},
-            status: null
-          }
-        }
-      }
-      console.log('add hook:')
+
+      // extend flow with additional step:
       Flow.flowAddStAfter(Flow.flows['Auth.Signup'], { action: 'userFindByEmail' },
         {
           action: 'checkDomain',
@@ -320,22 +301,55 @@ describe('exModular: controller', function () {
         })
 
       process.env.AUTH_SIGNUP_CHECK_DOMAIN = true
-      console.log('prepare to run flow:')
-      return app.exModular.flow.run('Auth.Signup', ctx)
+
+      return signupUser(context, UserAdmin,403)
+        // .then(() => loginAs(context, UserAdmin))
         .then((res) => {
-          console.log('res:')
-          console.log(res)
-          console.log('ctx:')
-          console.log(ctx)
-
-          expect(ctx).to.be.not.null()
-        })
-        .catch(e => {
-          console.log('TEST ERR:')
-          console.log(e)
-
-          throw e
+          expect(res.body).to.exist('Body should exist')
+          expect(res.body.error).to.exist('Body should exist')
         })
     })
+
+    it('2-3: domainCheck - add user to specified groups', function () {
+      const Flow = app.exModular.flow
+      console.log('add hook:')
+      Flow.flowAddStAfter(Flow.flows['Auth.Signup'], { action: 'userFindByEmail' },
+        {
+          action: 'checkDomain',
+          before: (ctx, stCtx) => {
+            stCtx.email = ctx.http.req.body.email
+          },
+          after: (ctx, stCtx) => {
+            ctx.data.domain = stCtx.domain
+          }
+        })
+
+      Flow.flowAddStAfter(Flow.flows['Auth.Signup'], { action: 'userCreate' },
+        {
+          action: 'userGroupAddUserToGroups',
+          before: (ctx, stCtx) => {
+            stCtx.user = ctx.data.user
+            stCtx.groups = ctx.data.domain.groups
+          }
+        })
+
+      process.env.AUTH_SIGNUP_CHECK_DOMAIN = true
+      console.log('prepare to run flow:')
+
+      const aUser = _.assign({}, UserAdmin, { email: 'admin@biomatrix.pro' })
+
+      return signupUser(context, aUser)
+        .then((res) => {
+          expect(res.body).to.exist('Body should exist')
+          expect(res.body.id).to.exist('Body should exist')
+          expect(res.body.email).to.be.equal(aUser.email)
+        })
+    })
+  })
+  describe('3. flow core:', function () {
+    it('3-1: check flow inputs and outputs', function () {
+      // TODO: wright some tests
+    })
+
   })
 })
