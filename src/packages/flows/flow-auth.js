@@ -59,7 +59,17 @@ export const authSignup = [
     condition: (ctx) => {
       return ctx.data.addAsAdmin
     },
-    flow: 'Auth.Service._ifAdmin'
+    flow: [
+      {
+        action: actions.adminAdd,
+        before: (ctx, stCtx) => {
+          stCtx.user = ctx.data.user
+        },
+        after: (ctx, stCtx) => {
+          ctx.data.addedAsAdmin = true
+        }
+      }
+    ]
   },
   {
     action: actions.nop,

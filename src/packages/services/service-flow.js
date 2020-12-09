@@ -15,9 +15,9 @@ export const Flow = (app) => {
   }
   Service.actions = flowActions.actions
 
-  Service.flows['Auth.Signup'] = flowAuth.authSignup
-  Service.flows['Auth.Service._ifAdmin'] = flowAuth.authServiceIfAdmin
-  Service.flows['Auth.СheckDomain'] = flowAuth.authCheckDomain
+  Service.flows.authSignup = flowAuth.authSignup
+  Service.flows.authServiceIfAdmin = flowAuth.authServiceIfAdmin
+  Service.flows.authCheckDomain = flowAuth.authCheckDomain
 
   Service.processAllActions = () => {
     if (!Service.actions) {
@@ -116,17 +116,24 @@ export const Flow = (app) => {
 
   /**
    * Метод для запуска действия по имени. Можно передать начальный контекст.
-   * @param flowName имя потока действий, который будет запущен
+   * @param flow имя потока действий, который будет запущен
    * @param flowCtx начальный контекст
    * @return {Promise<ctx>} возвращается Promise с контекстом на момент завершения выполнения
    */
-  Service.run = (flowName, flowCtx) => {
-    // console.log(`Run flow ${flowName} with context:\n${JSON.stringify(flowCtx)}`)
+  Service.run = (flow, flowCtx) => {
+    // console.log(`Run flow ${flow} with context:\n${JSON.stringify(flowCtx)}`)
     // prepare first step
 
-    const flow = Service.flows[flowName]
-    if (!flow) {
-      throw new Error(`flow named "${flowName}" not found`)
+    // flow can be string (then - its key path), or object itself
+    let _flow = null
+    if (typeof flow === 'string') {
+      _flow = _.get(Service.flows, flow)
+    } else if (typeof flow === 'object') {
+      _flow = flow
+    }
+
+    if (!_flow) {
+      throw new Error(`flow named "${_flow}" not found`)
     }
 
     if (!flowCtx) {
@@ -141,7 +148,7 @@ export const Flow = (app) => {
     }
 
     // start flow from first statement:
-    return Service.runSt(flow, flowCtx).catch((e) => { throw e })
+    return Service.runSt(_flow, flowCtx).catch((e) => { throw e })
   }
 
   /**
@@ -362,12 +369,12 @@ export const Flow = (app) => {
     return newFlow
   }
 
-  Service.flowMW = (flowName) => (req, res) => {
+  Service.flowMW = (flow) => (req, res) => {
     const ctx = { http: { req, res } }
     ctx.http.res.body = {}
     ctx.http.res.statusCode = 200
 
-    return Service.run(flowName, ctx)
+    return Service.run(flow, ctx)
       .then(() => {
         // TODO: get other artifacts from ctx and decorate res with proper data (headers, cookies, etc)
         const status = ctx.http.res.statusCode || 200

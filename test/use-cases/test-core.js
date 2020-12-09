@@ -285,7 +285,7 @@ describe('exModular: controller', function () {
           }
         }
       }
-      return app.exModular.flow.run('Auth.Signup', ctx)
+      return app.exModular.flow.run('authSignup', ctx)
         .then((res) => {
           expect(ctx).to.be.not.null()
         })
@@ -294,7 +294,7 @@ describe('exModular: controller', function () {
       const Flow = app.exModular.flow
 
       // extend flow with additional step:
-      Flow.flows['Auth.Signup'] = Flow.flowAddStAfter(Flow.flows['Auth.Signup'], { action: Flow.actions.userFindByEmail },
+      Flow.flows.authSignup = Flow.flowAddStAfter(Flow.flows.authSignup, { action: Flow.actions.userFindByEmail },
         {
           action: Flow.actions.checkDomain,
           before: (ctx, stCtx) => {
@@ -304,7 +304,7 @@ describe('exModular: controller', function () {
 
       process.env.AUTH_SIGNUP_CHECK_DOMAIN = true
 
-      return signupUser(context, UserAdmin,403)
+      return signupUser(context, UserAdmin, 403)
         // .then(() => loginAs(context, UserAdmin))
         .then((res) => {
           expect(res.body).to.exist('Body should exist')
@@ -315,7 +315,7 @@ describe('exModular: controller', function () {
     it('2-3: domainCheck - add user to specified groups', function () {
       const Flow = app.exModular.flow
       console.log('add hook:')
-      Flow.flows['Auth.Signup'] = Flow.flowAddStAfter(Flow.flows['Auth.Signup'], { action: Flow.actions.userFindByEmail },
+      Flow.flows.authSignup = Flow.flowAddStAfter(Flow.flows.authSignup, { action: Flow.actions.userFindByEmail },
         {
           action: Flow.actions.checkDomain,
           before: (ctx, stCtx) => {
@@ -326,7 +326,7 @@ describe('exModular: controller', function () {
           }
         })
 
-      Flow.flows['Auth.Signup'] = Flow.flowAddStAfter(Flow.flows['Auth.Signup'], { action: Flow.actions.userCreate },
+      Flow.flows.authSignup = Flow.flowAddStAfter(Flow.flows.authSignup, { action: Flow.actions.userCreate },
         {
           action: Flow.actions.userGroupAddUserToGroups,
           before: (ctx, stCtx) => {
