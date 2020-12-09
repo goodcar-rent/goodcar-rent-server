@@ -10,15 +10,32 @@ import App from '../../src/packages/app-builder'
 
 import {
   UserAdmin,
-  UserFirst, UserSecond, expected,
+  UserFirst,
+  UserSecond,
+  expected,
   // UserFirst,
   // userList,
-  loginAs, signupUser,
+  loginAs,
+  signupUser,
   meGroups,
   userGroupAdd,
   userGroupUsersAdd,
   permissionUserGroupCreate,
-  noteAdd, noteSave, userGroupUsersList, userGroupUsersRemove, meGrantAdd, noteList, meAccess, me
+  noteAdd,
+  noteSave,
+  userGroupUsersList,
+  userGroupUsersRemove,
+  meGrantAdd,
+  noteList,
+  meAccess,
+  me,
+  createAdmin,
+  createGroupManagers,
+  createUserFirst,
+  createPermsForNoteForManagers,
+  setAdminToken,
+  setUserFirstToken,
+  createUserSecond
   // userDelete,
   // userSave
 } from '../client/client-api'
@@ -127,106 +144,10 @@ describe('exModular: storage', function () {
   /**
    * сниппет для теста - создать пользователя Admin
    */
-  const createAdmin = () =>
-    signupUser(context, UserAdmin)
-      .then((res) => {
-        context.adminId = res.body.id
-        return loginAs(context, UserAdmin)
-      })
-      .then((res) => {
-        context.adminToken = res.body.token
-        context.token = context.adminToken
-        return res
-      })
-      .catch((e) => { throw e })
-
-  const setAdminToken = () => {
-    context.token = context.adminToken
-  }
-
-  const setUserFirstToken = () => {
-    context.token = context.userFirstToken
-  }
-  /**
-   * сниппет для теста - создать пользователя UserFirst
-   */
-  const createUserFirst = () => {
-    setAdminToken()
-    return signupUser(context, UserFirst)
-      .then((res) => {
-        context.userFirstId = res.body.id
-        return loginAs(context, UserFirst)
-      })
-      .then((res) => {
-        context.userFirstToken = res.body.token
-        setAdminToken()
-        return res
-      })
-      .catch((e) => { throw e })
-  }
-
-  const createUserSecond = () => {
-    setAdminToken()
-    return signupUser(context, UserSecond)
-      .then((res) => {
-        context.userSecondId = res.body.id
-        return loginAs(context, UserSecond)
-      })
-      .then((res) => {
-        context.userSecondToken = res.body.token
-        setAdminToken()
-        return res
-      })
-      .catch((e) => { throw e })
-  }
-
-  const createGroupManagers = () => {
-    setAdminToken()
-    return userGroupAdd(context, { name: 'Managers' })
-      .then((res) => {
-        context.groupManagers = res.body.id
-        return res
-      })
-      .catch((e) => { throw e })
-  }
-
-  const createPermsForNoteForGroup = (groupId) => {
-    return [
-      {
-        userGroupId: groupId,
-        accessObjectId: 'Note.list',
-        permission: ACCESS.AccessPermissionType.ALLOW.value
-      },
-      {
-        userGroupId: groupId,
-        accessObjectId: 'Note.item',
-        permission: ACCESS.AccessPermissionType.ALLOW.value
-      },
-      {
-        userGroupId: groupId,
-        accessObjectId: 'Note.create',
-        permission: ACCESS.AccessPermissionType.ALLOW.value
-      },
-      {
-        userGroupId: groupId,
-        accessObjectId: 'Note.remove',
-        permission: ACCESS.AccessPermissionType.ALLOW.value
-      },
-      {
-        userGroupId: groupId,
-        accessObjectId: 'Note.removeAll',
-        permission: ACCESS.AccessPermissionType.ALLOW.value
-      }
-    ]
-  }
-  const createPermsForNoteForManagers = () => {
-    return permissionUserGroupCreate(context, createPermsForNoteForGroup(context.groupManagers))
-      .catch((e) => { throw e })
-  }
 
   describe('exModular: storage', function () {
     it('s-1: storage.update:', function () {
-      return createAdmin()
+      return createAdmin(context)
         .then(() => noteAdd(context, { caption: '1' }))
         .then((res) => {
           expect(res.body).to.exist('Body should exist')
@@ -261,9 +182,9 @@ describe('exModular: storage', function () {
         .catch((e) => { throw e })
     })
     it('s-2: storage.refs: add, list, remove methods test', function () {
-      return createAdmin()
-        .then(() => createGroupManagers())
-        .then(() => createUserFirst())
+      return createAdmin(context)
+        .then(() => createGroupManagers(context))
+        .then(() => createUserFirst(context))
         .then(() => userGroupUsersAdd(context, context.groupManagers, [context.userFirstId, context.adminId]))
         .then((res) => {
           // 2-c1:
@@ -316,7 +237,7 @@ describe('exModular: storage', function () {
 
           context.adminToken = res.body.token
 
-          setAdminToken()
+          setAdminToken(context)
           return meGroups(context)
         })
         .then((res) => {
@@ -331,7 +252,7 @@ describe('exModular: storage', function () {
 
     describe('u-s-2: create user groups', function () {
       it('2-1: Managers group', function () {
-        return createAdmin()
+        return createAdmin(context)
           .then(() => userGroupAdd(context, { name: 'Managers' }))
           .then((res) => {
             // 2-1-c1: check if group created ok
@@ -345,7 +266,7 @@ describe('exModular: storage', function () {
           .catch((e) => { throw e })
       })
       it('2-2: Employee group', function () {
-        return createAdmin()
+        return createAdmin(context)
           .then(() => userGroupAdd(context, { name: 'Employee' }))
           .then((res) => {
             // 2-2-c1: check if group created ok
@@ -414,7 +335,7 @@ describe('exModular: storage', function () {
             expect(res.body).to.exist('res.body should exist')
             expect(res.body.token).to.exist('res.body.token should exist')
             context.userFirstToken = res.body.token
-            setUserFirstToken()
+            setUserFirstToken(context)
             return userGroupAdd(context, { name: 'Some group name' }, expected.ErrCodeForbidden)
           })
           .then((res) => {
@@ -449,8 +370,8 @@ describe('exModular: storage', function () {
 
     describe('u-s-5: create user groups and add users to groups', function () {
       it('5-1: add Managers group and UserFirst to that group', function () {
-        return createAdmin()
-          .then(() => createGroupManagers())
+        return createAdmin(context)
+          .then(() => createGroupManagers(context))
           .then((res) => {
             // 5-1-c1: check if group created ok
             expect(res.body).to.exist('Body should exist')
@@ -477,14 +398,14 @@ describe('exModular: storage', function () {
             expect(res.body.token).to.exist('res.body.token should exist')
             context.userFirstToken = res.body.token
 
-            setAdminToken()
+            setAdminToken(context)
             return userGroupUsersAdd(context, context.groupManagers, [context.userFirstId])
           })
           .then((res) => {
             // 5-1-c4: users are added to group:
             expect(res.body).to.exist('Body should exist')
             expect(res.body).to.be.an('array').that.have.lengthOf(1)
-            setUserFirstToken()
+            setUserFirstToken(context)
             return meGroups(context)
           })
           .then((res) => {
@@ -498,9 +419,9 @@ describe('exModular: storage', function () {
 
     describe('u-s-6: admin user delegate permissions to Note object', function () {
       it('6-1: add permission for Managers group - read/write', function () {
-        return createAdmin()
-          .then(() => createGroupManagers())
-          .then(() => createPermsForNoteForManagers())
+        return createAdmin(context)
+          .then(() => createGroupManagers(context))
+          .then(() => createPermsForNoteForManagers(context))
           .then((res) => {
             // 6-1-c2: permissions has been added
             expect(res.body).to.exist('Body should exist')
@@ -508,15 +429,15 @@ describe('exModular: storage', function () {
             expect(res.body.err).to.not.exist()
 
             // create user
-            return createUserFirst()
+            return createUserFirst(context)
           })
           .then(() => {
-            setAdminToken()
+            setAdminToken(context)
 
             return userGroupUsersAdd(context, context.groupManagers, [context.userFirstId])
           })
           .then(() => {
-            setUserFirstToken()
+            setUserFirstToken(context)
 
             return noteAdd(context, { caption: 'some note' })
           })
@@ -531,9 +452,9 @@ describe('exModular: storage', function () {
           .catch((e) => { throw e })
       })
       it('6-2: add permission for Employees group - read only', function () {
-        return createAdmin()
+        return createAdmin(context)
           .then(() => {
-            setAdminToken()
+            setAdminToken(context)
             return userGroupAdd(context, { name: 'Employee' })
           })
           .then((res) => {
@@ -558,15 +479,15 @@ describe('exModular: storage', function () {
             expect(res.body.err).to.not.exist()
 
             // create user
-            return createUserFirst()
+            return createUserFirst(context)
           })
           .then(() => {
-            setAdminToken()
+            setAdminToken(context)
 
             return userGroupUsersAdd(context, context.groupEmployee, [context.userFirstId])
           })
           .then(() => {
-            setUserFirstToken()
+            setUserFirstToken(context)
 
             return noteAdd(context, { caption: 'some note' }, expected.ErrCodeForbidden)
           })
@@ -579,8 +500,8 @@ describe('exModular: storage', function () {
           .catch((e) => { throw e })
       })
       it('6-3: grant permissions to other user', function () {
-        return createAdmin()
-          .then(() => createGroupManagers())
+        return createAdmin(context)
+          .then(() => createGroupManagers(context))
           .then(() => {
             const perms = [
               { userGroupId: context.groupManagers, accessObjectId: 'Note.list', permission: ACCESS.AccessPermissionType.ALLOW.value, withGrant: true },
@@ -594,21 +515,21 @@ describe('exModular: storage', function () {
           })
           .then(() => {
             // create user 1
-            return createUserFirst()
+            return createUserFirst(context)
           })
           .then(() => {
-            setAdminToken()
+            setAdminToken(context)
             return userGroupUsersAdd(context, context.groupManagers, [context.userFirstId])
           })
           .then(() => {
-            setUserFirstToken()
+            setUserFirstToken(context)
             return noteAdd(context, { caption: 'some note' })
           })
           .then(() => {
             // 6-1-c3: note were added
 
-            setAdminToken()
-            return createUserSecond()
+            setAdminToken(context)
+            return createUserSecond(context)
           })
           .then(() => {
             context.token = context.userSecondToken
@@ -619,7 +540,7 @@ describe('exModular: storage', function () {
             expect(res.body).to.exist('Body should exist')
             expect(res.body.err).to.exist()
 
-            setUserFirstToken()
+            setUserFirstToken(context)
             return meGrantAdd(
               context,
               {
@@ -648,7 +569,7 @@ describe('exModular: storage', function () {
             expect(res.body.err).to.not.exist()
 
             // try to add grant to permission that have withGrant=false
-            setUserFirstToken()
+            setUserFirstToken(context)
             return meGrantAdd(
               context,
               {
@@ -669,16 +590,16 @@ describe('exModular: storage', function () {
     })
     describe('u-s-7: Me routes', function () {
       it('7-1: me access', function () {
-        return createAdmin()
-          .then(() => createGroupManagers())
-          .then(() => createPermsForNoteForManagers())
-          .then(() => createUserFirst())
+        return createAdmin(context)
+          .then(() => createGroupManagers(context))
+          .then(() => createPermsForNoteForManagers(context))
+          .then(() => createUserFirst(context))
           .then(() => {
-            setAdminToken()
+            setAdminToken(context)
             return userGroupUsersAdd(context, context.groupManagers, [context.userFirstId])
           })
           .then(() => {
-            setUserFirstToken()
+            setUserFirstToken(context)
             return meAccess(context)
           })
           .then((res) => {
@@ -696,16 +617,16 @@ describe('exModular: storage', function () {
           .catch((e) => { throw e })
       })
       it('7-2: me groups', function () {
-        return createAdmin()
-          .then(() => createGroupManagers())
-          .then(() => createPermsForNoteForManagers())
-          .then(() => createUserFirst())
+        return createAdmin(context)
+          .then(() => createGroupManagers(context))
+          .then(() => createPermsForNoteForManagers(context))
+          .then(() => createUserFirst(context))
           .then(() => {
-            setAdminToken()
+            setAdminToken(context)
             return userGroupUsersAdd(context, context.groupManagers, [context.userFirstId])
           })
           .then(() => {
-            setUserFirstToken()
+            setUserFirstToken(context)
             return meGroups(context)
           })
           .then((res) => {
@@ -719,7 +640,7 @@ describe('exModular: storage', function () {
             expect(res.body[0]).not.to.have.property('users')
           })
           .then(() => {
-            setAdminToken()
+            setAdminToken(context)
 
             return meGroups(context)
           })
@@ -736,17 +657,17 @@ describe('exModular: storage', function () {
           .catch((e) => { throw e })
       })
       it('7-3: me', function () {
-        return createAdmin()
-          .then(() => createGroupManagers())
-          .then(() => createPermsForNoteForManagers())
-          .then(() => createUserFirst())
+        return createAdmin(context)
+          .then(() => createGroupManagers(context))
+          .then(() => createPermsForNoteForManagers(context))
+          .then(() => createUserFirst(context))
           .then(() => {
-            setAdminToken()
+            setAdminToken(context)
 
             return userGroupUsersAdd(context, context.groupManagers, [context.userFirstId])
           })
           .then(() => {
-            setUserFirstToken()
+            setUserFirstToken(context)
 
             return me(context)
           })
@@ -762,7 +683,7 @@ describe('exModular: storage', function () {
             expect(res.body).not.to.have.property('adminGroupId')
             expect(res.body).not.to.have.property('loggedGroupId')
 
-            setAdminToken()
+            setAdminToken(context)
 
             return me(context)
           })
@@ -784,11 +705,11 @@ describe('exModular: storage', function () {
 
     describe('u-s-8: Model hooks', function () {
       it('8-1: refs - after remove hook', function () {
-        return createAdmin()
-          .then(() => createUserFirst())
-          .then(() => createUserSecond())
+        return createAdmin(context)
+          .then(() => createUserFirst(context))
+          .then(() => createUserSecond(context))
           .then(() => {
-            setAdminToken()
+            setAdminToken(context)
 
             return me(context)
           })

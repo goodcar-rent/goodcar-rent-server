@@ -1,3 +1,5 @@
+import * as ACCESS from '../../src/packages/const-access'
+
 const adminPassword = 'admin12345'
 const userPassword = 'user12345'
 
@@ -252,3 +254,114 @@ export const noteSave = (context, aId, data, expectedCode) => context.request.pu
   .type('json')
   .accept('json')
   .expect(expectedCode || expected.Ok)
+
+export const createAdmin = (context) => {
+  if (!context) throw new Error('context param missing')
+
+  return signupUser(context, UserAdmin)
+    .then((res) => {
+      context.adminId = res.body.id
+      return loginAs(context, UserAdmin)
+    })
+    .then((res) => {
+      context.adminToken = res.body.token
+      context.token = context.adminToken
+      return res
+    })
+    .catch((e) => { throw e })
+}
+
+export const setAdminToken = (context) => {
+  if (!context) throw new Error('context param missing')
+
+  context.token = context.adminToken
+}
+
+export const setUserFirstToken = (context) => {
+  if (!context) throw new Error('context param missing')
+  context.token = context.userFirstToken
+}
+/**
+   * сниппет для теста - создать пользователя UserFirst
+   */
+export const createUserFirst = (context) => {
+  if (!context) throw new Error('context param missing')
+
+  setAdminToken(context)
+  return signupUser(context, UserFirst)
+    .then((res) => {
+      context.userFirstId = res.body.id
+      return loginAs(context, UserFirst)
+    })
+    .then((res) => {
+      context.userFirstToken = res.body.token
+      setAdminToken(context)
+      return res
+    })
+    .catch((e) => { throw e })
+}
+
+export const createUserSecond = (context) => {
+  if (!context) throw new Error('context param missing')
+
+  setAdminToken(context)
+  return signupUser(context, UserSecond)
+    .then((res) => {
+      context.userSecondId = res.body.id
+      return loginAs(context, UserSecond)
+    })
+    .then((res) => {
+      context.userSecondToken = res.body.token
+      setAdminToken(context)
+      return res
+    })
+    .catch((e) => { throw e })
+}
+
+export const createGroupManagers = (context) => {
+  if (!context) throw new Error('context param missing')
+
+  setAdminToken(context)
+  return userGroupAdd(context, { name: 'Managers' })
+    .then((res) => {
+      context.groupManagers = res.body.id
+      return res
+    })
+    .catch((e) => { throw e })
+}
+
+export const createPermsForNoteForGroup = (groupId) => {
+  return [
+    {
+      userGroupId: groupId,
+      accessObjectId: 'Note.list',
+      permission: ACCESS.AccessPermissionType.ALLOW.value
+    },
+    {
+      userGroupId: groupId,
+      accessObjectId: 'Note.item',
+      permission: ACCESS.AccessPermissionType.ALLOW.value
+    },
+    {
+      userGroupId: groupId,
+      accessObjectId: 'Note.create',
+      permission: ACCESS.AccessPermissionType.ALLOW.value
+    },
+    {
+      userGroupId: groupId,
+      accessObjectId: 'Note.remove',
+      permission: ACCESS.AccessPermissionType.ALLOW.value
+    },
+    {
+      userGroupId: groupId,
+      accessObjectId: 'Note.removeAll',
+      permission: ACCESS.AccessPermissionType.ALLOW.value
+    }
+  ]
+}
+export const createPermsForNoteForManagers = (context) => {
+  if (!context) throw new Error('context param missing')
+
+  return permissionUserGroupCreate(context, createPermsForNoteForGroup(context.groupManagers))
+    .catch((e) => { throw e })
+}
