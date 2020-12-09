@@ -30,7 +30,7 @@ export const Flow = (app) => {
     {
       name: 'userFindByEmail',
       models: 'User',
-      input: 'email',
+      input: '!email',
       output: 'user',
       fn: (stCtx) => stCtx.models.User.findOne({ where: { email: stCtx.email } })
         .then((_user) => {
@@ -50,14 +50,14 @@ export const Flow = (app) => {
     },
     {
       name: 'adminAdd',
-      input: 'user',
+      input: '!user',
       services: 'access',
       fn: (stCtx) => stCtx.services.access.addAdmin(stCtx.user)
     },
     {
       name: 'userCreate',
-      input: 'user',
-      output: 'user',
+      input: '!user',
+      output: '!user',
       models: 'User',
       fn: (stCtx) => stCtx.models.User.create(stCtx.user)
         .then((_user) => {
@@ -68,8 +68,8 @@ export const Flow = (app) => {
     },
     {
       name: 'checkDomain',
-      input: 'email',
-      output: 'domain',
+      input: '!email',
+      output: '!domain',
       models: 'UserDomain',
       services: 'mailer',
       fn: (stCtx) => {
@@ -241,6 +241,12 @@ export const Flow = (app) => {
             if (_.startsWith(item, '!')) {
               // required property
               i.required = true
+              i.name = item.substring(1)
+            }
+            if (_.startsWith(item, '?')) {
+              // required property
+              i.required = false
+              i.name = item.substring(1)
             }
           } else if (typeof item === 'object' && item.name) {
             i.name = item.name
@@ -319,8 +325,7 @@ export const Flow = (app) => {
     }
 
     // start flow from first statement:
-    return Service.runSt(flow, flowCtx)
-      .catch((e) => { throw e })
+    return Service.runSt(flow, flowCtx).catch((e) => { throw e })
   }
 
   /**
@@ -377,9 +382,9 @@ export const Flow = (app) => {
     return Promise.resolve()
       .then(() => {
         if (st.action) {
-          return Service.runStAction(flow, ctx)
+          return Service.runStAction(flow, ctx).catch(e => { throw e })
         } else if (st.type === ST.IF) {
-          return Service.runStIF(flow, ctx)
+          return Service.runStIF(flow, ctx).catch(e => { throw e })
         }
       })
       .then(() => {
@@ -414,28 +419,29 @@ export const Flow = (app) => {
     // console.log(` stCtx: ${JSON.stringify(stCtx)}`)
 
     // run current st:
-    const before = (st.before ? Promise.resolve(st.before(ctx, stCtx)) : Promise.resolve())
+    const before = (st.before ? Promise.resolve(st.before(ctx, stCtx)).catch(e => { throw e }) : Promise.resolve())
+
     return before
       .then(() => {
         // check if we have all inputs before fn:
         action.input.map((item) => {
-          if (item.required && stCtx[item.name] === undefined) {
-            throw new Error(`runStAction: for action ${action.name} required param ${item.name} not found`)
+          if (item.required && (stCtx[item.name] === undefined || stCtx[item.name] === null)) {
+            throw new Error(`runStAction: flow #${ctx.flow.ndx}, action ${action.name}, param ${item.name} - input required, but not found`)
           }
         })
       })
       .then(() => Promise.resolve(action.fn(stCtx)))
-      .then(res => {
-        return (st.after ? Promise.resolve(st.after(ctx, stCtx)) : Promise.resolve())
-      })
       .then((res) => {
         // check if we have all inputs before fn:
         action.output.map((item) => {
-          if (item.required && stCtx[item.name] === undefined) {
-            throw new Error(`runStAction: for action ${action.name} required param ${item.name} not found`)
+          if (item.required && (stCtx[item.name] === undefined || stCtx[item.name] === null)) {
+            throw new Error(`runStAction: flow #${ctx.flow.ndx}, action ${action.name}, param ${item.name} - output required, but not found`)
           }
         })
         return res
+      })
+      .then(res => {
+        return (st.after ? Promise.resolve(st.after(ctx, stCtx)) : Promise.resolve())
       })
       .catch((e) => { throw e })
   }
@@ -534,27 +540,6 @@ export const Flow = (app) => {
     const ctx = { http: { req, res } }
     ctx.http.res.body = {}
     ctx.http.res.statusCode = 200
-
-    // const r = {}
-    // r.baseUrl = req.baseUrl
-    // r.body = req.body
-    // r.cookies = req.cookies
-    // r.fresh = req.fresh
-    // r.hostname = req.hostname
-    // r.ip = req.ip
-    // r.ips = req.ips
-    // r.method = req.method
-    // r.originalUrl = req.originalUrl
-    // r.params = req.params
-    // r.path = req.path
-    // r.protocol = req.protocol
-    // r.query = req.query
-    // r.route = req.route
-    // r.secure = req.secure
-    // r.signedCookies = req.signedCookies
-    // r.stale = req.stale
-    // r.subdomains = req.subdomains
-    // r.xhr = req.xhr
 
     return Service.run(flowName, ctx)
       .then(() => {

@@ -13,6 +13,7 @@ import { describe, it, before, beforeEach, after } from 'mocha'
 import supertest from 'supertest'
 import chai, { expect } from 'chai'
 import dirtyChai from 'dirty-chai'
+import chaiAsPromised from 'chai-as-promised'
 import env from 'dotenv-safe'
 import _ from 'lodash'
 
@@ -29,6 +30,7 @@ import { ExtTest } from '../../src/ext-test/ext-test'
 // import * as ACCESS from '../../src/packages/const-access'
 
 chai.use(dirtyChai)
+chai.use(chaiAsPromised)
 
 // test case:
 describe('exModular: controller', function () {
@@ -347,9 +349,18 @@ describe('exModular: controller', function () {
     })
   })
   describe('3. flow core:', function () {
-    it('3-1: check flow inputs and outputs', function () {
-      // TODO: wright some tests
+    it('3-1: check for invalid flow input', function () {
+      const Flow = app.exModular.flow
+      const someFlowName = 'SomeFlow'
+      Flow.flows[someFlowName] = [
+        {
+          action: 'userFindByEmail',
+          before: (ctx, stCtx) => {
+            // we need to init stCtx.user, but we pass
+          }
+        }
+      ]
+      expect(Flow.run(someFlowName, {})).to.be.rejectedWith(Error)
     })
-
   })
 })
