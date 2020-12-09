@@ -1,9 +1,7 @@
 import _ from 'lodash'
-import * as ACCESS from '../const-access'
-
-export const ST = {
-  IF: 'IF'
-}
+import * as flowActions from '../flows/flow-actions'
+import * as flowAuth from '../flows/flow-auth'
+import { ST } from '../flows/flow-types'
 
 export const Flow = (app) => {
   const Service = {
@@ -15,203 +13,21 @@ export const Flow = (app) => {
     },
     flows: {}
   }
+  Service.actions = flowActions.actions
 
-  Service.actions = [
-    {
-      name: 'userCount',
-      models: ['User'],
-      output: 'count',
-      fn: (stCtx) => stCtx.models.User.count()
-        .then(count => {
-          stCtx.count = count
-          return stCtx
-        })
-    },
-    {
-      name: 'userFindByEmail',
-      models: 'User',
-      input: '!email',
-      output: 'user',
-      fn: (stCtx) => stCtx.models.User.findOne({ where: { email: stCtx.email } })
-        .then((_user) => {
-          stCtx.user = _user
-          return _user
-        })
-    },
-    {
-      name: 'userCheckIsFound',
-      input: 'user',
-      fn: (stCtx) => {
-        if (!stCtx.user) {
-          throw new Error('user not found')
-        }
-        return Promise.resolve(stCtx)
-      }
-    },
-    {
-      name: 'adminAdd',
-      input: '!user',
-      services: 'access',
-      fn: (stCtx) => stCtx.services.access.addAdmin(stCtx.user)
-    },
-    {
-      name: 'userCreate',
-      input: '!user',
-      output: '!user',
-      models: 'User',
-      fn: (stCtx) => stCtx.models.User.create(stCtx.user)
-        .then((_user) => {
-          stCtx.user = _user
-          return _user
-        })
-        .catch((e) => { throw e })
-    },
-    {
-      name: 'checkDomain',
-      input: '!email',
-      output: '!domain',
-      models: 'UserDomain',
-      services: 'mailer',
-      fn: (stCtx) => {
-        if (!process.env.AUTH_SIGNUP_CHECK_DOMAIN) {
-          console.log('no domain check')
-          return Promise.resolve()
-        }
-        const { domain } = stCtx.services.mailer.parser.parseOneAddress(stCtx.email)
-        if (!domain) {
-          console.log('parse failed')
-          const e = new Error(`checkDomain: failed to parse email ${stCtx.email}`)
-          e.status = 400
-          throw e
-        }
-        return stCtx.models.UserDomain.findOne({ where: { domain } })
-          .then((_userDomain) => {
-            if (!_userDomain) {
-              const e = new Error(`checkDomain: domain ${domain} not registered! Reject`)
-              e.status = 403
-              throw e
-            }
-            if (_userDomain.isAllow === false) {
-              const e = new Error(`checkDomain: domain ${domain} restricted`)
-              e.status = 403
-              throw e
-            }
-            stCtx.domain = _userDomain
-            return Promise.resolve()
-          })
-          .catch(e => { throw e })
-      }
-    },
-    {
-      name: 'userGroupAddUserToGroups',
-      input: ['user', { name: 'groups', type: 'array' }],
-      services: ['serial'],
-      models: 'UserGroup',
-      fn: (stCtx) => {
-        if (!stCtx.user.id) {
-          throw Error('userGroupAddUserToGroups action: user.id not found')
-        }
-
-        return stCtx.services.serial(stCtx.groups.map((group) => () => {
-          return stCtx.models.UserGroup.usersAdd(group, stCtx.user.id)
-        }))
-      }
-    },
-    {
-      name: 'nop',
-      fn: (stCtx) => Promise.resolve(stCtx)
-    },
-    {
-      name: 'delay',
-      input: 'ms',
-      fn: (stCtx) => {
-        return new Promise(resolve => setTimeout(resolve, stCtx.ms)).then(() => stCtx)
-      }
-    }
-  ]
-
-  Service.flows['Auth.CheckDomain'] = [
-    {
-      action: 'checkDomain',
-      before: (ctx, stCtx) => {
-        stCtx.user = ctx.data.user
-      }
-    }
-  ]
-
-  Service.flows['Auth.Service._ifAdmin'] = [
-    {
-      action: 'adminAdd',
-      before: (ctx, stCtx) => {
-        stCtx.user = ctx.data.user
-      },
-      after: (ctx, stCtx) => {
-        ctx.data.addedAsAdmin = true
-      }
-    }
-  ]
-
-  Service.flows['Auth.Signup'] = [
-    {
-      action: 'userCount',
-      after: (ctx, stCtx) => {
-        ctx.data.userCount = stCtx.count
-        ctx.data.addAsAdmin = (stCtx.count === 1)
-      }
-    },
-    {
-      action: 'userFindByEmail',
-      before: (ctx, stCtx) => {
-        stCtx.email = ctx.http.req.body.email
-      },
-      after: (ctx, stCtx) => {
-        if (stCtx.user) {
-          throw new Error(`User with email ${stCtx.email} already registered`)
-        }
-      }
-    },
-    {
-      action: 'userCreate',
-      before: (ctx, stCtx) => {
-        stCtx.user = {
-          name: ctx.http.req.body.name,
-          email: ctx.http.req.body.email,
-          password: ctx.http.req.body.password
-        }
-      },
-      after: (ctx, stCtx) => {
-        ctx.data.user = stCtx.user
-      }
-    },
-    {
-      type: ST.IF,
-      condition: (ctx) => {
-        return ctx.data.addAsAdmin
-      },
-      flow: 'Auth.Service._ifAdmin'
-    },
-    {
-      action: 'nop',
-      after: (ctx, stCtx) => {
-        ctx.http.res.body = ctx.data.user
-        ctx.http.res.statusCode = 201
-      }
-    }
-    // {
-    //   action: 'delay',
-    //   before: (ctx, stCtx) => { stCtx.ms = 3000 }
-    // }
-  ]
+  Service.flows['Auth.Signup'] = flowAuth.authSignup
+  Service.flows['Auth.Service._ifAdmin'] = flowAuth.authServiceIfAdmin
+  Service.flows['Auth.СheckDomain'] = flowAuth.authCheckDomain
 
   Service.processAllActions = () => {
     if (!Service.actions) {
       return
     }
-    if (!Array.isArray(Service.actions)) {
-      Service.actions = [Service.actions]
-    }
+    // if (!Array.isArray(Service.actions)) {
+    //   Service.actions = [Service.actions]
+    // }
 
-    Service.actions.map(_action => {
+    _.forOwn(Service.actions, (_action) => {
       // convert action.input into array
       if (!_action.input) {
         _action.input = []
@@ -411,9 +227,9 @@ export const Flow = (app) => {
     // console.log(`run action #${ctx.flow.ndx}: ${JSON.stringify(st)}\n ctx:${JSON.stringify(ctx)}`)
 
     // prepare to run action:
-    const action = _.find(Service.actions, { name: st.action })
-    if (!action) {
-      throw Error(`Action (${st.name}) not found at statement #${ctx.flow.ndx}`)
+    const action = st.action // _.find(Service.actions, { name: st.action })
+    if (!action || typeof action !== 'object') {
+      throw Error(`Action (${st.name}) not found at statement #${ctx.flow.ndx} or not object (${typeof action})`)
     }
     const stCtx = Service.prepareActionCtx(action)
     // console.log(` stCtx: ${JSON.stringify(stCtx)}`)
@@ -525,15 +341,25 @@ export const Flow = (app) => {
     return hooks.push(fn)
   }
 
+  /**
+   * Добавить stToAdd в скрипт flow после идентификатора stToFind
+   * @param flow
+   * @param stToFind
+   * @param stToAdd
+   * @return новый массив flow, старый массив остается нетронутым
+   */
   Service.flowAddStAfter = (flow, stToFind, stToAdd) => {
     if (!Array.isArray(flow)) {
       throw new Error('flowAddStAfter: flow parameter is not array')
     }
-    const ndx = _.findIndex(flow, stToFind)
+    const newFlow = _.clone(flow)
+    const ndx = _.findIndex(newFlow, stToFind)
     if (ndx === -1) {
-      throw new Error(`flowAddStAfter: st ${JSON.stringify(stToFind)} not found in flow ${JSON.stringify(flow)}`)
+      throw new Error(`flowAddStAfter: st not found, stToFind: ${JSON.stringify(stToFind)} not found in flow ${JSON.stringify(flow)}`)
     }
-    flow.splice(ndx + 1, 0, stToAdd)
+    newFlow.splice(ndx + 1, 0, stToAdd)
+
+    return newFlow
   }
 
   Service.flowMW = (flowName) => (req, res) => {

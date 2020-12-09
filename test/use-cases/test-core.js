@@ -294,9 +294,9 @@ describe('exModular: controller', function () {
       const Flow = app.exModular.flow
 
       // extend flow with additional step:
-      Flow.flowAddStAfter(Flow.flows['Auth.Signup'], { action: 'userFindByEmail' },
+      Flow.flows['Auth.Signup'] = Flow.flowAddStAfter(Flow.flows['Auth.Signup'], { action: Flow.actions.userFindByEmail },
         {
-          action: 'checkDomain',
+          action: Flow.actions.checkDomain,
           before: (ctx, stCtx) => {
             stCtx.email = ctx.http.req.body.email
           }
@@ -315,9 +315,9 @@ describe('exModular: controller', function () {
     it('2-3: domainCheck - add user to specified groups', function () {
       const Flow = app.exModular.flow
       console.log('add hook:')
-      Flow.flowAddStAfter(Flow.flows['Auth.Signup'], { action: 'userFindByEmail' },
+      Flow.flows['Auth.Signup'] = Flow.flowAddStAfter(Flow.flows['Auth.Signup'], { action: Flow.actions.userFindByEmail },
         {
-          action: 'checkDomain',
+          action: Flow.actions.checkDomain,
           before: (ctx, stCtx) => {
             stCtx.email = ctx.http.req.body.email
           },
@@ -326,9 +326,9 @@ describe('exModular: controller', function () {
           }
         })
 
-      Flow.flowAddStAfter(Flow.flows['Auth.Signup'], { action: 'userCreate' },
+      Flow.flows['Auth.Signup'] = Flow.flowAddStAfter(Flow.flows['Auth.Signup'], { action: Flow.actions.userCreate },
         {
-          action: 'userGroupAddUserToGroups',
+          action: Flow.actions.userGroupAddUserToGroups,
           before: (ctx, stCtx) => {
             stCtx.user = ctx.data.user
             stCtx.groups = ctx.data.domain.groups
