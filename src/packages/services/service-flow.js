@@ -140,9 +140,14 @@ export const Flow = (app) => {
       throw new Error('flow.run: ctx param required')
     }
 
-    if (!flowCtx.flow || flowCtx.flow.ndx === undefined) {
-      flowCtx.flow = { ndx: 0 }
+    if (!flowCtx.flow) {
+      flowCtx.flow = {}
     }
+
+    if (flowCtx.flow.ndx === undefined) {
+      flowCtx.flow.ndx = 0
+    }
+
     if (flowCtx.data === undefined) {
       flowCtx.data = {}
     }
@@ -370,7 +375,10 @@ export const Flow = (app) => {
   }
 
   Service.flowMW = (flow) => (req, res) => {
-    const ctx = { http: { req, res } }
+    const ctx = {
+      http: { req, res },
+      flow: { source: 'webReguest' }
+    }
     ctx.http.res.body = {}
     ctx.http.res.statusCode = 200
 
@@ -383,7 +391,7 @@ export const Flow = (app) => {
         return res.status(status).json(body)
       })
       .catch((e) => {
-        console.log(`MW: ${e.toString()}`)
+        console.log(`MW exception: ${e.toString()}`)
         let status = 500
         if (e.status) {
           status = e.status
