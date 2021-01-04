@@ -10,18 +10,6 @@ export const authCheckDomain = [
   }
 ]
 
-export const authServiceIfAdmin = [
-  {
-    action: actions.adminAdd,
-    before: (ctx, stCtx) => {
-      stCtx.user = ctx.data.user
-    },
-    after: (ctx, stCtx) => {
-      ctx.data.addedAsAdmin = true
-    }
-  }
-]
-
 export const authSignup = [
   {
     action: actions.userCount,

@@ -16,7 +16,6 @@ export const Flow = (app) => {
   Service.actions = flowActions.actions
 
   Service.flows.authSignup = flowAuth.authSignup
-  Service.flows.authServiceIfAdmin = flowAuth.authServiceIfAdmin
   Service.flows.authCheckDomain = flowAuth.authCheckDomain
 
   Service.processAllActions = () => {
