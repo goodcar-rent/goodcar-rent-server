@@ -1,0 +1,16 @@
+{
+  "appName": "goodcar-rent-server",
+  "version": "0.2.0",
+  "servicesPath": "./src/services",
+  "services": [
+    {
+      "name": "serial"
+    },
+    {
+      "name": "wrap"
+    },
+    {
+      "name": "storage"
+    }
+  ]
+}
