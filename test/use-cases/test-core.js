@@ -17,7 +17,7 @@ import chaiAsPromised from 'chai-as-promised'
 import env from 'dotenv-safe'
 import _ from 'lodash'
 
-import App from '../../src/packages/app-builder'
+import App from '../../src/packages/server-bricks'
 
 import {
   loginAs,

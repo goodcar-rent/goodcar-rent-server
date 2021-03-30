@@ -1,5 +1,5 @@
-import express from 'express'
-import appBuilder from './packages/app-builder'
+import Express from 'express'
+import serverBricks from './packages/server-bricks'
 import serverBuilder from './packages/server-builder'
 import { Deploy } from './ext-deploy/deploy'
 import env from 'dotenv-safe'
@@ -11,8 +11,10 @@ env.config()
 
 let app = null
 
+const express = Express()
+
 // build app & server
-appBuilder(express, {})
+serverBricks(express, {})
   .then((_app) => {
     app = _app
     Deploy(app)

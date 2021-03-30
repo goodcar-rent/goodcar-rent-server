@@ -40,13 +40,12 @@ import { SessionSocial } from './models/model-session-social'
 import { Intg } from '../ext-intg/intg'
 import { Flow } from './services/service-flow'
 
-export const appBuilder = (express, options) => {
+export const serverBricks = (express, options) => {
   if (!express) {
-    express = Express
+    express = Express()
   }
 
-  // build express app
-  const app = express()
+  const app = express
   app.env = process.env
 
   // enhance with exModular object
@@ -139,4 +138,4 @@ export const appBuilder = (express, options) => {
     .catch((err) => { throw err })
 }
 
-module.exports = appBuilder
+module.exports = serverBricks
