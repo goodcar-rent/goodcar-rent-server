@@ -7,6 +7,7 @@
   "license": "MIT",
   "scripts": {
     "start": "cross-env DEBUG='ex-modular:*' babel-node src/app.js",
+    "start-vnext": "cross-env DEBUG='ex-modular:*' babel-node src/app-vnext.js",
     "start:clear-db": "rimraf ./data/db.sqlite && cross-env DEBUG='ex-modular:*' babel-node src/app.js",
     "clean": "rimraf ./data/db.sqlite && rimraf lib",
     "clean:node_modules": "rimraf ./data/db.sqlite && rimraf lib && rimraf ./node_modules",
@@ -28,6 +29,7 @@
     "express-github-webhook": "^1.0.6",
     "express-list-endpoints": "^5.0.0",
     "express-validator": "^6.6.1",
+    "json-colorizer": "^2.2.2",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.21.5",
     "lodash": "^4.17.20",

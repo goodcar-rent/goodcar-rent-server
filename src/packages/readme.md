@@ -1,4 +1,4 @@
-# exModular 2.0
+# serverBricks 2.0
 
 collection of services:
 
@@ -13,7 +13,7 @@ collection of services:
 * `.serverBuilder`: сервис генерации сервера express из текущего приложения
 * `.message`: сервис уведомления о событиях, произошедших в системе
 
-### Сервис exModular:
+### Сервис serverBricks:
 
 Загрузкить конфигурацию, инициализировать список сервисов.
 
@@ -109,7 +109,7 @@ ExModular is Express-based app toolkit with features:
 
 Declaratively define models, routes, controllers.
 
-## exModular.services
+## serverBricks.services
 
 Services API:
 
@@ -208,7 +208,7 @@ action -  действие. Аналог вызова функции в скри
 
 ctx - контекст. Контекст бывает глобальный (общий для всего потока действий), и контекст действия. Контекст действия готовится для каждого st отдельно.  
 
-API сервиса flow монтируются на exModular.flow:
+API сервиса flow монтируются на serverBricks.flow:
 
 * `flows`: `{Object}` : потоки выполнения в системе, записаны под своими именами, имя - ключ в этом объекте
 * `add(name, flow)`: `fn` : добавить указанный flow под именем name в объект flows
