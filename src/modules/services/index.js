@@ -18,7 +18,7 @@ const isPromise = function (p) {
 export default (app, opt) => {
   return {
     initSync: (app, opt) => {},
-    init: (app, opt) => {},
+    init: (app, opt) => Promise.resolve(),
     serial: promiseSerial,
     isPromise
   }

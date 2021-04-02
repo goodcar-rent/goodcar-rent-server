@@ -8,7 +8,7 @@ export const initOpt = (app, opt) => {
   if (opt.bricks === undefined || opt.bricks === null) {
     opt.bricks = {}
     opt.bricks.auth = 'auth-bearer'
-    // opt.bricks.access = 'access'
+    opt.bricks.services = 'services'
   }
   return app
 }
@@ -111,4 +111,6 @@ export default async (opt) => {
   initModulesSync(app, opt)
 
   await initModules(app, opt)
+
+  return app
 }
