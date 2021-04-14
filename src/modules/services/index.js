@@ -17,8 +17,11 @@ const isPromise = function (p) {
 
 export default (app, opt) => {
   return {
+    // generic module API:
     initSync: (app, opt) => {},
-    init: (app, opt) => Promise.resolve(),
+    init: async (app, opt) => Promise.resolve(),
+
+    // Services module API:
     serial: promiseSerial,
     isPromise
   }

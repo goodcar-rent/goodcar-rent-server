@@ -49,8 +49,18 @@ const Logger = winston.createLogger({
 })
 
 export default (app, opt) => {
+  const aLogger = Logger()
+
   return {
+    // generic module API:
     initSync: (app, opt) => {},
-    init: (app, opt) => Promise.resolve()
+    init: async (app, opt) => Promise.resolve(),
+
+    // notify API:
+    log: (...msg) => aLogger.log(...msg),
+    error: (...msg) => aLogger.error(...msg),
+    warn: (...msg) => aLogger.warn(...msg),
+    info: (...msg) => aLogger.info(...msg),
+    debug: (...msg) => aLogger.debug(...msg)
   }
 }

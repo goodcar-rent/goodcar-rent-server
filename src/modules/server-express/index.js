@@ -44,29 +44,28 @@ import listEndpoints from 'express-list-endpoints'
 // import { Intg } from '../ext-intg/intg'
 // import { Flow } from './services/service-flow'
 
-export const serverExpress = (app, opt) => {
-  let express = null
 
-  if (!opt || !opt.express) {
-    express = Express()
-  }
+export default (app, opt) => {
+  // define local functions:
 
-  // app.env = process.env
+  // init default opt:
+  const makeDefOpt = (opt) => {
+    opt = opt || {}
+    opt.express = opt.express || Express()
+    opt.viewEngine = opt.viewEngine || 'pug'
+    opt.viewPath = opt.viewPath || path.join(__dirname, 'views')
+    opt.staticPath = opt.staticPath || path.join(__dirname, 'public')
+    opt.logger = opt.logger || logger
+    opt.loggerOptions = opt.loggerOptions || 'dev'
+    opt.urlencodedOptions = opt.urlencodedOptions || { extended: false }
+    opt.cors = opt.cors || cors
+    opt.corsOptions = opt.corsOptions || {
+      origin: '*',
+      allowedHeaders: 'Content-Type,Authorization,Content-Range,Accept,Accept-Encoding,Accept-Language,Location,Content-Location',
+      exposedHeaders: 'Content-Type,Authorization,Content-Range,Accept,Accept-Encoding,Accept-Language,Location,Content-Location'
+    }
 
-  // make default config
-  opt = opt || {}
-  opt.express = opt.express || Express()
-  opt.viewEngine = opt.viewEngine || 'pug'
-  opt.viewPath = opt.viewPath || path.join(__dirname, 'views')
-  opt.staticPath = opt.staticPath || path.join(__dirname, 'public')
-  opt.logger = opt.logger || logger
-  opt.loggerOptions = opt.loggerOptions || 'dev'
-  opt.urlencodedOptions = opt.urlencodedOptions || { extended: false }
-  opt.cors = opt.cors || cors
-  opt.corsOptions = opt.corsOptions || {
-    origin: '*',
-    allowedHeaders: 'Content-Type,Authorization,Content-Range,Accept,Accept-Encoding,Accept-Language,Location,Content-Location',
-    exposedHeaders: 'Content-Type,Authorization,Content-Range,Accept,Accept-Encoding,Accept-Language,Location,Content-Location'
+    return opt
   }
 
   const onError = (error) => {
@@ -85,6 +84,18 @@ export const serverExpress = (app, opt) => {
         throw error
     }
   }
+
+  let express = null
+
+  if (!opt || !opt.express) {
+    express = Express()
+  }
+
+  // app.env = process.env
+
+  // make default config
+  opt = makeDefOpt(opt)
+
 
   /**
    * Event listener for HTTP server "listening" event.
@@ -160,10 +171,13 @@ export const serverExpress = (app, opt) => {
       .then(() => app)
       .catch((err) => { throw err })
 
-  return {
+  const Module = {
+    // generic module API:
     initSync: (app, opt) => {},
-    init
+    init: async (app, opt) => {},
   }
+
+  return Module
 }
 
 module.exports = serverExpress
