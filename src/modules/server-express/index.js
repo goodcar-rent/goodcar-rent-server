@@ -68,23 +68,6 @@ export default (app, opt) => {
     return opt
   }
 
-  const onError = (error) => {
-    if (error.syscall !== 'listen') {
-      throw error
-    }
-    // handle specific listen errors with friendly messages
-    switch (error.code) {
-      case 'EACCES':
-        app.server.error(app.server.info.portType + ' requires elevated privileges')
-        process.exit(1)
-      case 'EADDRINUSE':
-        app.server.error(app.server.info.portType + ' is already in use')
-        process.exit(1)
-      default:
-        throw error
-    }
-  }
-
   let express = null
 
   if (!opt || !opt.express) {
@@ -144,8 +127,36 @@ export default (app, opt) => {
     .then(() => app)
     .catch((e) => { throw e })
   }
+
+  // syncInit:
+  const initSync = (app, opt) => {
+    const onError = (error) => {
+      const err = app.bricks.notify.err
+
+      if (!err) {
+        throw new Error('Notify module not initialized')
+      }
+      if (error.syscall !== 'listen') {
+        err(error.toString())
+        throw error
+      }
+
+      // handle specific listen errors with friendly messages
+      switch (error.code) {
+        case 'EACCES':
+          err(app.server.info.portType + ' requires elevated privileges')
+          process.exit(1)
+        case 'EADDRINUSE':
+          err(app.server.info.portType + ' is already in use')
+          process.exit(1)
+        default:
+          throw error
+      }
+    }
+  }
+
   // return promise that builds app:
-  const init = (app, opt) =>
+  const init = async (app, opt) =>
     Promise.resolve()
       .then(() => {
         // app.exModular.express = express
@@ -174,7 +185,7 @@ export default (app, opt) => {
   const Module = {
     // generic module API:
     initSync: (app, opt) => {},
-    init: async (app, opt) => {},
+    init,
   }
 
   return Module
