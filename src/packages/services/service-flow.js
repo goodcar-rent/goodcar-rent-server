@@ -132,7 +132,7 @@ export const Flow = (app) => {
     }
 
     if (!_flow) {
-      throw new Error(`flow named "${_flow}" not found`)
+      throw new Error(`flow.run: flow named "${_flow}" not found`)
     }
 
     if (!flowCtx) {

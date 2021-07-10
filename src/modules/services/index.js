@@ -16,10 +16,10 @@ const isPromise = function (p) {
 }
 
 export default (app, opt) => {
-  return {
-    initSync: (app, opt) => {},
-    init: (app, opt) => Promise.resolve(),
-    serial: promiseSerial,
-    isPromise
-  }
+  opt.initSync = (app, opt) => {}
+  opt.init = async (app, opt) => Promise.resolve(opt)
+  opt.serial = promiseSerial
+  opt.isPromise = isPromise
+
+  return opt
 }
