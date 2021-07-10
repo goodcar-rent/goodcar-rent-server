@@ -37,7 +37,7 @@ export const serverBuilder = (app, options) => {
     }
   }
 
-  return Promise.resolve()
+  return Promise.resolve()g
     .then(() => {
       // create info object with some server meta:
       const info = {}
