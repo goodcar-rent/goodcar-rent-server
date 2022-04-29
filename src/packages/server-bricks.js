@@ -74,12 +74,12 @@ export const serverBricks = (express, options) => {
       // configure view engine / static engine:
       app.set('views', options.viewPath)
       app.set('view engine', options.viewEngine)
-      app.use(express.static(options.staticPath))
+      app.use(Express.static(options.staticPath))
 
       // setup middlewares:
       app.use(options.logger(options.loggerOptions))
-      app.use(express.json())
-      app.use(express.urlencoded(options.urlencodedOptions))
+      app.use(Express.json())
+      app.use(Express.urlencoded(options.urlencodedOptions))
       app.use(cookieParser())
 
       // init cors:
