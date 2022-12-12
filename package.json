@@ -21,7 +21,7 @@
     "cors": "^2.8.5",
     "debug": "^4.1.1",
     "dotenv-safe": "^8.2.0",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-github-webhook": "^1.0.6",
     "express-list-endpoints": "^4.0.1",
     "express-validator": "^6.5.0",
