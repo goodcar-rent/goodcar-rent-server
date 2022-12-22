@@ -25,7 +25,7 @@
     "express-github-webhook": "^1.0.6",
     "express-list-endpoints": "^4.0.1",
     "express-validator": "^6.5.0",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "knex": "^0.21.1",
     "lodash": "^4.17.15",
     "marked": "^1.1.0",
